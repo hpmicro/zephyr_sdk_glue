@@ -1,5 +1,5 @@
-# Copyright (c) 2023 HPMicro
-# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
 
 if(${CONFIG_SOC_FAMILY} STREQUAL "hpmicro")
 

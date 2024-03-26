@@ -1,5 +1,5 @@
-# Copyright (c) 2023 HPMicro
-# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
 
 # Usually BOARD_DIR is an absolute path and sourced through '<ZEPHYR_ROOT>/boards/Kconfig'.
 # But for compliance and doc generation it's a glob and this line ensures that

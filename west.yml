@@ -4,7 +4,7 @@
 # specifies the location of this manifest file like this:
 #
 #     [manifest]
-#     path = zephyr_boards
+#     path = sdk_glue
 
 manifest:
   version: "1.0"

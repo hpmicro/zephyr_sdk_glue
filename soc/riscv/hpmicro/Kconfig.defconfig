@@ -1,7 +1,7 @@
 # Configuration options for hpmicro riscv SOCs supporting the riscv privileged
 # architecture specification
 
-# Copyright (c) 2023 HPMicro
+# Copyright (c) 2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 config SERIAL_INIT_PRIORITY

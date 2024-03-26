@@ -1,4 +1,4 @@
-# Copyright (c) 2023 HPMicro
+# Copyright (c) 2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 add_subdirectory(common)

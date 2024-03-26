@@ -16,13 +16,9 @@ config SOC_HPM5361
 	select RISCV_ISA_RV32I
 	select RISCV_ISA_EXT_ZICSR
 	select RISCV_ISA_EXT_ZIFENCEI
-	select HAS_HPMSDK_PDM
 	select HAS_HPMSDK_PLLCTL
 	select HAS_HPMSDK_PMP
-	select HAS_HPMSDK_PCFG	
-	select HAS_HPMICRO_ADC12
-	select HAS_HPMICRO_ADC16
-    select HAS_HPMICRO_CAN
+	select HAS_HPMSDK_PCFG
 
 endchoice
 

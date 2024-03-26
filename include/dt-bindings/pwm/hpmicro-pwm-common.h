@@ -1,0 +1,13 @@
+/*
+ * Copyright (c) 2019 Vestas Wind Systems A/S
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+#ifndef ZEPHYR_INCLUDE_DT_BINDINGS_PINCTRL_HPMICRO_PWM_COMMON_H_
+#define ZEPHYR_INCLUDE_DT_BINDINGS_PINCTRL_HPMICRO_PWM_COMMON_H_
+
+#define PWM_TRIG_MASK	0x2
+#define PWM_TRIG_ENABLE (0 << 1)
+#define PWM_TRIG_DISABLE (1 << 1)
+
+#endif /* ZEPHYR_INCLUDE_DT_BINDINGS_PWM_PWM_H_ */

@@ -1,0 +1,72 @@
+# Copyright 2022 hpmicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro UART
+
+compatible: "hpmicro,hpm-uart"
+
+include: [uart-controller.yaml, pinctrl-device.yaml]
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    clock-name:
+      type: int
+      description: Uart clock name
+      required: true
+
+    clock-src:
+      type: int
+      description: Uart clock src
+      required: true
+    
+    uart-idle-trgm-reg:
+      required: false
+      type: int
+      description: Uart idle trgm base addr
+    
+    uart-idle-trgm-pin:
+      type: int
+      description: Uart idle trgm pin
+    
+    uart-idle-trgm-input-src:
+      type: int
+      description: Uart idle trgm inut source
+    
+    uart-idle-trgm-output-gptmr-in:
+      type: int
+      description: Uart idle trgm output to gptmr
+    
+    uart-idle-trgm-output-gptmr-sync:
+      type: int
+      description: Uart idle trgm output to gptmr sync
+    
+    uart-idle-gptmr-reg:
+      type: int
+      description: Uart idle gptmr base addr
+
+    uart-idle-gptmr-clock-name:
+      type: int
+      description: Uart idle gptmr clock name
+
+    dmas:
+      description: |
+        Optional TX & RX dma specifiers.  Each specifier will have a phandle
+        reference to the dmac controller, the channel number, and peripheral
+        trigger source.
+
+    dma-names:
+      description: |
+        Required if the dmas property exists.  This should be "tx" and "rx"
+        to match the dmas property.
+    
+    loopback:
+      type: boolean
+      description: |
+        Enable loopback mode on LPUART peripheral. When present, RX pin is
+        disconnected, and transmitter output is internally connected to
+        the receiver input.

@@ -1,0 +1,12 @@
+# Copyright 2023 hpmicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_PINCTRL := hpmicro,hpm-pinctrl
+
+config PINCTRL_HPMICRO
+	bool "Pin controller driver for HPMicro MCUs"
+	depends on DT_HAS_HPMICRO_HPM_PINCTRL_ENABLED
+	select HAS_HPMSDK_PINCTRL
+	default y
+	help
+	  Enable pin controller driver for HPMicro series MCUs

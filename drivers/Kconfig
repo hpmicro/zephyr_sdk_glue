@@ -1,0 +1,11 @@
+# Copyright (c) 2023 HPMicro
+# SPDX-License-Identifier: BSD-3-Clause
+
+menu "Device Drivers"
+
+rsource "serial/Kconfig.hpmicro"
+rsource "pinctrl/Kconfig.hpmicro"
+rsource "dma/Kconfig.hpmicro"
+rsource "gpio/Kconfig.hpmicro"
+
+endmenu

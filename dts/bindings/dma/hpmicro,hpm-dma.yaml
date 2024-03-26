@@ -1,0 +1,37 @@
+# Copyright 2022 hpmicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro DMA(hdma/xdma) controller
+
+compatible: "hpmicro,hpm-dma"
+
+include: dma-controller.yaml
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    dma-channels:
+      required: true
+
+    dma-requests:
+      required: true
+
+    "#dma-cells":
+      type: int
+      required: true
+      description: Number of items to expect in a DMAMUX specifier
+
+
+#- #dma-cells : Must be <2>.
+#  The 1st cell specifies the channel.
+#    Specific request source can only be multiplexed by specific channels
+#  The 2nd cell specifies the request source(slot) ID.
+#    See the SoC's reference manual for all the supported request sources.
+
+dma-cells:
+  - channel
+  - source

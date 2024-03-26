@@ -1,0 +1,35 @@
+# Configuration options for hpmicro riscv SOCs supporting the riscv privileged
+# architecture specification
+
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_FAMILY_RISCV_PRIVILEGED
+	bool
+
+config SOC_FAMILY_HPM
+	bool
+
+if SOC_FAMILY_HPM
+
+config SOC_FAMILY
+	string
+	default "hpmicro"
+	depends on SOC_FAMILY_RISCV_PRIVILEGED
+
+config SOC_ANDES_V5_HWDSP
+	bool "AndeStar V5 DSP ISA"
+	select RISCV_SOC_CONTEXT_SAVE
+	depends on !RISCV_GENERIC_TOOLCHAIN
+	help
+		This option enables the AndeStar v5 hardware DSP, in order to
+		support using the DSP instructions.
+
+config RISCV_ISA_EXT_ZICSR
+	bool
+config RISCV_ISA_EXT_ZIFENCEI
+	bool
+	
+source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/riscv/hpmicro/*/Kconfig.soc"
+
+endif # SOC_FAMILY_HPM

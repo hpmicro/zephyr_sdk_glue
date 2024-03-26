@@ -1,0 +1,11 @@
+# Copyright (c) 2023 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HPM5XXX
+	bool "HPMicro HPM5300 Series"
+	select RISCV
+	select SOC_FAMILY_RISCV_PRIVILEGED
+	select SOC_FAMILY_HPM
+	select ZEPHYR_HPM_SDK_MODULE
+	help
+	  Enable support for HPMicro HPM5300 series SoC

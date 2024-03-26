@@ -1,0 +1,11 @@
+# Configuration options for hpmicro riscv SOCs supporting the riscv privileged
+# architecture specification
+
+# Copyright (c) 2023 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SERIAL_INIT_PRIORITY
+    default 0
+    depends on SERIAL
+
+source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/riscv/hpmicro/*/Kconfig.defconfig.series"

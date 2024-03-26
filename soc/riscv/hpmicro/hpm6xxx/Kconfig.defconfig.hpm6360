@@ -1,0 +1,22 @@
+# Copyright (c) 2023 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_HPM6360
+
+config SOC
+	string
+	default "hpm6360"
+
+config SYS_CLOCK_TICKS_PER_SEC
+	default 1000
+
+config MAIN_STACK_SIZE
+	default 4096
+
+config IDLE_STACK_SIZE
+	default 2048
+
+config TEST_EXTRA_STACK_SIZE
+	default 2048
+
+endif # HPM6360

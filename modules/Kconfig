@@ -1,0 +1,7 @@
+# Copyright (c) 2023 HPMicro
+# SPDX-License-Identifier: BSD-3-Clause
+
+rsource "hpm_sdk/Kconfig"
+
+comment "hpm_sdk module not available."
+	depends on !ZEPHYR_HPM_SDK_MODULE

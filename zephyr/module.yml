@@ -1,0 +1,9 @@
+name: sdk_glue
+build:
+  cmake: .
+  kconfig: Kconfig.hpm
+  settings:
+    board_root: .
+    dts_root: .
+    soc_root: .
+    module_ext_root: .

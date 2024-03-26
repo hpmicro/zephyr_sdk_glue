@@ -17,7 +17,6 @@ set(HPM_SDK_LIB_ITF zephyr_interface)
 set(HPM_SDK_GCC_LIB zephyr)
 set(HPM_SDK_NDSGCC_LIB_ITF hpm_sdk_ndsgcc_lib_itf)
 add_library(${HPM_SDK_NDSGCC_LIB_ITF} INTERFACE)
-set(ADAPTED_ZEPHYR 1)
 set(USE_CUSTOM_STARTUP 1)
 
 add_subdirectory(${HPM_SDK_DIR}/arch ${HPM_SDK_BINARY_DIR}/arch)

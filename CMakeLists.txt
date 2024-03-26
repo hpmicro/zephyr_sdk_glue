@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 set(HPM_ZEPHYR_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "hpmicro zephyr root directory")
-set(HPM_SDK_DIR ${HPM_ZEPHYR_DIR}/../hpm_include_zephyr CACHE PATH "hpmicro sdk root directory")
+set(HPM_SDK_DIR ${HPM_ZEPHYR_DIR}/../hpm_sdk CACHE PATH "hpmicro sdk root directory")
 
 include(${HPM_ZEPHYR_DIR}/cmake/version.cmake)
 include(${HPM_SDK_DIR}/cmake/cmake-ext.cmake)

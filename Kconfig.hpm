@@ -9,7 +9,7 @@ orsource "./$(BOARD_DIR)/Kconfig"
 
 menu "Hpmicro Zephyr Glue"
 
-rsource "modules/Kconfig"
 rsource "drivers/Kconfig"
+rsource "modules/Kconfig"
 
 endmenu

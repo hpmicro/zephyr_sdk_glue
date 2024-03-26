@@ -1,14 +1,12 @@
-# Copyright (c) 2023 HPMicro
-# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
 DT_COMPAT_HPM_UART := hpmicro,hpm-uart
 
-config UART_HPM
+config UART_HPMICRO
 	bool "HPMICRO serial driver"
 	default y
 	depends on DT_HAS_HPMICRO_HPM_UART_ENABLED
 	select HAS_HPMSDK_UART
-	select HAS_HPMSDK_GPTMR
-	select HAS_HPMSDK_DMA
 	select SERIAL_HAS_DRIVER
 	select SERIAL_SUPPORT_INTERRUPT
 	select SERIAL_SUPPORT_ASYNC

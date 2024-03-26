@@ -1,4 +1,4 @@
-# Copyright 2022 hpmicro
+# Copyright 2024 hpmicro
 # SPDX-License-Identifier: Apache-2.0
 
 DT_COMPAT_HPMICRO_HPM_GPIO := hpmicro,hpm-gpio

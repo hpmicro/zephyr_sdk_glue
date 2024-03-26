@@ -1,4 +1,4 @@
-# Copyright 2023 hpmicro
+# Copyright 2024 hpmicro
 # SPDX-License-Identifier: Apache-2.0
 
 DT_COMPAT_HPM_PINCTRL := hpmicro,hpm-pinctrl

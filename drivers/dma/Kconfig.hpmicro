@@ -1,11 +1,11 @@
-# Copyright (c) 2023 HPMicro
-# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
 DT_COMPAT_HPM_DMA := hpmicro,hpm-dma
 
-config DMA_HPM
+config DMA_HPMICRO
 	bool "HPMICRO DMA driver"
 	default y
 	depends on DT_HAS_HPMICRO_HPM_DMA_ENABLED
-	select USE_HPMSDK_DMA
+	select HAS_HPMSDK_DMA
 	help
 	  This option enables the DMA driver for HPM SoC family.

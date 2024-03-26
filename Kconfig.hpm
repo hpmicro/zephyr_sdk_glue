@@ -1,0 +1,15 @@
+# Copyright (c) 2023 HPMicro
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Usually BOARD_DIR is an absolute path and sourced through '<ZEPHYR_ROOT>/boards/Kconfig'.
+# But for compliance and doc generation it's a glob and this line ensures that
+# boards in sdk-nrf are sourced properly in those occasions.
+orsource "./$(BOARD_DIR)/Kconfig.board"
+orsource "./$(BOARD_DIR)/Kconfig"
+
+menu "Hpmicro Zephyr Glue"
+
+rsource "modules/Kconfig"
+rsource "drivers/Kconfig"
+
+endmenu

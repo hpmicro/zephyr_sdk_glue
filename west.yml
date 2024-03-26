@@ -1,0 +1,37 @@
+# The west manifest file (west.yml) for the hpmicro SDK.
+#
+# The per-workspace west configuration file, .west/config,
+# specifies the location of this manifest file like this:
+#
+#     [manifest]
+#     path = zephyr_boards
+
+manifest:
+  version: "1.0"
+
+  remotes:
+    - name: oss
+      url-base: git@192.168.11.211:oss
+    - name: sw
+      url-base: git@192.168.11.211:sw
+
+  defaults:
+    remote: oss
+
+  projects:
+    - name: zephyr
+      repo-path: hpm_zephyrproject
+      revision: v3.4.0-hpm-branch
+      import:
+        name-allowlist:
+          - segger
+    - name: hpm_sdk
+      repo-path: hpm_sdk
+      revision: e2263b7e6b70a24a89f0ebf1f4db35760173d3ab
+      remote: sw
+
+  # West-related configuration for the nrf repository.
+  self:
+    path: sdk_glue
+    # This line configures west extensions.
+#    west-commands: scripts/west-commands.yml

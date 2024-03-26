@@ -5,10 +5,10 @@
  *
  */
 
-#ifndef HPM_SDK_VERSION_H
-#define HPM_SDK_VERSION_H
+#ifndef SDK_GLUE_VERSION_H
+#define SDK_GLUE_VERSION_H
 
-#cmakedefine SDK_VERSION_CODE @SDK_VERSION_CODE@
+#define SDK_VERSION_CODE @SDK_VERSION_CODE@
 #define SDK_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
 
 #define SDKVERSION          @SDKVERSION@
@@ -21,4 +21,4 @@
 #define BUILD_VERSION          @BUILD_VERSION@
 
 
-#endif /* HPM_SDK_VERSION_H */
+#endif /* SDK_GLUE_VERSION_H */

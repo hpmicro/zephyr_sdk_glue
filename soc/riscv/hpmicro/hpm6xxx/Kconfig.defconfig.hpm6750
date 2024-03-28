@@ -10,6 +10,10 @@ config SOC
 config SYS_CLOCK_TICKS_PER_SEC
 	default 1000
 
+config MAIN_FREQUENCY
+	int "SOC 6750 MAIN FREQUENCY"
+	default 648000000
+
 config MAIN_STACK_SIZE
 	default 4096
 

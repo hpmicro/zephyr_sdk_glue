@@ -24,8 +24,6 @@ add_subdirectory(${HPM_SDK_DIR}/soc ${HPM_SDK_BINARY_DIR}/soc)
 add_subdirectory(${HPM_SDK_DIR}/drivers ${HPM_SDK_BINARY_DIR}/drivers)
 add_subdirectory(${HPM_SDK_DIR}/components/enet_phy ${HPM_SDK_BINARY_DIR}/components)
 
-sdk_inc(${HPM_SDK_DIR}/boards/${HPM_BOARD_DIR})
-sdk_src(${HPM_SDK_DIR}/boards/${HPM_BOARD_DIR}/pinmux.c)
 sdk_inc(.)
 endif()
 

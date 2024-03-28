@@ -207,10 +207,8 @@ static int hpmicro_soc_init(void)
 	uint32_t key;
 
 	key = irq_lock();
-//TODO: fixed clock-control
 	soc_init_clock();
 	soc_init_pmp();
-
 	irq_unlock(key);
 
 	return 0;

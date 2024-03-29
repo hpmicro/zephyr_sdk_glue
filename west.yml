@@ -29,6 +29,10 @@ manifest:
       repo-path: hpm_sdk
       revision: e2263b7e6b70a24a89f0ebf1f4db35760173d3ab
       remote: sw
+    - name: sdk_env
+      repo-path: sdk_env
+      revision: release/v1.4.0-hpm6e00-er
+      remote: sw
 
   # West-related configuration for the nrf repository.
   self:

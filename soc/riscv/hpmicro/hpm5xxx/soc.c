@@ -15,7 +15,6 @@
 #ifdef CONFIG_XIP
 #include "hpm_bootheader.h"
 #endif
-extern void board_init_ahb(void);
 
 #ifdef CONFIG_XIP
 __attribute__ ((section(".nor_cfg_option"))) const uint32_t option[4] = {0xfcf90001, 0x00000007, 0x0, 0x0};

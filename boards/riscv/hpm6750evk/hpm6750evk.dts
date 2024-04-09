@@ -157,24 +157,33 @@
 	trig-input-src = <51>;
 };
 
-&flash0 {
+&xpi0 {
 	status = "okay";
-	partitions {
-		compatible = "fixed-partitions";
-		#address-cells = <1>;
-		#size-cells = <1>;
+	flash0: flash@0 {
+		compatible = "soc-nv-flash";
+		reg = <0x80000000 DT_SIZE_M(16)>;
+		status = "okay";
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
 
-		boot_partition: partition@0 {
-			label = "mcuboot";
-			reg = <0x0 0x3000>;
-		};
+			boot_partition: partition@0 {
+				label = "mcuboot";
+				reg = <0x0 0x3000>;
+			};
 
-		slot0_partition: partition@3000 {
-			label = "image-0";
-			reg = <0x3000 DT_SIZE_M(4)>;
+			slot0_partition: partition@3000 {
+				label = "image-0";
+				reg = <0x3000 DT_SIZE_M(4)>;
+			};
 		};
-    };
+	};
 };
+
 &can0 {
     status = "okay";
     pinctrl-0 = <&pinmux_can0>;

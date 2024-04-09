@@ -239,17 +239,19 @@ static int uart_hpm_configure_init(const struct device *dev, const struct uart_c
 	UART_Type * base = (UART_Type *)config->base;
 
 #ifdef CONFIG_UART_ASYNC_API
-	if (!device_is_ready(data->dma_tx.dma_dev)) {
-		LOG_ERR("%s device is not ready", data->dma_tx.dma_dev->name);
-		return -ENODEV;
-	}
+	// if (!device_is_ready(data->dma_tx.dma_dev)) {
+	// 	LOG_ERR("%s device is not ready", data->dma_tx.dma_dev->name);
+	// 	return -ENODEV;
+	// }
 
-	if (!device_is_ready(data->dma_rx.dma_dev)) {
-		LOG_ERR("%s device is not ready", data->dma_rx.dma_dev->name);
-		return -ENODEV;
-	}
+	// if (!device_is_ready(data->dma_rx.dma_dev)) {
+	// 	LOG_ERR("%s device is not ready", data->dma_rx.dma_dev->name);
+	// 	return -ENODEV;
+	// }
 #endif
 	clock_set_source_divider(config->clock_name, config->clock_src, 1U);
+	clock_add_to_group(config->clock_name, 0);
+
 	uart_default_config(base, &uart_config);
 	uart_config.src_freq_in_hz =	 clock_get_frequency(config->clock_name);
 	uart_config.baudrate = cfg->baudrate;

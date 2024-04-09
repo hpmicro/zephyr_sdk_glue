@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <hpmicro/hpm6xxx.dtsi>
-#include <hpmicro/hpm6xxx_dualcore.dtsi>
+#include <hpmicro/hpm67xx.dtsi>
+#include <hpmicro/hpm67xx_dualcore.dtsi>
 
 / {
 

@@ -16,8 +16,8 @@
 		zephyr,console = &uart0;
 		zephyr,shell-uart = &uart0;
 		zephyr,sram = &sram;
-		zephyr,itcm = &ilm0;
-		zephyr,dtcm = &dlm0;
+		zephyr,itcm = &ilm;
+		zephyr,dtcm = &dlm;
 		zephyr,flash = &flash0;
 		zephyr,code-partition = &slot0_partition;
         zephyr,canbus = &can0;
@@ -158,9 +158,14 @@
 };
 
 &xpi0 {
-	reg = <>
+	status = "okay";
 	flash0: flash@0 {
+		compatible = "soc-nv-flash";
+		reg = <0x80000000 DT_SIZE_M(16)>;
 		status = "okay";
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;

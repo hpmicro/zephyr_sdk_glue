@@ -1,0 +1,40 @@
+/*
+ * Copyright 2024 hpmicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <mem.h>
+#include <freq.h>
+/ {
+	cpus {
+		cpu1: cpu@1 {
+			compatible = "andestech,andescore-d45", "riscv"; /* riscv custom */
+			reg = <1>;
+			status = "okay";
+			riscv,isa = "rv32gc_xandes";
+			i-cache-line-size = <64>;
+			d-cache-line-size = <64>;
+
+			cpu1_intc: interrupt-controller {
+				compatible = "riscv,cpu-intc";
+				#address-cells = <0>;
+				#interrupt-cells = <1>;
+				interrupt-controller;
+			};
+		};
+	};
+
+	soc {
+		core1_ilm_slv: memory@1000000 {
+			reg = <0x1180000 DT_SIZE_K(256)>;
+		};
+
+		core1_dlm_slv: memory@1040000 {
+			reg = <0x11C0000 DT_SIZE_K(256)>;
+		};
+	};
+};
+
+&mtimer {
+	interrupts-extended = <&cpu0_intc 7 &cpu1_intc 7>;
+};

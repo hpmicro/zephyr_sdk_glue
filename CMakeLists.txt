@@ -4,7 +4,9 @@
 set(HPM_ZEPHYR_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "hpmicro zephyr root directory")
 
 set(HPM_SDK_RELATIVE ${HPM_ZEPHYR_DIR}/../hpm_sdk)
+set(HPM_ENV_RELATIVE ${HPM_ZEPHYR_DIR}/../sdk_env)
 get_filename_component(HPM_SDK_ABSOLUTE ${HPM_SDK_RELATIVE} ABSOLUTE)
+get_filename_component(HPM_ENV_ABSOLUTE ${HPM_ENV_RELATIVE} ABSOLUTE)
 set(HPM_SDK_DIR ${HPM_SDK_ABSOLUTE} CACHE PATH "hpmicro sdk root directory")
 
 include(${HPM_ZEPHYR_DIR}/cmake/version.cmake)

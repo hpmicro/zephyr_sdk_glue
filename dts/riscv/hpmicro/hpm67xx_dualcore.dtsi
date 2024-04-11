@@ -38,3 +38,11 @@
 &mtimer {
 	interrupts-extended = <&cpu0_intc 7 &cpu1_intc 7>;
 };
+
+&plic {
+	interrupts-extended = <&cpu0_intc 0 &cpu1_intc 0>;
+};
+
+&plic_sw {
+	interrupts-extended = <&cpu0_intc 3 &cpu1_intc 3>;
+};

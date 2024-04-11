@@ -69,8 +69,7 @@ static int gpio_hpm_configure(const struct device *dev,
 	switch (flags & GPIO_DIR_MASK) {
 	case GPIO_DISCONNECTED:
 	case GPIO_INPUT:
-		gpio_disable_port_output_with_mask(gpio_base, port_base, (1 << pin));
-		gpio_set_pin_output(gpio_base, port_base, pin);
+		gpio_set_pin_input(gpio_base, port_base, pin);
 		break;
 	case GPIO_OUTPUT:
 		gpio_set_pin_output(gpio_base, port_base, pin);
@@ -194,6 +193,7 @@ static int gpio_hpm_pin_interrupt_configure(const struct device *dev,
 						   pin, trigger);
 		gpio_enable_pin_interrupt(gpio_base, port_base,
 							pin);
+		// intc_m_enable_irq_with_priority(IRQn_GPIO0_Z, 1);
 	}
 	return 0;
 }
@@ -213,7 +213,6 @@ static void gpio_hpm_port_isr(const struct device *dev)
 	GPIO_Type *gpio_base = config->gpio_base;
 	uint32_t port_base = config->port_base;
 	uint32_t int_status;
-
 	int_status = gpio_base->IF[port_base].VALUE;
 
 	/* Clear the port interrupts */

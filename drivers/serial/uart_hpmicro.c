@@ -232,7 +232,7 @@ static int uart_hpm_configure_get(const struct device *dev, struct uart_config *
 static int uart_hpm_configure_init(const struct device *dev, const struct uart_config *cfg)
 {
 	const struct uart_hpm_cfg *const config = dev->config;
-	struct uart_hpm_data * data = dev->data;
+	// struct uart_hpm_data * data = dev->data;
 	parity_setting_t parity;
 	hpm_stat_t stat = status_success;
 	uart_config_t uart_config = {0};

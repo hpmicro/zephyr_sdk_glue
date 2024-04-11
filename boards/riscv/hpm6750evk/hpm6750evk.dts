@@ -12,6 +12,15 @@
 	model = "HPMicro HPM6750EVK";
 	compatible = "HPMicro,hpm6750evk";
 
+	aliases {
+		led0 = &led_r;
+		led1 = &led_g;
+		led2 = &led_b;
+		sw0 = &user_button;
+		pwm-led0 = &pwm_led0;
+		pwm-2 = &pwm2;
+	};
+
 	chosen {
 		zephyr,console = &uart0;
 		zephyr,shell-uart = &uart0;
@@ -44,6 +53,14 @@
 		};
 	};
 
+	gpio_keys {
+		compatible = "gpio-keys";
+		user_button: button_0 {
+			label = "PBUTN";
+			gpios = <&gpioz 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+	};
+
 	pwmleds {
 		compatible = "pwm-leds";
 		pwm_led0: pwm_led_0 {
@@ -58,14 +75,6 @@
 			label = "PWM TRIG ADC";
 			status = "okay";
 		};
-	};
-
-	aliases {
-		led0 = &led_r;
-		led1 = &led_g;
-		led2 = &led_b;
-		pwm-led0 = &pwm_led0;
-		pwm-2 = &pwm2;
 	};
 };
 
@@ -106,11 +115,19 @@
 	pinctrl-names = "default";
 	status = "okay";
 };
+
 &gpioe {
 	pinctrl-0 = <&pinmux_gpioe>;
 	pinctrl-names = "default";
 	status = "okay";
 };
+
+&gpioz {
+	pinctrl-0 = <&pinmux_gpioz>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
 &i2c0 {
 	status = "okay";
 	pinctrl-0 = <&pinmux_i2c0>;

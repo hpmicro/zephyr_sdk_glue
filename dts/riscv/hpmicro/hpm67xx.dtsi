@@ -169,19 +169,19 @@
 
 		pinctrl: pin-controller@f4040000 {
 			compatible = "hpmicro,hpm-pinctrl";
-			reg = <0xf4040000 0x40000>;
+			reg = <0xf4040000 0x4000>;
 			status = "okay";
 		};
 
 		pinctrl_pioc: pin-controller@f40d8000 {
 			compatible = "hpmicro,hpm-pinctrl";
-			reg = <0xf40d8000 0x40000>;
+			reg = <0xf40d8000 0x4000>;
 			status = "okay";
 		};
 
 		pinctrl_bioc: pin-controller@f5010000 {
 			compatible = "hpmicro,hpm-pinctrl";
-			reg = <0xf5010000 0x40000>;
+			reg = <0xf5010000 0x4000>;
 			status = "okay";
 		};
 
@@ -295,6 +295,15 @@
 };
 
 &gpio0 {
+	gpioa: gpio@0 {
+		compatible = "hpmicro,hpm-gpio";
+		reg = <0x0 0x4000>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		hpmicro-gpio-port = <0>;
+		interrupts = <1 1>;
+		interrupt-parent = <&plic>;
+	};
 
 	gpiob: gpio@1 {
 		compatible = "hpmicro,hpm-gpio";

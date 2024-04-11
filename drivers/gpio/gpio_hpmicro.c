@@ -55,7 +55,7 @@ static int gpio_hpm_configure(const struct device *dev,
 		return -ENOTSUP;
 	}
 
-	if (((flags & GPIO_PULL_UP) != 0) || ((flags & GPIO_PULL_DOWN) != 0) ){
+	if (((flags & GPIO_PULL_UP) != 0) && ((flags & GPIO_PULL_DOWN) != 0) ){
 		return -ENOTSUP;
 	}
 
@@ -69,10 +69,11 @@ static int gpio_hpm_configure(const struct device *dev,
 	switch (flags & GPIO_DIR_MASK) {
 	case GPIO_DISCONNECTED:
 	case GPIO_INPUT:
-		gpio_disable_port_output_with_mask(gpio_base, port_base, pin);
+		gpio_disable_port_output_with_mask(gpio_base, port_base, (1 << pin));
+		gpio_set_pin_output(gpio_base, port_base, pin);
 		break;
 	case GPIO_OUTPUT:
-		gpio_enable_port_output_with_mask(gpio_base, port_base, pin);
+		gpio_set_pin_output(gpio_base, port_base, pin);
 		if ((flags & GPIO_OUTPUT_INIT_HIGH) != 0) {
 			gpio_write_pin(gpio_base, port_base, pin, 1);
 		} else if ((flags & GPIO_OUTPUT_INIT_LOW) != 0) {

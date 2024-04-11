@@ -29,7 +29,9 @@
 			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 11), IOC_TYPE_IOC, 0, 0)>,
 					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 12), IOC_TYPE_IOC, 0, 0)>,
 					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 13), IOC_TYPE_IOC, 0, 0)>;
-					 bias-pull-down;
+			bias-pull-up;
+      		drive-strength = "r000";
+					 
 		};
 	};
 
@@ -39,14 +41,23 @@
 		};
 	};
 
+	pinmux_gpioz: pinmux_gpioz {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTZ, 2), IOC_TYPE_IOC, 0, 0)>,
+					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTZ, 2), IOC_TYPE_BIOC, 0, 0)>;
+			bias-pull-up;
+			input-enable;
+		};
+	};
+
 	pinmux_i2c0: pinmux_i2c0 {
 		group0 {
 			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTZ, 10), IOC_TYPE_IOC, 0, 4)>,
 					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTZ, 11), IOC_TYPE_IOC, 0, 4)>,
 					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTZ, 10), IOC_TYPE_BIOC, 0, 3)>,
 					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTZ, 11), IOC_TYPE_BIOC, 0, 3)>;
-					 drive-open-drain;
-					 input-enable;
+			drive-open-drain;
+			input-enable;
 		};
 	};
 
@@ -55,7 +66,7 @@
 			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 27), IOC_TYPE_IOC, 0, 5)>,
 					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 28), IOC_TYPE_IOC, 0, 5)>,
 					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 30), IOC_TYPE_IOC, 0, 5)>;
-					 input-enable;
+			input-enable;
 		};
 	};
 

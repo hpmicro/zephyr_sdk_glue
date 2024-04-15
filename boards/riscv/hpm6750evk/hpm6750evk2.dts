@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 hpmicro
+ * Copyright 2024 hpmicro
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -11,6 +11,15 @@
 / {
 	model = "HPMicro HPM6750EVK";
 	compatible = "HPMicro,hpm6750evk";
+
+	aliases {
+		led0 = &led_r;
+		led1 = &led_g;
+		led2 = &led_b;
+		sw0 = &pbutn;
+		pwm-led0 = &pwm_led0;
+		pwm-2 = &pwm2;
+	};
 
 	chosen {
 		zephyr,console = &uart0;
@@ -31,16 +40,26 @@
 	leds {
 		compatible = "gpio-leds";
 		led_r: led_r {
-			gpios = <&gpiob 11 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpiob 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDR";
 		};
 		led_g: led_g {
-			gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpiob 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDG";
 		};
 		led_b: led_b {
-			gpios = <&gpiob 13 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpiob 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDB";
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		pbutn: pbutn {
+			gpios = <&gpioz 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+		wbutn: wbutn {
+			gpios = <&gpioz 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		};
 	};
 
@@ -58,14 +77,6 @@
 			label = "PWM TRIG ADC";
 			status = "okay";
 		};
-	};
-
-	aliases {
-		led0 = &led_r;
-		led1 = &led_g;
-		led2 = &led_b;
-		pwm-led0 = &pwm_led0;
-		pwm-2 = &pwm2;
 	};
 };
 
@@ -106,11 +117,19 @@
 	pinctrl-names = "default";
 	status = "okay";
 };
+
 &gpioe {
 	pinctrl-0 = <&pinmux_gpioe>;
 	pinctrl-names = "default";
 	status = "okay";
 };
+
+&gpioz {
+	pinctrl-0 = <&pinmux_gpioz>;
+	pinctrl-names = "default";
+	status = "okay";	
+};
+
 &i2c0 {
 	status = "okay";
 	pinctrl-0 = <&pinmux_i2c0>;
@@ -157,24 +176,33 @@
 	trig-input-src = <51>;
 };
 
-&flash0 {
+&xpi0 {
 	status = "okay";
-	partitions {
-		compatible = "fixed-partitions";
-		#address-cells = <1>;
-		#size-cells = <1>;
+	flash0: flash@0 {
+		compatible = "soc-nv-flash";
+		reg = <0x80000000 DT_SIZE_M(16)>;
+		status = "okay";
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
 
-		boot_partition: partition@0 {
-			label = "mcuboot";
-			reg = <0x0 0x3000>;
-		};
+			boot_partition: partition@0 {
+				label = "mcuboot";
+				reg = <0x0 0x3000>;
+			};
 
-		slot0_partition: partition@3000 {
-			label = "image-0";
-			reg = <0x3000 DT_SIZE_M(4)>;
+			slot0_partition: partition@3000 {
+				label = "image-0";
+				reg = <0x3000 DT_SIZE_M(4)>;
+			};
 		};
-    };
+	};
 };
+
 &can0 {
     status = "okay";
     pinctrl-0 = <&pinmux_can0>;

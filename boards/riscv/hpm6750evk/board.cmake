@@ -7,14 +7,24 @@ get_filename_component(HPM_TOOLS_ABSOLUTE ${HPM_TOOLS_RELATIVE} ABSOLUTE)
 set(OPENOCD_CONFIG_DIR ${OPENOCD_CONFIG_ABSOLUTE} CACHE PATH "hpmicro openocd cfg root directory")
 set(HPM_TOOLS_DIR ${HPM_TOOLS_ABSOLUTE} CACHE PATH "hpmicro win tools root directory")
 
+message("xxxxxxxxxxxxxxx${CONFIG_BOARD_HPM6750EVK2}  VVVVVVV ${BOARD}")
 if(NOT CONFIG_XIP)
-board_runner_args(openocd "--use-elf")
+    board_runner_args(openocd "--use-elf")
 endif()
 
-board_runner_args(openocd "--config=${OPENOCD_CONFIG_DIR}/probes/ft2232.cfg"
+if(${BOARD} STREQUAL "hpm6750evk")
+    board_runner_args(openocd "--config=${OPENOCD_CONFIG_DIR}/probes/ft2232.cfg"
                                     "--config=${OPENOCD_CONFIG_DIR}/soc/hpm6750-single-core.cfg"
                                 "--config=${OPENOCD_CONFIG_DIR}/boards/hpm6750evk.cfg")
-board_runner_args(openocd --target-handle=_CHIPNAME.cpu0)
+    board_runner_args(openocd --target-handle=_CHIPNAME.cpu0)
+elseif(${BOARD} STREQUAL "hpm6750evk2")
+    board_runner_args(openocd "--config=${OPENOCD_CONFIG_DIR}/probes/cmsis_dap.cfg"
+                                    "--config=${OPENOCD_CONFIG_DIR}/soc/hpm6750-single-core.cfg"
+                                "--config=${OPENOCD_CONFIG_DIR}/boards/hpm6750evk2.cfg")
+    board_runner_args(openocd --target-handle=_CHIPNAME.cpu0)
+else()
+    message(FATAL_ERROR "${BOARD} is not supported now")
+endif()
 
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     set(OPENOCD "/usr/local/bin/openocd" CACHE FILEPATH "" FORCE)

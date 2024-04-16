@@ -1,0 +1,94 @@
+/*
+ * Copyright 2024 hpmicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <hpmicro/hpm5361.dtsi>
+#include "hpm5300evk-pinctrl.dtsi"
+
+/ {
+	model = "HPMicro HPM5300EVK";
+	compatible = "HPMicro,hpm5300evk";
+
+	aliases {
+		led0 = &led;
+		sw0 = &pbutn;
+	};
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,itcm = &ilm;
+		zephyr,dtcm = &dlm;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &slot0_partition;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led: led {
+			gpios = <&gpioa 23 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		pbutn: pbutn {
+			gpios = <&gpioa 9 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+	};	
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&pinmux_uart0>;
+	pinctrl-names = "default";
+	uart-idle-trgm-reg = <0xF022C000>;
+	uart-idle-trgm-pin = <115>;
+	uart-idle-trgm-input-src = <0x0B>;
+	uart-idle-trgm-output-gptmr-in = <0x38>;
+	uart-idle-trgm-output-gptmr-sync = <0x37>;
+	uart-idle-gptmr-reg = <0xF3010000>;
+	uart-idle-gptmr-clock-name = <18743311>;
+	dmas = <&hdma 0 8>, <&hdma 1 9>;
+	dma-names = "rx", "tx";
+};
+
+&gpioa {
+	pinctrl-0 = <&pinmux_led &pinmux_button>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+&hdma {
+	status = "okay";
+};
+
+&xpi0 {
+	status = "okay";
+	flash0: flash@0 {
+		compatible = "soc-nv-flash";
+		reg = <0x80000000 DT_SIZE_M(1)>;
+		status = "okay";
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			boot_partition: partition@0 {
+				label = "mcuboot";
+				reg = <0x0 0x3000>;
+			};
+
+			slot0_partition: partition@3000 {
+				label = "image-0";
+				reg = <0x3000 DT_SIZE_K(512)>;
+			};
+		};
+	};
+};

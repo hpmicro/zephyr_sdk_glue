@@ -1,0 +1,29 @@
+/*
+ * Copyright 2024 hpmicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+ 
+#include "dt-bindings/pinctrl/hpmicro-pinctrl-common.h"
+
+&pinctrl {
+	pinmux_uart0: pinmux_uart0 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 0), IOC_TYPE_IOC, 0, 2)>,
+					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 1), IOC_TYPE_IOC, 0, 2)>;
+		};
+	};
+	pinmux_led: pinmux_led {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 23), IOC_TYPE_IOC, 0, 0)>;
+		};
+	};
+
+	pinmux_button: pinmux_button {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 9), IOC_TYPE_IOC, 0, 0)>;
+			bias-pull-up;
+			input-enable;
+			input-schmitt-enable;
+		};
+	};
+};

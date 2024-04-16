@@ -6,6 +6,10 @@
 #     [manifest]
 #     path = sdk_glue
 
+########################################
+##  zephyr                    v3.4.0  ##
+##  hpm_sdk                   v1.5.0  ##
+########################################
 manifest:
   version: "1.0"
 
@@ -34,8 +38,6 @@ manifest:
       revision: release/v1.4.0-hpm6e00-er
       remote: sw
 
-  # West-related configuration for the nrf repository.
+  # West-related configuration for the sdk_glue repository.
   self:
     path: sdk_glue
-    # This line configures west extensions.
-#    west-commands: scripts/west-commands.yml

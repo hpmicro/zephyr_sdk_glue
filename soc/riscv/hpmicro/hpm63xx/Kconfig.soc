@@ -1,0 +1,64 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+choice
+	prompt "HPMicro HPM63xx Selection"
+	depends on SOC_SERIES_HPM63XX
+
+config SOC_HPM6320
+	bool "SOC_HPM6320"
+	select ATOMIC_OPERATIONS_BUILTIN
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+    select RISCV_ISA_EXT_C
+	select RISCV_ISA_RV32I
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+	select HAS_HPMSDK_PLLCTLV2
+	select HAS_HPMSDK_PMP
+	select HAS_HPMSDK_PCFG
+
+config SOC_HPM6340
+	bool "SOC_HPM6340"
+	select ATOMIC_OPERATIONS_BUILTIN
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+    select RISCV_ISA_EXT_C
+	select RISCV_ISA_RV32I
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+	select HAS_HPMSDK_PLLCTLV2
+	select HAS_HPMSDK_PMP
+	select HAS_HPMSDK_PCFG
+
+config SOC_HPM6360
+	bool "SOC_HPM6360"
+	select ATOMIC_OPERATIONS_BUILTIN
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+    select RISCV_ISA_EXT_C
+	select RISCV_ISA_RV32I
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+	select HAS_HPMSDK_PLLCTLV2
+	select HAS_HPMSDK_PMP
+	select HAS_HPMSDK_PCFG
+
+endchoice
+
+
+if SOC_SERIES_HPM63XX
+
+config HAS_HPMICRO_CAN
+    bool "mcu support castcan"
+
+config HAS_HPMICRO_ADC12
+	bool "mcu support adc12"
+
+config HAS_HPMICRO_ADC16
+	bool "mcu support adc12"
+
+endif # SOC_SERIES_HPM63XX

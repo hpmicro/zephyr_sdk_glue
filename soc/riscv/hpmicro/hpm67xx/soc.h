@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 hpmicro
+ * Copyright (c) 2022-2024 hpmicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *

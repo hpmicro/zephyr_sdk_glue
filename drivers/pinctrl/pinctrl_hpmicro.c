@@ -30,7 +30,6 @@ static int hpmicro_pin_configure(IOC_Type *ioc_base, const uint32_t pin_mux, con
 	uint32_t is_analog = HPMICRO_FUNC_ANALOG(pin_mux);
 	uint32_t alt_select = HPMICRO_FUNC_ALT_SELECT(pin_mux);
 	uint32_t loop_back = HPMICRO_FUNC_LOOPBACK(pin_cfg);
-	uint32_t pad_ms = HPMICRO_PAD_CTL_MS(pin_cfg);
 	uint32_t pad_od = HPMICRO_PAD_CTL_OD(pin_cfg);
 	uint32_t pad_smt = HPMICRO_PAD_CTL_SMT(pin_cfg);
 	uint32_t pad_ps = HPMICRO_PAD_CTL_PS(pin_cfg);
@@ -43,9 +42,13 @@ static int hpmicro_pin_configure(IOC_Type *ioc_base, const uint32_t pin_mux, con
 	IOC_PAD_FUNC_CTL_ALT_SELECT_SET(alt_select);
 
 	ioc_base->PAD[ioc_pad].PAD_CTL =
-	IOC_PAD_PAD_CTL_MS_SET(pad_ms) |
-	IOC_PAD_PAD_CTL_OD_SET(pad_od) |
+#if defined(CONFIG_SOC_SERIES_HPM67XX)
+	IOC_PAD_PAD_CTL_MS_SET(HPMICRO_PAD_CTL_MS(pin_cfg)) |
 	IOC_PAD_PAD_CTL_SMT_SET(pad_smt) |
+#elif defined(CONFIG_SOC_62XX) || defined(CONFIG_SOC_63XX) || defined(CONFIG_SOC_68XX) || defined(CONFIG_SOC_6EXX)
+	IOC_PAD_PAD_CTL_HYS_SET(pad_smt) | 
+#endif
+	IOC_PAD_PAD_CTL_OD_SET(pad_od) |
 	IOC_PAD_PAD_CTL_PS_SET(pad_ps) |
 	IOC_PAD_PAD_CTL_PE_SET(pad_pe) |
 	IOC_PAD_PAD_CTL_DS_SET(pad_ds);

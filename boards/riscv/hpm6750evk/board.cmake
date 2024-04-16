@@ -7,7 +7,6 @@ get_filename_component(HPM_TOOLS_ABSOLUTE ${HPM_TOOLS_RELATIVE} ABSOLUTE)
 set(OPENOCD_CONFIG_DIR ${OPENOCD_CONFIG_ABSOLUTE} CACHE PATH "hpmicro openocd cfg root directory")
 set(HPM_TOOLS_DIR ${HPM_TOOLS_ABSOLUTE} CACHE PATH "hpmicro win tools root directory")
 
-message("xxxxxxxxxxxxxxx${CONFIG_BOARD_HPM6750EVK2}  VVVVVVV ${BOARD}")
 if(NOT CONFIG_XIP)
     board_runner_args(openocd "--use-elf")
 endif()

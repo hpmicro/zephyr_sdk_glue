@@ -1,12 +1,12 @@
-# Copyright (c) 2023 HPMicro
+# Copyright (c) 2023-2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 choice
-	prompt "HPMicro HPM6xxx Selection"
-	depends on SOC_SERIES_HPM6XXX
+	prompt "HPMicro HPM67xx Selection"
+	depends on SOC_SERIES_HPM67XX
 
-config SOC_HPM6360
-	bool "SOC_HPM6360"
+config SOC_HPM6450
+	bool "SOC_HPM6450"
 	select ATOMIC_OPERATIONS_BUILTIN
 	select INCLUDE_RESET_VECTOR
 	select RISCV_ISA_EXT_M
@@ -36,7 +36,7 @@ config SOC_HPM6750
 endchoice
 
 
-if SOC_SERIES_HPM6XXX
+if SOC_SERIES_HPM67XX
 
 config HAS_HPMICRO_CAN
     bool "mcu support castcan"
@@ -47,4 +47,4 @@ config HAS_HPMICRO_ADC12
 config HAS_HPMICRO_ADC16
 	bool "mcu support adc12"
 
-endif # SOC_SERIES_HPM6XXX
+endif # SOC_SERIES_HPM67XX

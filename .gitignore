@@ -1,0 +1,9 @@
+build
+*_build
+cmake-build*
+.vscode
+
+*.pyc
+sec_core_img.c
+*.o
+

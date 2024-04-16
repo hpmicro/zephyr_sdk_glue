@@ -7,6 +7,7 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 EN     		  = source/en
 ZH			  = source/zh
+SWDEV       = source/swdev
 BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".
@@ -20,3 +21,4 @@ help:
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(EN)" "$(BUILDDIR)/en" $(SPHINXOPTS) $(O)
 	@$(SPHINXBUILD) -M $@ "$(ZH)" "$(BUILDDIR)/zh" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -M $@ "$(SWDEV)" "$(BUILDDIR)/swdev" $(SPHINXOPTS) $(O)

@@ -27,7 +27,7 @@ manifest:
           - segger
     - name: hpm_sdk
       repo-path: hpm_sdk
-      revision: e2263b7e6b70a24a89f0ebf1f4db35760173d3ab
+      revision: 758aa56e84fa0631204c10bddca79ac138e46d87
       remote: sw
     - name: sdk_env
       repo-path: sdk_env

@@ -19,6 +19,14 @@ set(HPM_SDK_NDSGCC_LIB_ITF hpm_sdk_ndsgcc_lib_itf)
 add_library(${HPM_SDK_NDSGCC_LIB_ITF} INTERFACE)
 set(USE_CUSTOM_STARTUP 1)
 
+file(STRINGS "${CMAKE_BINARY_DIR}/zephyr/.config" CONFIG_LINES REGEX "^CONFIG_HAS_HPMSDK_[A-Za-z0-9_]+=")
+
+foreach(line IN LISTS CONFIG_LINES)
+    string(REGEX REPLACE "(CONFIG_HAS_HPMSDK_[A-Za-z0-9_]+)=y" "\\1" config ${line})
+    string(REGEX REPLACE "CONFIG_" "HPMSOC_" HPMSOC_ENABLE ${config})
+    set(${HPMSOC_ENABLE} y)
+endforeach()
+
 add_subdirectory(${HPM_SDK_DIR}/arch ${HPM_SDK_BINARY_DIR}/arch)
 add_subdirectory(${HPM_SDK_DIR}/soc ${HPM_SDK_BINARY_DIR}/soc)
 add_subdirectory(${HPM_SDK_DIR}/drivers ${HPM_SDK_BINARY_DIR}/drivers)

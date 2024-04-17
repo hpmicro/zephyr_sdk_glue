@@ -7,7 +7,7 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 EN     		  = source/en
 ZH			  = source/zh
-SWDEV       = source/swdev
+SWDEV         = source/swdev
 BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".

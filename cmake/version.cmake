@@ -39,7 +39,7 @@ if(DEFINED BUILD_VERSION)
 endif()
 
 if (NOT NO_PRINT_VERSION)
-  message(STATUS "hpm_zephyr: ${PROJECT_VERSION_STR} (${HPM_ZEPHYR_DIR})${BUILD_VERSION_STR}")
+  message(STATUS "sdk_glue: ${PROJECT_VERSION_STR} (${HPM_ZEPHYR_DIR})${BUILD_VERSION_STR}")
 endif()
 
 set(MAJOR ${PROJECT_VERSION_MAJOR}) # Temporary convenience variable

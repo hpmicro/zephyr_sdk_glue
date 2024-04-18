@@ -1,0 +1,14 @@
+# HPMICRO CASTCAN configuration options
+
+# Copyright (c) 2022-2024 hpmicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_CAN := hpmicro,hpm-can
+
+config CAN_HPMICRO
+	bool "HPMICRO CAN driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_CAN_ENABLED
+    select HAS_HPMSDK_CAN
+    help
+        Enable the HPMICRO CAN driver

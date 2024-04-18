@@ -38,9 +38,6 @@ endchoice
 
 if SOC_SERIES_HPM67XX
 
-config HAS_HPMICRO_CAN
-    bool "mcu support castcan"
-
 config HAS_HPMICRO_ADC12
 	bool "mcu support adc12"
 

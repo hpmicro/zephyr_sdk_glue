@@ -1,6 +1,6 @@
 # HPMICRO CASTCAN configuration options
 
-# Copyright (c) 2022-2024 hpmicro
+# Copyright (c) 2022-2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 DT_COMPAT_HPM_CAN := hpmicro,hpm-can

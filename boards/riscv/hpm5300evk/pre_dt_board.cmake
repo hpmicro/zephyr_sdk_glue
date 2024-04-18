@@ -1,4 +1,4 @@
-# Copyright (c) 2024, hpmicro
+# Copyright (c) 2024, HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 # Suppress "simple_bus_reg" on HPMicro boards as all GPIO ports use the same register.

@@ -68,6 +68,7 @@ linux上的环境配置
         west zephyr-export
 
 #. 安装zephyr所需的python依赖
+
     .. code-block:: console
 
         pip3 install --user -r ~/${workspace}/zephyr/scripts/requirements.txt

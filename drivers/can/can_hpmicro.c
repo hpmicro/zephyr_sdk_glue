@@ -1,13 +1,16 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2022-2024 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ * Date         Author          Notes
+ * 2024-04-18   HPMicro         Adapt Zephyr 3.4.0
  */
 
-#include <zephyr/zephyr.h>
+#include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
 #include <string.h>
-#include <zephyr/kernel.h>
 #include <zephyr/drivers/can.h>
 #include <zephyr/drivers/can/transceiver.h>
 #include <zephyr/logging/log.h>
@@ -24,6 +27,13 @@
 #define HPM_CAN_FD_BITRATE_MAX (8000000UL) /* 8Mbps */
 /* 0 - primary buffer, 1 - secondary buffer */
 #define HPM_CAN_NUM_TX_BUF_ELEMENTS (2U)
+
+/* Default baudrate: 1Mbps @80MHz CAN clock */
+#define DEFAULT_HPM_CAN_CONFIG {         \
+    .use_lowlevel_timing_setting = true, \
+    .can_timing = {1, 60, 20, 16},       \
+    .mode = can_mode_normal,  \
+}
 
 
 struct hpm_can_config {
@@ -61,6 +71,7 @@ struct hpm_can_data {
     /* State change callback */
     can_state_change_callback_t state_change_cb;
     void *state_change_cb_data;
+    bool started;
 };
 
 #define DT_DRV_COMPAT hpmicro_hpm_can
@@ -101,17 +112,26 @@ static void hpm_can_get_message(const struct device *dev)
     CAN_Type *can = cfg->base;
     struct hpm_can_data *data = dev->data;
     can_rx_callback_t cb;
-    struct zcan_frame frame;
+    struct can_frame frame;
     void *cb_arg;
     can_receive_buf_t rx_buf;
     can_read_received_message(can, &rx_buf);
 
     uint32_t filter_index = hpm_can_get_first_filter_index(&rx_buf, data);
     frame.id = rx_buf.id;
-    frame.fd = rx_buf.canfd_frame;
-    frame.rtr = rx_buf.remote_frame;
-    frame.id_type = rx_buf.extend_id;
-    frame.brs = rx_buf.bitrate_switch;
+    frame.flags = 0;
+    if (rx_buf.canfd_frame) {
+        frame.flags |= CAN_FRAME_FDF;
+    }
+    if (rx_buf.remote_frame) {
+        frame.flags |= CAN_FRAME_RTR;
+    }
+    if (rx_buf.extend_id) {
+        frame.flags |= CAN_FRAME_IDE;
+    }
+    if (rx_buf.bitrate_switch) {
+        frame.flags |= CAN_FRAME_BRS;
+    }
     frame.dlc = rx_buf.dlc;
     LOG_DBG("Frame on filter %d, ID: 0x%x", filter_index, frame.id);
     size_t data_len = can_dlc_to_bytes(frame.dlc);
@@ -121,11 +141,11 @@ static void hpm_can_get_message(const struct device *dev)
 
     /* Handle RX filter callback */
     if (filter_index != -EINVAL) {
-
         /* If RTR bit does not match filter RTR mask and bit, drop current frame */
         bool rtr_filter_mask = (data->filter_rtr_mask & BIT(filter_index)) != 0;
         bool rtr_filter = (data->filter_rtr & BIT(filter_index)) != 0;
-        if (rtr_filter_mask & (rtr_filter != (bool)frame.rtr)) {
+        bool rtr_in_frame = (frame.flags && CAN_FRAME_RTR);
+        if (rtr_filter_mask & (rtr_filter != rtr_in_frame)) {
             return;
         }
 
@@ -208,8 +228,9 @@ static int hpm_can_init(const struct device *dev)
     int ret = 0;
 
     const struct hpm_can_config *cfg = dev->config;
-    CAN_Type *can = cfg->base;
     struct hpm_can_data *data = dev->data;
+    can_config_t *config = &data->config;
+    CAN_Type *can = cfg->base;
 
     k_mutex_init(&data->inst_mutex);
     k_mutex_init(&data->tx_mutex);
@@ -230,8 +251,6 @@ static int hpm_can_init(const struct device *dev)
         return ret;
     }
 
-    can_config_t *config = &data->config;
-    can_get_default_config(config);
     clock_set_source_divider(cfg->clock_name, cfg->clock_src, cfg->clock_div);
 #ifdef CONFIG_CAN_FD_MODE
     config->enable_canfd = true;
@@ -252,8 +271,6 @@ static int hpm_can_init(const struct device *dev)
      } else {
         cfg->irq_config_func(dev);
     }
-
-
 
     return ret;
 }
@@ -324,7 +341,7 @@ static int hpm_can_set_timing(const struct device *dev, const struct can_timing 
 }
 
 
-void convert_zcan_frame_to_can_frame(const struct zcan_frame *frame,
+void convert_can_frame_to_can_frame(const struct can_frame *frame,
                                      can_transmit_buf_t *tx_buf)
 {
     tx_buf->buffer[0] = 0;
@@ -332,10 +349,10 @@ void convert_zcan_frame_to_can_frame(const struct zcan_frame *frame,
 
     tx_buf->id = frame->id;
     tx_buf->dlc = frame->dlc;
-    tx_buf->bitrate_switch = frame->brs;
-    tx_buf->remote_frame = frame->rtr;
-    tx_buf->canfd_frame = frame->fd;
-    tx_buf->extend_id = frame->id_type;
+    tx_buf->bitrate_switch = (uint16_t)((frame->flags & CAN_FRAME_BRS) != 0);
+    tx_buf->remote_frame = (uint16_t)((frame->flags & CAN_FRAME_RTR) != 0);
+    tx_buf->canfd_frame = (uint16_t)((frame->flags & CAN_FRAME_FDF) != 0);
+    tx_buf->extend_id = (uint16_t)((frame->flags & CAN_FRAME_IDE) != 0);
 
     size_t msg_len = can_dlc_to_bytes(tx_buf->dlc);
 
@@ -346,7 +363,7 @@ void convert_zcan_frame_to_can_frame(const struct zcan_frame *frame,
 
 
 static int hpm_can_send(const struct device *dev,
-                        const struct zcan_frame *frame,
+                        const struct can_frame *frame,
                         k_timeout_t timeout,
                         can_tx_callback_t callback,
                         void *user_data)
@@ -364,13 +381,13 @@ static int hpm_can_send(const struct device *dev,
     }
 
     (void) hpm_can_get_state(dev, &state, NULL);
-    if (state == CAN_BUS_OFF) {
+    if (state == CAN_STATE_BUS_OFF) {
         LOG_DBG("Transmit failed, bus-off");
         return -ENETUNREACH;
     }
 
     can_transmit_buf_t tx_buf;
-    convert_zcan_frame_to_can_frame(frame, &tx_buf);
+    convert_can_frame_to_can_frame(frame, &tx_buf);
 
     ret = k_sem_take(&data->tx_sem, timeout);
     if (ret != 0) {
@@ -418,7 +435,7 @@ static int hpm_can_send(const struct device *dev,
 static int hpm_can_add_rx_filter(const struct device *dev,
                             can_rx_callback_t callback,
                             void *user_data,
-                            const struct zcan_filter *filter)
+                            const struct can_filter *filter)
  {
     const struct hpm_can_config *cfg = dev->config;
     struct hpm_can_data *data = dev->data;
@@ -439,25 +456,25 @@ static int hpm_can_add_rx_filter(const struct device *dev,
     }
 
     can_config_t *config = &data->config;
-    can_filter_config_t *zcan_filter = &data->filter_list[filter_id];
-    zcan_filter->index = filter_id;
-    zcan_filter->id_mode = (filter->id_type == CAN_STANDARD_IDENTIFIER) ? can_filter_id_mode_standard_frames:
-        can_filter_id_mode_extended_frames;
-    zcan_filter->enable = true;
-    zcan_filter->code = filter->id;
+    can_filter_config_t *can_filter = &data->filter_list[filter_id];
+    can_filter->index = filter_id;
+    can_filter->id_mode = ((filter->flags & CAN_FILTER_IDE) != 0) ? can_filter_id_mode_extended_frames:
+                          can_filter_id_mode_standard_frames;
+    can_filter->enable = true;
+    can_filter->code = filter->id;
     /* NOTE: the filter mask definition in this CAN IP is different from standard definition */
-    zcan_filter->mask = ~filter->id_mask;
+    can_filter->mask = ~filter->mask;
 
     config->filter_list_num = data->can_filter_count;
     config->filter_list = data->filter_list;
 
-    if (filter->rtr) {
+    if ((filter->flags & CAN_FILTER_RTR) != 0) {
 		data->filter_rtr |= (1U << filter_id);
 	} else {
 		data->filter_rtr &= ~(1U << filter_id);
 	}
 
-	if (filter->rtr_mask) {
+	if ((filter->flags & CAN_FILTER_RTR) != 0) {
 		data->filter_rtr_mask |= (1U << filter_id);
 	} else {
 		data->filter_rtr_mask &= ~(1U << filter_id);
@@ -527,13 +544,13 @@ static int hpm_can_get_state(const struct device *dev,
     uint8_t error_flags = can_get_error_interrupt_flags(can);
 
     if (can_is_in_bus_off_mode(can)) {
-        *state = CAN_BUS_OFF;
+        *state = CAN_STATE_BUS_OFF;
     } else if ((error_flags & CAN_ERROR_WARNING_LIMIT_FLAG) != 0U) {
-        *state = CAN_ERROR_WARNING;
+        *state = CAN_STATE_ERROR_WARNING;
     } else if ((error_flags & CAN_ERROR_PASSIVE_MODE_ACTIVE_FLAG) != 0U) {
-        *state = CAN_ERROR_PASSIVE;
+        *state = CAN_STATE_ERROR_PASSIVE;
     } else {
-        *state = CAN_ERROR_ACTIVE;
+        *state = CAN_STATE_ERROR_ACTIVE;
     }
 
     if (err_cnt != NULL) {
@@ -573,10 +590,10 @@ static int hpm_can_get_core_clock(const struct device *dev, uint32_t *rate)
 }
 
 
-static int hpm_can_get_max_filters(const struct device *dev, enum can_ide id_type)
+static int hpm_can_get_max_filters(const struct device *dev, bool ide)
 {
     ARG_UNUSED(dev);
-    ARG_UNUSED(id_type);
+    ARG_UNUSED(ide);
     return HPM_CAN_FILTER_NUM_MAX;
 }
 
@@ -617,11 +634,41 @@ static int hpm_can_set_tming_data(const struct device *dev, const struct can_tim
 }
 #endif
 
+static int hpm_can_start(const struct device *dev)
+{
+    const struct hpm_can_config *config = dev->config;
+    struct hpm_can_data *data = dev->data;
+    if (data->started) {
+        return -EALREADY;
+    }
+
+    data->started = true;
+
+    return 0;
+}
+
+static int hpm_can_stop(const struct device *dev)
+{
+    const struct hpm_can_config *config = dev->config;
+    struct hpm_can_data *data = dev->data;
+
+    if (!data->started) {
+		return -EALREADY;
+	}
+
+    can_deinit(config->base);
+
+    data->started = false;
+
+    return 0;
+}
 
 static const struct can_driver_api hpm_can_driver_api = {
     .set_mode = hpm_can_set_mode,
     .set_timing = hpm_can_set_timing,
     .send = hpm_can_send,
+    .start = hpm_can_start,
+    .stop = hpm_can_stop,
     .add_rx_filter = hpm_can_add_rx_filter,
     .remove_rx_filter = hpm_can_remove_rx_filter,
     .get_state = hpm_can_get_state,
@@ -684,7 +731,7 @@ static const struct can_driver_api hpm_can_driver_api = {
         .pincfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n), \
     }; \
     \
-    static struct hpm_can_data hpm_can_data_##n; \
+    static struct hpm_can_data hpm_can_data_##n = {.config = DEFAULT_HPM_CAN_CONFIG, }; \
     \
     CAN_DEVICE_DT_INST_DEFINE(n, hpm_can_init, \
                          NULL, &hpm_can_data_##n, \

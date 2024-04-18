@@ -6,11 +6,8 @@ SDK GLUE内部开发手册
    :maxdepth: 2
    :caption: Contents:
 
+   introduction/index.rst
    starting/index.rst
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   configuration/index.rst
+   debugging/index.rst
+   log/index.rst

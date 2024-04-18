@@ -67,8 +67,8 @@ windows上的环境配置
     .. code-block:: console
 
         cd %workspace%
-        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.1/zephyr-sdk-0.16.5_windows-x86_64.7z
-        7z x zephyr-sdk-0.16.1_windows-x86_64.7z
+        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/zephyr-sdk-0.16.5_windows-x86_64.7z
+        7z x zephyr-sdk-0.16.5_windows-x86_64.7z
 
 #. 配置工具链必要变量
 

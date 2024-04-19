@@ -11,10 +11,10 @@ if(NOT CONFIG_XIP)
     board_runner_args(openocd "--use-elf")
 endif()
 
-if(${BOARD} STREQUAL "hpm6750evk")
-    board_runner_args(openocd "--config=${OPENOCD_CONFIG_DIR}/probes/ft2232.cfg"
+if(${BOARD} STREQUAL "hpm6750evk2")
+    board_runner_args(openocd "--config=${OPENOCD_CONFIG_DIR}/probes/cmsis_dap.cfg"
                                     "--config=${OPENOCD_CONFIG_DIR}/soc/hpm6750-single-core.cfg"
-                                "--config=${OPENOCD_CONFIG_DIR}/boards/hpm6750evk.cfg")
+                                "--config=${OPENOCD_CONFIG_DIR}/boards/hpm6750evk2.cfg")
     board_runner_args(openocd --target-handle=_CHIPNAME.cpu0)
 else()
     message(FATAL_ERROR "${BOARD} is not supported now")

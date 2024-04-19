@@ -6,7 +6,7 @@
 /dts-v1/;
 
 #include <hpmicro/hpm6750.dtsi>
-#include "hpm6750evk-pinctrl.dtsi"
+#include "hpm6750evk2-pinctrl.dtsi"
 
 / {
 	model = "HPMicro HPM6750EVK";

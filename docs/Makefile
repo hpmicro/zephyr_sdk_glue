@@ -5,9 +5,9 @@
 # from the environment for the first two.
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
-EN     		  = source/en
-ZH			  = source/zh
-SWDEV         = source/swdev
+EN            = source/en
+ZH            = source/zh
+SWDEV         = swdev
 BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".

@@ -1,0 +1,11 @@
+/*
+ * Copyright 2024 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <hpmicro/hpm68xx.dtsi>
+
+/ {
+
+    /* you can use /delete-node/ here */
+};

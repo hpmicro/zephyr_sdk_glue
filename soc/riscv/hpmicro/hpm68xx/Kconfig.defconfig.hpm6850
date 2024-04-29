@@ -1,0 +1,26 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_HPM6850
+
+config SOC
+	string
+	default "hpm6850"
+
+config SYS_CLOCK_TICKS_PER_SEC
+	default 1000
+
+config MAIN_FREQUENCY
+	int "SOC 6850 MAIN FREQUENCY(ABOVE 384M)"
+	default 500000000
+
+config MAIN_STACK_SIZE
+	default 4096
+
+config IDLE_STACK_SIZE
+	default 2048
+
+config TEST_EXTRA_STACK_SIZE
+	default 2048
+
+endif # SOC_HPM6850

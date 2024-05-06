@@ -8,9 +8,6 @@
 #ifndef ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_HPMICRO_COMMON_H_
 #define ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_HPMICRO_COMMON_H_
 
-#define	HPM_CLOCK_CPU0				(0U)
-#define	HPM_CLOCK_CPU1				(1U)
-
 /**
  * @brief Clock source group Marcos
  */
@@ -25,6 +22,5 @@
 #define GET_CLK_SRC_GROUP_FROM_NAME(name) (((uint32_t)(name) >> 8) & 0xFFUL)
 #define GET_CLK_NODE_FROM_NAME(name) ((uint32_t)(name)&0xFFUL)
 #define GET_CLK_RESOURCE_FROM_NAME(name) ((uint32_t)(name) >> 16)
-
 
 #endif

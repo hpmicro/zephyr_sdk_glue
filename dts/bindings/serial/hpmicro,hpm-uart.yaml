@@ -14,16 +14,9 @@ properties:
     interrupts:
       required: true
 
-    clock-name:
-      type: int
-      description: Uart clock name
+    clocks:
       required: true
 
-    clock-src:
-      type: int
-      description: Uart clock src
-      required: true
-    
     uart-idle-trgm-reg:
       required: false
       type: int

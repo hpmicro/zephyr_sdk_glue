@@ -1024,8 +1024,8 @@ static const struct uart_driver_api uart_hpm_driver_api = {
 		};									\
 		static const struct uart_hpm_cfg uart_hpm_config_##n = {	\
 			.base = (UART_Type *)DT_INST_REG_ADDR(n),	\
-			.clock_name = DT_INST_PROP(n, clock_name),	\
-			.clock_src = DT_INST_PROP(n, clock_src),	\
+			.clock_name = DT_INST_CLOCKS_CELL(n, name),	\
+			.clock_src = DT_INST_CLOCKS_CELL(n, src),	\
 			.parity = DT_INST_ENUM_IDX_OR(n, parity, UART_CFG_PARITY_NONE),	\
 			.loopback_en = DT_INST_PROP(n, loopback),				\
 			.baud_rate = DT_INST_PROP(n, current_speed),	\

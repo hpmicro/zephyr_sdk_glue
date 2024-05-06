@@ -14,7 +14,7 @@ properties:
   clock-sys-core:
     required: true
     type: int
-    description: Configuring the core of the clock. HPM_CLOCK_CPU0 or HPM_CLOCK_CPU1
+    description: Configuring the core of the clock. 0 or 1
 
   ram-up-time:
     required: true
@@ -26,11 +26,15 @@ properties:
     required: true
     description: |
       Clock presets
-      1: 24 MHz clock
-      2: Recommended Settings
     enum:
       - 1
       - 2
+      - 4
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
 
   clock-frequency:
     required: true

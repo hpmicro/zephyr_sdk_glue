@@ -1,0 +1,12 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_CLOCK_CONTROL := hpmicro,hpm-clock
+
+config CLOCK_CONTROL_HPMICRO
+	bool "HPMICRO clock control driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_CLOCK_ENABLED
+    select HAS_HPMSDK_PLLCTL
+    help
+        Enable the HPMICRO PLL driver

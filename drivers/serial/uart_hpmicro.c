@@ -509,7 +509,7 @@ static void uart_hpm_isr(const struct device *dev)
 
 #endif /* CONFIG_UART_INTERRUPT_DRIVEN */
 
-#if 1
+#ifdef CONFIG_UART_ASYNC_API
 static inline void async_timer_start(struct k_work_delayable *work, size_t timeout_us)
 {
 	if ((timeout_us != SYS_FOREVER_US) && (timeout_us != 0)) {
@@ -977,7 +977,7 @@ static const struct uart_driver_api uart_hpm_driver_api = {
                 .clock_name = DT_INST_PROP(n, uart_idle_gptmr_clock_name),	\
                 .cmp_ch = 0,	\
                 .cap_ch = 2,	\
-    	}
+    	},
 
 #define UART_DMA_CHANNELS_DATA_INIT(n)		\
 		.dma_tx = {						\
@@ -1005,7 +1005,7 @@ static const struct uart_driver_api uart_hpm_driver_api = {
 				.block_count = 1,		\
 				.dma_slot = DT_INST_DMAS_CELL_BY_NAME(n, rx, source) \
 			}							\
-		}
+		},
 
 #else
 #define UART_HPMICRO_ASYNC_DATA_INIT(n)
@@ -1019,8 +1019,8 @@ static const struct uart_driver_api uart_hpm_driver_api = {
 		PINCTRL_DEFINE(n)	\
 		UART_HPMICRO_IRQ_FUNC_DECLARE(n)	\
 		static struct uart_hpm_data uart_hpm_data_##n = {	\
-		UART_HPMICRO_ASYNC_DATA_INIT(n),	\
-		UART_DMA_CHANNELS_DATA_INIT(n),			\
+		UART_HPMICRO_ASYNC_DATA_INIT(n)	\
+		UART_DMA_CHANNELS_DATA_INIT(n)			\
 		};									\
 		static const struct uart_hpm_cfg uart_hpm_config_##n = {	\
 			.base = (UART_Type *)DT_INST_REG_ADDR(n),	\

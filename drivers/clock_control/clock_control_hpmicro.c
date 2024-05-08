@@ -24,7 +24,6 @@ struct clock_hpm_cfg {
 	SYSCTL_Type *sysctl_base;
 	uint32_t sys_core;
 	uint32_t sysctl_preset;
-	uint32_t sys_freq;
 	uint32_t ram_up_time;
 };
 
@@ -78,7 +77,6 @@ static const struct clock_hpm_cfg config = {
 	.sysctl_base = (SYSCTL_Type *)DT_REG_ADDR_BY_NAME(CLOCK_NODE, sysctl),
 	.sys_core = DT_PROP(CLOCK_NODE, clock_sys_core),
 	.sysctl_preset = DT_PROP(CLOCK_NODE, sysctl_present),
-	.sys_freq = DT_PROP(CLOCK_NODE, clock_frequency),
 	.ram_up_time = DT_PROP(CLOCK_NODE, ram_up_time),
 };
 

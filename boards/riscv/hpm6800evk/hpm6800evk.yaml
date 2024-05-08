@@ -1,0 +1,20 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: hpm6800evk
+name: HPMicro HPM6800EVK
+type: mcu
+arch: riscv32
+toolchain:
+  - zephyr
+  - cross-compile
+ram: 512
+flash: 16384
+supported:
+  - gpio
+  - uart
+  - dma
+  - can
+testing:
+  ignore_tags:
+    - bluetooth

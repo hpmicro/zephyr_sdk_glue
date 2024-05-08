@@ -1,0 +1,106 @@
+/*
+ * Copyright 2024 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <hpmicro/hpm6880.dtsi>
+#include "hpm6800evk-pinctrl.dtsi"
+
+/ {
+	model = "HPMicro HPM6800EVK";
+	compatible = "HPMicro,hpm6800evk";
+
+	aliases {
+		led0 = &led;
+		sw0 = &key1;
+	};
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &sram;
+		zephyr,itcm = &ilm;
+		zephyr,dtcm = &dlm;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &slot0_partition;
+	};
+
+	dram: memory@40000000 {
+		device_type = "memory";
+		reg = <0x40000000 DT_SIZE_M(16)>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led: led {
+			gpios = <&gpiof 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		key1: key1 {
+			gpios = <&gpiof 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+		key2: key2 {
+			gpios = <&gpioz 7 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+	};
+};
+
+&hdma {
+	status = "okay";
+};
+
+&xdma {
+	status = "okay";
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&pinmux_uart0>;
+	pinctrl-names = "default";
+	uart-idle-trgm-reg = <0xF022C000>;
+	uart-idle-trgm-pin = <115>;
+	uart-idle-trgm-input-src = <0x0B>;
+	uart-idle-trgm-output-gptmr-in = <0x38>;
+	uart-idle-trgm-output-gptmr-sync = <0x37>;
+	uart-idle-gptmr-reg = <0xF3010000>;
+	uart-idle-gptmr-clock-name = <18743311>;
+	dmas = <&hdma 0 8>, <&hdma 1 9>;
+	dma-names = "rx", "tx";
+};
+
+&gpiof {
+	status = "okay";	
+};
+
+&xpi0 {
+	status = "okay";
+	flash0: flash@0 {
+		compatible = "soc-nv-flash";
+		reg = <0x80000000 DT_SIZE_M(16)>;
+		status = "okay";
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			boot_partition: partition@0 {
+				label = "mcuboot";
+				reg = <0x0 0x3000>;
+			};
+
+			slot0_partition: partition@3000 {
+				label = "image-0";
+				reg = <0x3000 DT_SIZE_M(4)>;
+			};
+		};
+	};
+};

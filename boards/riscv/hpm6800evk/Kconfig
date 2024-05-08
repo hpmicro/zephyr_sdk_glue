@@ -1,0 +1,7 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_HPM6800EVK
+# add board option
+
+endif #BOARD_HPM6800EVK

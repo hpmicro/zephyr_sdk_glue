@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2024 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -36,28 +36,57 @@ SECTIONS
 		KEEP(*(.start))
 	} GROUP_LINK_IN(ROMABLE_REGION)
 
-	SECTION_PROLOGUE(.noncacheable,,)
+	SECTION_PROLOGUE(.fast,,SUBALIGN(8))
 	{
-		. = ALIGN(8);
+        PROVIDE(__ramfunc_start__ = .);
+        *(.fast)
+        *(.fast.*)
+        PROVIDE(__ramfunc_end__ = .);
+    } GROUP_LINK_IN(ITCM)
+
+	SECTION_PROLOGUE(.noncacheable.init,,SUBALIGN(8))
+	{
 		__noncacheable_init_start__ = .;
 		KEEP(*(.noncacheable.init))
 		__noncacheable_init_end__ = .;
+	} GROUP_LINK_IN(NONCACHEABLE AT> RAM)
+	
+	SECTION_PROLOGUE(.noncacheable.bss,(NOLOAD),SUBALIGN(8))
+	{
 		KEEP(*(.noncacheable))
 		__noncacheable_bss_start__ = .;
 		KEEP(*(.noncacheable.bss))
 		__noncacheable_bss_end__ = .;
-		. = ALIGN(8);
 	} GROUP_LINK_IN(NONCACHEABLE AT> RAM)
 
-	SECTION_PROLOGUE(.sh_mem,,)
+	SECTION_PROLOGUE(.ahb_sram,(NOLOAD),)
 	{
-		KEEP(*(.sh_mem))
-	} GROUP_LINK_IN(SHARE_RAM AT> RAM)
+        KEEP(*(.ahb_sram))
+	} GROUP_LINK_IN(AHB_SRAM)
 
+	SECTION_PROLOGUE(.apb_sram,(NOLOAD),)
+	{
+        KEEP(*(.apb_sram))
+	} GROUP_LINK_IN(APB_SRAM)
 
-	__noncacheable_data_load_start = LOADADDR(.noncacheable);
+	SECTION_PROLOGUE(.fast_ram.init,,SUBALIGN(8))
+	{
+        __fast_ram_init_start__ = .;
+        KEEP(*(.fast_ram.init))
+        __fast_ram_init_end__ = .;
+    } GROUP_LINK_IN(DTCM)
+
+	SECTION_PROLOGUE(.fast_ram.bss,(NOLOAD),SUBALIGN(8))
+	{
+        KEEP(*(.fast_ram))
+        __fast_ram_bss_start__ = .;
+        KEEP(*(.fast_ram.bss))
+        __fast_ram_bss_end__ = .;
+    } GROUP_LINK_IN(DTCM)
+
+    __fast_load_addr__ = LOADADDR(.fast);
+    __fast_ram_init_load_addr__ = LOADADDR(.fast_ram.init);
+	__noncacheable_init_load_addr__ = LOADADDR(.noncacheable.init);
 	__noncacheable_start__ = ORIGIN(NONCACHEABLE);
 	__noncacheable_end__ = ORIGIN(NONCACHEABLE) + LENGTH(NONCACHEABLE);
-	__share_mem_start__ = ORIGIN(SHARE_RAM);
-    __share_mem_end__ = ORIGIN(SHARE_RAM) + LENGTH(SHARE_RAM);
 }

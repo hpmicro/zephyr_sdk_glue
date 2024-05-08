@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2024 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -26,11 +26,14 @@ MEMORY
 #if (DT_REG_SIZE(DT_NODELABEL(noncache)) > 0) && !IS_CHOSEN_SRAM(noncache)
 	NONCACHEABLE (wx) : ORIGIN = DT_REG_ADDR(DT_NODELABEL(noncache)), LENGTH = DT_REG_SIZE(DT_NODELABEL(noncache))
 #endif
-#if (DT_REG_SIZE(DT_NODELABEL(share_ram)) > 0) && !IS_CHOSEN_SRAM(share_ram)
-	SHARE_RAM (wx) : ORIGIN = DT_REG_ADDR(DT_NODELABEL(share_ram)), LENGTH = DT_REG_SIZE(DT_NODELABEL(share_ram))
-#endif
 #if (DT_REG_SIZE(DT_NODELABEL(dram)) > 0) && !IS_CHOSEN_SRAM(dram)
 	DRAM (wx) : ORIGIN = DT_REG_ADDR(DT_NODELABEL(dram)), LENGTH = DT_REG_SIZE(DT_NODELABEL(dram))
+#endif
+#if (DT_REG_SIZE(DT_NODELABEL(ahb_sram)) > 0) && !IS_CHOSEN_SRAM(ahb_sram)
+	AHB_SRAM (wx) : ORIGIN = DT_REG_ADDR(DT_NODELABEL(ahb_sram)), LENGTH = DT_REG_SIZE(DT_NODELABEL(ahb_sram))
+#endif
+#if (DT_REG_SIZE(DT_NODELABEL(apb_sram)) > 0) && !IS_CHOSEN_SRAM(apb_sram)
+	APB_SRAM (wx) : ORIGIN = DT_REG_ADDR(DT_NODELABEL(apb_sram)), LENGTH = DT_REG_SIZE(DT_NODELABEL(apb_sram))
 #endif
 }
 

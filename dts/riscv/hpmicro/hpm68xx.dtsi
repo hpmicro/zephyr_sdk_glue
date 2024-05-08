@@ -45,7 +45,7 @@
 			reg = <0xf4000000 DT_SIZE_K(256)
 				0xf40c0000 DT_SIZE_K(256)>;
 			clock-frequency = <DT_FREQ_M(500)>;
-			reg-names = "sysctl", "pll_clk";
+			reg-names = "sysctl", "pll";
 			clock-sys-core = <0>;
 			ram-up-time = <(32*1000*9)>;
 			sysctl-present = <2>;
@@ -106,14 +106,14 @@
 			#interrupt-cells = <2>;
 			interrupt-controller;
 			reg = <0xe6400000 DT_SIZE_M(4)>;
-			interrupts-extended = <&cpu0_intc 0>;
+			interrupts-extended = <&cpu0_intc 3>;
 		};
 
 		mtimer: machine-timer@e6000000 {
 			compatible = "andestech,machine-timer";
 			reg = <0xe6000000 0x1
 			0xe6000008 0x1>;
-			interrupts-extended = <&cpu0_intc 0>;
+			interrupts-extended = <&cpu0_intc 7>;
 		};
 
 		fgpio: fgpio@c0000 {
@@ -143,6 +143,8 @@
 		};
 
 		gpiom: peripheral@f00d8000 {
+			#address-cells = <1>;
+			#size-cells = <1>;
 			ranges = <0x0 0xf00d8000 DT_SIZE_K(16)>;
 		};
 
@@ -164,12 +166,35 @@
 			status = "okay";
 		};
 
+		hdma: hdma@f00c8000 {
+			#dma-cells = <2>;
+			compatible = "hpmicro,hpm-dma";
+			dma-channels = <8>;
+			dma-requests = <116>;
+			reg = <0xf00c8000 0x4000>,
+				<0xf00c4000 0x4000>; /* DMAMUX base */
+			interrupts = <58 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		xdma: xdma@f3008000 {
+			#dma-cells = <2>;
+			compatible = "hpmicro,hpm-dma";
+			dma-channels = <8>;
+			dma-requests = <116>;
+			reg = <0xf3048000 0x4000>,
+				<0xf00c4000 0x4000>; /* DMAMUX base */
+			interrupts = <99 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
 		uart0: serial@f0040000 {
 			compatible = "hpmicro,hpm-uart";
 			reg = <0xf0040000 DT_SIZE_K(16)>;
 			interrupts = <27 1>, <43 1>;
 			interrupt-names = "uart", "idletimer";
-			clock-name = <CLOCK_UART0>;
 			clocks = <&clk CLOCK_UART0 CLK_SRC_OSC24M 1>;
 			interrupt-parent = <&plic>;
 			status = "disabled";
@@ -180,7 +205,6 @@
 			reg = <0xf0044000 DT_SIZE_K(16)>;
 			interrupts = <28 1>, <43 1>;
 			interrupt-names = "uart", "idletimer";
-			clock-name = <CLOCK_UART1>;
 			clocks = <&clk CLOCK_UART1 CLK_SRC_OSC24M 1>;
 			interrupt-parent = <&plic>;
 			status = "disabled";
@@ -191,7 +215,6 @@
 			reg = <0xf0048000 DT_SIZE_K(16)>;
 			interrupts = <29 1>, <43 1>;
 			interrupt-names = "uart", "idletimer";
-			clock-name = <CLOCK_UART2>;
 			clocks = <&clk CLOCK_UART2 CLK_SRC_OSC24M 1>;
 			interrupt-parent = <&plic>;
 			status = "disabled";
@@ -202,7 +225,6 @@
 			reg = <0xf004c000 DT_SIZE_K(16)>;
 			interrupts = <30 1>, <43 1>;
 			interrupt-names = "uart", "idletimer";
-			clock-name = <CLOCK_UART3>;
 			clocks = <&clk CLOCK_UART3 CLK_SRC_OSC24M 1>;
 			interrupt-parent = <&plic>;
 			status = "disabled";
@@ -219,6 +241,7 @@
 		hpmicro-gpio-port = <0>;
 		interrupts = <1 1>;
 		interrupt-parent = <&plic>;
+		status = "disabled";
 	};
 
 	gpiob: gpio@1 {
@@ -229,6 +252,7 @@
 		hpmicro-gpio-port = <1>;
 		interrupts = <2 1>;
 		interrupt-parent = <&plic>;
+		status = "disabled";
 	};
 
 	gpioc: gpio@2 {
@@ -239,6 +263,7 @@
 		hpmicro-gpio-port = <2>;
 		interrupts = <3 1>;
 		interrupt-parent = <&plic>;
+		status = "disabled";
 	};
 
 	gpiod: gpio@3 {
@@ -250,6 +275,7 @@
 		hpmicro-gpio-port = <3>;
 		interrupts = <4 1>;
 		interrupt-parent = <&plic>;
+		status = "disabled";
 	};
 
 	gpioe: gpio@4 {
@@ -260,6 +286,7 @@
 		hpmicro-gpio-port = <4>;
 		interrupts = <5 1>;
 		interrupt-parent = <&plic>;
+		status = "disabled";
 	};
 
 	gpiof: gpio@5 {
@@ -270,6 +297,7 @@
 		hpmicro-gpio-port = <5>;
 		interrupts = <6 1>;
 		interrupt-parent = <&plic>;
+		status = "disabled";
 	};
 
 	gpiox: gpio@6 {

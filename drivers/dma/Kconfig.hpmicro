@@ -1,6 +1,7 @@
 # Copyright (c) 2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 DT_COMPAT_HPM_DMA := hpmicro,hpm-dma
+DT_COMPAT_HPM_DMAV2 := hpmicro,hpm-dmav2
 
 config DMA_HPMICRO
 	bool "HPMICRO DMA driver"
@@ -9,3 +10,11 @@ config DMA_HPMICRO
 	select HAS_HPMSDK_DMA
 	help
 	  This option enables the DMA driver for HPM SoC family.
+
+config DMAV2_HPMICRO
+	bool "HPMICRO DMAV2 driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_DMAV2_ENABLED
+	select HAS_HPMSDK_DMAV2
+	help
+	  This option enables the DMAV2 driver for HPM SoC family.

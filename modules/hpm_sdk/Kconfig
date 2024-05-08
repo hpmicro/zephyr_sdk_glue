@@ -30,6 +30,8 @@ config HAS_HPMSDK_WDG
 	bool
 config HAS_HPMSDK_DMA
 	bool
+config HAS_HPMSDK_DMAV2
+	bool
 config HAS_HPMSDK_GPTMR
 	bool
 config HAS_HPMSDK_PWM

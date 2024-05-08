@@ -168,7 +168,7 @@
 
 		hdma: hdma@f00c8000 {
 			#dma-cells = <2>;
-			compatible = "hpmicro,hpm-dma";
+			compatible = "hpmicro,hpm-dmav2";
 			dma-channels = <8>;
 			dma-requests = <116>;
 			reg = <0xf00c8000 0x4000>,
@@ -180,7 +180,7 @@
 
 		xdma: xdma@f3008000 {
 			#dma-cells = <2>;
-			compatible = "hpmicro,hpm-dma";
+			compatible = "hpmicro,hpm-dmav2";
 			dma-channels = <8>;
 			dma-requests = <116>;
 			reg = <0xf3048000 0x4000>,

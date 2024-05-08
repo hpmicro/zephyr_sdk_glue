@@ -12,7 +12,7 @@ config SYS_CLOCK_TICKS_PER_SEC
 
 config MAIN_FREQUENCY
 	int "SOC 6850 MAIN FREQUENCY(ABOVE 384M)"
-	default 500000000
+	default $(dt_node_int_prop_int,$(dt_nodelabel_path,clk),clock-frequency)
 
 config MAIN_STACK_SIZE
 	default 4096

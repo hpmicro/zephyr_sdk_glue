@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2024 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -12,9 +12,6 @@
 GTEXT(_start)
 
 SECTION_FUNC(init, _start)
-	/* Disable linker relaxation before GP register initialization. */
-	.option push
-	.option norelax
 	/* reset mstatus to 0*/
 	csrrw x0, mstatus, x0
 
@@ -23,20 +20,7 @@ SECTION_FUNC(init, _start)
 	la t0, _ITB_BASE_
 	csrw uitb, t0
 #endif
+	call c_startup
 
-#ifdef __riscv_flen
-	/* Enable FPU */
-	li t0, CSR_MSTATUS_FS_MASK
-	csrrs t0, mstatus, t0
-
-	/* Initialize FCSR */
-	fscsr zero
-#endif
-	call _init_noncache
-
-	li t0, 0xf4002800
-	li t1, 0x3402
-	sw t1, 0(t0)
 	/* System reset handler */
 	j __start
-	.option pop

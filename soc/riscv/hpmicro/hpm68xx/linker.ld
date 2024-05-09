@@ -12,7 +12,7 @@
 MEMORY
 {
 #ifdef CONFIG_XIP
-	MCU_BOOT (wx) :  ORIGIN = DT_REG_ADDR(DT_CHOSEN(zephyr_flash)), LENGTH = 0x3000
+	BOOT (wx) :  ORIGIN = DT_REG_ADDR(DT_CHOSEN(zephyr_flash)), LENGTH = 0x3000
 #endif
 #if (DT_REG_SIZE(DT_NODELABEL(core0_lm_slv)) > 0) && !IS_CHOSEN_SRAM(core0_lm_slv)
 	CORE0_LM_SLV (wx) : ORIGIN = DT_REG_ADDR(DT_NODELABEL(core0_lm_slv)), LENGTH = DT_REG_SIZE(DT_NODELABEL(core0_lm_slv))

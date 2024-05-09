@@ -20,7 +20,7 @@ SECTIONS
 #ifdef CONFIG_XIP
 	.nor_cfg_option __nor_cfg_option_load_addr__ : {
 		KEEP(*(.nor_cfg_option))
-	} GROUP_LINK_IN(MCU_BOOT)
+	} GROUP_LINK_IN(BOOT)
 
 	.boot_header __boot_header_load_addr__ : {
 		__boot_header_start__ = .;
@@ -28,7 +28,7 @@ SECTIONS
 		KEEP(*(.fw_info_table))
 		KEEP(*(.dc_info))
 		__boot_header_end__ = .;
-	} GROUP_LINK_IN(MCU_BOOT)
+	} GROUP_LINK_IN(BOOT)
 #endif
 	.start : {
 		. = ALIGN(8);
@@ -82,6 +82,14 @@ SECTIONS
         __fast_ram_bss_start__ = .;
         KEEP(*(.fast_ram.bss))
         __fast_ram_bss_end__ = .;
+    } GROUP_LINK_IN(DTCM)
+
+	SECTION_PROLOGUE(.stack,(NOLOAD),SUBALIGN(16))
+	{
+        __stack_base__ = .;
+        . += 0x400;
+        PROVIDE (_stack = .);
+        PROVIDE (_stack_safe = .);
     } GROUP_LINK_IN(DTCM)
 
     __fast_load_addr__ = LOADADDR(.fast);

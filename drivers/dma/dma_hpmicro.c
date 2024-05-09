@@ -1,11 +1,15 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2022-2024 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
+#ifdef defined(CONFIG_DMA_HPMICRO)
 #define DT_DRV_COMPAT hpmicro_hpm_dma
+#elif defined(CONFIG_DMAV2_HPMICRO)
+#define DT_DRV_COMPAT hpmicro_hpm_dmav2
+#endif
 
 #include <errno.h>
 #include <soc.h>

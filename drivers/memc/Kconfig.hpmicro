@@ -1,0 +1,19 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPMICRO_HPM_DDR := hpmicro,hpm-ddr
+DT_COMPAT_HPMICRO_HPM_FEMC := hpmicro,hpm-femc
+
+config DDR_HPMICRO
+	bool "HPMicro DDR driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_DDR_ENABLED
+	help
+	  Enable the hpmicro ddr driver.
+
+config FEMC_HPMICRO
+	bool "HPMicro FEMC driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_FEMC_ENABLED
+	help
+	  Enable the hpmicro femc driver.

@@ -29,23 +29,23 @@
 
 	dram: memory@40000000 {
 		device_type = "memory";
-		reg = <0x40000000 DT_SIZE_M(16)>;
+		reg = <0x40000000 DT_SIZE_M(256)>;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 		led: led {
-			gpios = <&gpiof 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			gpios = <&gpiof 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_LOW)>;
 		};
 	};
 
 	gpio_keys {
 		compatible = "gpio-keys";
 		key1: key1 {
-			gpios = <&gpiof 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			gpios = <&gpiof 6 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
 		};
 		key2: key2 {
-			gpios = <&gpioz 7 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			gpios = <&gpiof 7 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
 		};
 	};
 };
@@ -68,14 +68,16 @@
 	uart-idle-trgm-input-src = <0x0B>;
 	uart-idle-trgm-output-gptmr-in = <0x38>;
 	uart-idle-trgm-output-gptmr-sync = <0x37>;
-	uart-idle-gptmr-reg = <0xF3010000>;
-	uart-idle-gptmr-clock-name = <18743311>;
+	uart-idle-gptmr-reg = <0xF0090000>;
+	uart-idle-gptmr-clock-name = <CLOCK_GPTMR4>;
 	dmas = <&hdma 0 8>, <&hdma 1 9>;
 	dma-names = "rx", "tx";
 };
 
 &gpiof {
-	status = "okay";	
+	pinctrl-0 = <&pinmux_gpiof>;
+	pinctrl-names = "default";
+	status = "okay";
 };
 
 &xpi0 {

@@ -18,4 +18,18 @@
 					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 15), IOC_TYPE_IOC, 0, 2)>;
 		};
 	};
+
+	pinmux_gpiof: pinmux_gpiof {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTF, 6), IOC_TYPE_IOC, 0, 0)>,
+					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTF, 7), IOC_TYPE_IOC, 0, 0)>;
+			bias-pull-up;
+			input-enable;
+			input-schmitt-enable;
+		};
+
+		group1 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTF, 2), IOC_TYPE_IOC, 0, 0)>;
+		};
+	};
 };

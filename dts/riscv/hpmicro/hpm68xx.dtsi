@@ -193,7 +193,7 @@
 		uart0: serial@f0040000 {
 			compatible = "hpmicro,hpm-uart";
 			reg = <0xf0040000 DT_SIZE_K(16)>;
-			interrupts = <27 1>, <43 1>;
+			interrupts = <27 1>, <47 1>;
 			interrupt-names = "uart", "idletimer";
 			clocks = <&clk CLOCK_UART0 CLK_SRC_OSC24M 1>;
 			interrupt-parent = <&plic>;
@@ -203,7 +203,7 @@
 		uart1: serial@f0044000 {
 			compatible = "hpmicro,hpm-uart";
 			reg = <0xf0044000 DT_SIZE_K(16)>;
-			interrupts = <28 1>, <43 1>;
+			interrupts = <28 1>, <47 1>;
 			interrupt-names = "uart", "idletimer";
 			clocks = <&clk CLOCK_UART1 CLK_SRC_OSC24M 1>;
 			interrupt-parent = <&plic>;
@@ -213,7 +213,7 @@
 		uart2: serial@f0048000 {
 			compatible = "hpmicro,hpm-uart";
 			reg = <0xf0048000 DT_SIZE_K(16)>;
-			interrupts = <29 1>, <43 1>;
+			interrupts = <29 1>, <47 1>;
 			interrupt-names = "uart", "idletimer";
 			clocks = <&clk CLOCK_UART2 CLK_SRC_OSC24M 1>;
 			interrupt-parent = <&plic>;
@@ -223,7 +223,7 @@
 		uart3: serial@f004c000 {
 			compatible = "hpmicro,hpm-uart";
 			reg = <0xf004c000 DT_SIZE_K(16)>;
-			interrupts = <30 1>, <43 1>;
+			interrupts = <30 1>, <47 1>;
 			interrupt-names = "uart", "idletimer";
 			clocks = <&clk CLOCK_UART3 CLK_SRC_OSC24M 1>;
 			interrupt-parent = <&plic>;

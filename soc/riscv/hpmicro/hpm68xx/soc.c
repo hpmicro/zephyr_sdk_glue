@@ -87,6 +87,7 @@ static void soc_init_clock(void)
     clock_add_to_group(clock_xpi0, 0);
     clock_add_to_group(clock_watchdog0, 0);
     clock_add_to_group(clock_xram, 0);
+    clock_add_to_group(clock_gpio, 0);
 
     /* Connect Group0 to CPU0 */
     clock_connect_group_to_cpu(0, 0);
@@ -401,6 +402,10 @@ static int hpmicro_soc_init(void)
 
 	key = irq_lock();
 #ifdef CONFIG_INIT_EXT_RAM
+/* 
+    Use z_interrupt stack which is created by zephyr.
+    Creating enough stack if want to initialize ext ram at start, but it will be wasted.
+*/
     _init_ext_ram();
 #endif
 	soc_init_clock();

@@ -5,7 +5,7 @@
  *
  */
 
-#ifdef defined(CONFIG_DMA_HPMICRO)
+#if defined(CONFIG_DMA_HPMICRO)
 #define DT_DRV_COMPAT hpmicro_hpm_dma
 #elif defined(CONFIG_DMAV2_HPMICRO)
 #define DT_DRV_COMPAT hpmicro_hpm_dmav2

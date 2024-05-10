@@ -1037,7 +1037,7 @@ static const struct uart_driver_api uart_hpm_driver_api = {
 		DEVICE_DT_INST_DEFINE(n, &uart_hpm_init,	\
 					NULL,	\
 					&uart_hpm_data_##n,	\
-					&uart_hpm_config_##n, PRE_KERNEL_1,	\
+					&uart_hpm_config_##n, PRE_KERNEL_2,	\
 					CONFIG_SERIAL_INIT_PRIORITY,	\
 					&uart_hpm_driver_api);	\
 		UART_HPMICRO_IRQ_FUNC_DEFINE(n)

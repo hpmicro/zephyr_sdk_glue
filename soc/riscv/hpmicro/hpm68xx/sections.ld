@@ -42,7 +42,7 @@ SECTIONS
         *(.fast)
         *(.fast.*)
         PROVIDE(__ramfunc_end__ = .);
-    } GROUP_LINK_IN(ITCM)
+    } GROUP_LINK_IN(ILM)
 
 	SECTION_PROLOGUE(.noncacheable.init,,SUBALIGN(8))
 	{
@@ -69,12 +69,19 @@ SECTIONS
         KEEP(*(.apb_sram))
 	} GROUP_LINK_IN(APB_SRAM)
 
+	SECTION_PROLOGUE(.isr_section,,SUBALIGN(8))
+	{
+		__isr_ram_start__ = .;
+        KEEP(*(.isr_section))
+		__isr_ram_end__ = .;
+	} GROUP_LINK_IN(ILM)
+
 	SECTION_PROLOGUE(.fast_ram.init,,SUBALIGN(8))
 	{
         __fast_ram_init_start__ = .;
         KEEP(*(.fast_ram.init))
         __fast_ram_init_end__ = .;
-    } GROUP_LINK_IN(DTCM)
+    } GROUP_LINK_IN(DLM)
 
 	SECTION_PROLOGUE(.fast_ram.bss,(NOLOAD),SUBALIGN(8))
 	{
@@ -82,7 +89,7 @@ SECTIONS
         __fast_ram_bss_start__ = .;
         KEEP(*(.fast_ram.bss))
         __fast_ram_bss_end__ = .;
-    } GROUP_LINK_IN(DTCM)
+    } GROUP_LINK_IN(DLM)
 
 	SECTION_PROLOGUE(.stack,(NOLOAD),SUBALIGN(16))
 	{
@@ -90,8 +97,10 @@ SECTIONS
         . += 0x400;
         PROVIDE (_stack = .);
         PROVIDE (_stack_safe = .);
-    } GROUP_LINK_IN(DTCM)
+    } GROUP_LINK_IN(DLM)
 
+	__isr_load_addr__ = LOADADDR(.isr_section);
+	__isr_load_size__ = __isr_ram_end__ - __isr_ram_start__;
     __fast_load_addr__ = LOADADDR(.fast);
     __fast_ram_init_load_addr__ = LOADADDR(.fast_ram.init);
 	__noncacheable_init_load_addr__ = LOADADDR(.noncacheable.init);

@@ -18,6 +18,7 @@ set(HPM_SDK_GCC_LIB zephyr)
 set(HPM_SDK_NDSGCC_LIB_ITF hpm_sdk_ndsgcc_lib_itf)
 add_library(${HPM_SDK_NDSGCC_LIB_ITF} INTERFACE)
 set(USE_CUSTOM_STARTUP 1)
+set(USE_CUSTOM_LINKER 1)
 
 file(STRINGS "${CMAKE_BINARY_DIR}/zephyr/.config" CONFIG_LINES REGEX "^CONFIG_HAS_HPMSDK_[A-Za-z0-9_]+=")
 

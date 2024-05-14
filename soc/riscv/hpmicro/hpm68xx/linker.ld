@@ -37,5 +37,5 @@ MEMORY
 #endif
 }
 
-#include <zephyr/arch/riscv/common/linker.ld>
+#include <../common/linker.ld>
 #include <sections.ld>

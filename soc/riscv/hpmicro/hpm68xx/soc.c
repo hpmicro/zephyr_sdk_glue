@@ -7,6 +7,7 @@
 
 #include <zephyr/devicetree.h>
 #include <zephyr/init.h>
+#include <kernel_internal.h>
 #include <hpm_common.h>
 #include <hpm_soc.h>
 #include <zephyr/irq.h>
@@ -33,6 +34,8 @@ __attribute__((weak)) void c_startup(void)
     extern uint8_t __fast_load_addr__[], __noncacheable_init_load_addr__[];
     extern uint8_t __fast_ram_bss_start__[], __fast_ram_bss_end__[];
     extern uint8_t __fast_ram_init_start__[], __fast_ram_init_end__[], __fast_ram_init_load_addr__[];
+	extern uint8_t __isr_load_addr__[], __isr_entry_load_addr__[];
+    extern uint8_t __isr_ram_start__[], __isr_load_size__[], __isr_entry_start__[], __isr_entry_size__[];
 
     /* noncacheable bss section */
     size = __noncacheable_bss_end__ - __noncacheable_bss_start__;
@@ -63,6 +66,9 @@ __attribute__((weak)) void c_startup(void)
     for (i = 0; i < size; i++) {
         *(__fast_ram_init_start__ + i) = *(__fast_ram_init_load_addr__ + i);
     }
+
+    z_early_memcpy(&__isr_ram_start__, &__isr_load_addr__, (uintptr_t) &__isr_load_size__);
+    z_early_memcpy(&__isr_entry_start__, &__isr_entry_load_addr__, (uintptr_t) &__isr_entry_size__);
 }
 
 static void soc_init_clock(void)

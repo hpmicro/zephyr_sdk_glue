@@ -26,9 +26,9 @@ manifest:
     - name: zephyr
       repo-path: hpm_zephyrproject
       revision: v3.4.0-hpm-branch
-      # import:
-      #   name-allowlist:
-      #     - segger
+      import:
+        name-allowlist:
+          - west-commands
     - name: hpm_sdk
       repo-path: hpm_sdk
       revision: 758aa56e84fa0631204c10bddca79ac138e46d87

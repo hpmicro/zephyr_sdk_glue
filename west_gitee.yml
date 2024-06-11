@@ -1,10 +1,7 @@
 # The west manifest file (west.yml) for the hpmicro SDK.
 #
-# The per-workspace west configuration file, .west/config,
-# specifies the location of this manifest file like this:
+# Get sources from gitee
 #
-#     [manifest]
-#     path = sdk_glue
 
 ########################################
 ##  zephyr                    v3.4.0  ##
@@ -31,7 +28,7 @@ manifest:
           - west-commands
     - name: sdk_env
       path: sdk_env
-      url: https://github.com/hpmicro/sdk_env.git
+      url: https://gitee.com/hpmicro/sdk_env.git
       revision: v1.5.0
       submodules: true
 

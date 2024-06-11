@@ -2,7 +2,7 @@
 windows上的环境配置
 ======================
 
-**windows** 环境下可以使用 **chocolatey** 去获取必要的工具，也可以使用打包好的工具（存放在gitlab）。
+**windows** 环境下可以使用 **chocolatey** 去获取必要的工具,也可以使用打包好的工具(存放在gitlab)。
 
 使用chocolatey安装工具
 ----------------------
@@ -38,13 +38,19 @@ windows上的环境配置
         
         pip3 install -U west
 
-#. 创建workspace目录，获取所有源代码（目前源代码托管在内部服务器，以下地址为内部地址，发布后请修改对应地址）
+#. 创建workspace目录,获取所有源代码（目前源代码托管在内部服务器,以下地址为内部地址,发布后请修改对应地址）
 
     .. code-block:: console
 
         mkdir %workspace%
         cd %workspace%
         west init -m git@192.168.11.211:oss/zephyr_sdk_glue.git --mr master
+
+#. 获取所需仓库的源代码,默认从github获取,需要切换到国内源,请输入第一条指令:
+
+    .. code-block:: console
+
+        west config manifest.file west_gitee.yml
         west update
 
 #. 配置CMake变量
@@ -79,7 +85,7 @@ windows上的环境配置
 
 编译zephyr的button sample
 --------------------------
-    编译hpm6750evk2的button sample, **build** 目录可以放置在workspace的任意地方，推荐放在zephyr的目录下。
+    编译hpm6750evk2的button sample, **build** 目录可以放置在workspace的任意地方,推荐放在zephyr的目录下。
 
 #. 构建与编译
 
@@ -88,7 +94,7 @@ windows上的环境配置
         cd %workspace%\zephyr
         west build -p always -b hpm6750evk2 samples\basic\button
 
-``-p`` 选项， ``always`` 重新编译， ``auto`` 增量编译。
+``-p`` 选项, ``always`` 重新编译, ``auto`` 增量编译。
 
 #. 烧录或调试
 
@@ -112,7 +118,7 @@ windows上的环境配置
 
         west boards | findstr hpm
 
-#. 连接板子，调用gdbserver
+#. 连接板子,调用gdbserver
 
     .. code-block:: console
 

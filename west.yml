@@ -32,12 +32,13 @@ manifest:
     - name: sdk_env
       repo-path: sdk_env
       revision: release/v1.4.0-hpm6e00-er
+      submodules: true
       remote: sw
-    - name: hpm_sdk
-      repo-path: hpm_sdk
-      revision: 758aa56e84fa0631204c10bddca79ac138e46d87
-      path: sdk_env/hpm_sdk
-      remote: sw
+    # - name: sdk_env
+    #   path: sdk_env
+    #   url: https://github.com/hpmicro/sdk_env.git
+    #   revision: v1.5.0
+    #   submodules: true
 
   # West-related configuration for the sdk_glue repository.
   self:

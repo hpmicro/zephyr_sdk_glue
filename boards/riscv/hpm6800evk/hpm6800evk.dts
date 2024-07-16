@@ -20,14 +20,22 @@
 	chosen {
 		zephyr,console = &uart0;
 		zephyr,shell-uart = &uart0;
-		zephyr,sram = &sram;
+		zephyr,sram = &sdram;
 		zephyr,flash = &flash0;
 		zephyr,code-partition = &slot0_partition;
 	};
 
-	dram: memory@40000000 {
+	ext_ram: memory@40000000 {
 		device_type = "memory";
 		reg = <0x40000000 DT_SIZE_M(256)>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		sdram: memory@1200000 {
+			reg = <0x40000000 DT_SIZE_M(224)>;
+		};
+		sdram_noncache: memory@1240000 {
+			reg = <0x4e000000 DT_SIZE_M(32)>;
+		};
 	};
 
 	leds {

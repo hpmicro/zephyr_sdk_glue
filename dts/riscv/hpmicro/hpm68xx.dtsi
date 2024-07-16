@@ -81,7 +81,7 @@
 			axi_sram: memory@1200000 {
 				reg = <0x1200000 DT_SIZE_K(256)>;
 			};
-			noncache: memory@1240000 {
+			axi_noncache: memory@1240000 {
 				reg = <0x1240000 DT_SIZE_K(256)>;
 			};
 		};
@@ -129,11 +129,15 @@
 		};
 
 		ahb_sram: memory@f0400000 {
+			compatible = "zephyr,memory-region";
 			reg = <0xf0400000 DT_SIZE_K(32)>;
+			zephyr,memory-region = "AHB_SRAM";
 		};
 
 		apb_sram: memory@f4130000 {
+			compatible = "zephyr,memory-region";
 			reg = <0xf4130000 DT_SIZE_K(16)>;
+			zephyr,memory-region = "APB_SRAM";
 		};
 
 		gpio0: peripheral@f00d0000 {

@@ -48,22 +48,3 @@ config SOC_HPM6880
 	select HAS_HPMSDK_PCFG
 
 endchoice
-
-if SOC_SERIES_HPM68XX
-
-config INIT_EXT_RAM
-	bool "Initialize external RAM(SDRAM or DDR)"
-	default y
-
-choice
-	prompt "DDR Type Selection"
-	depends on INIT_EXT_RAM
-
-config DDR2
-	bool "DDR Type DDR2"
-
-config DDR3L
-	bool "DDR Type DDR3L"
-endchoice
-
-endif # SOC_SERIES_HPM68XX

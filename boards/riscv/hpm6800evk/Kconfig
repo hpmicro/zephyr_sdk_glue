@@ -2,6 +2,20 @@
 # SPDX-License-Identifier: Apache-2.0
 
 if BOARD_HPM6800EVK
-# add board option
+
+config INIT_EXT_RAM
+	bool "Initialize external RAM(SDRAM or DDR)"
+	default y
+
+choice
+	prompt "DDR Type Selection"
+	depends on INIT_EXT_RAM
+
+config DDR2
+	bool "DDR Type DDR2"
+
+config DDR3L
+	bool "DDR Type DDR3L"
+endchoice
 
 endif #BOARD_HPM6800EVK

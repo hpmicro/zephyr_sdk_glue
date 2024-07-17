@@ -22,7 +22,6 @@
 
 #ifdef CONFIG_XIP
 __attribute__((section(".nor_cfg_option"))) const uint32_t option[4] = { 0xfcf90001, 0x00000007, 0x0, 0x0 };
-uint32_t __fw_size__[] = {32768};
 #endif
 __attribute__((weak)) void c_startup(void)
 {

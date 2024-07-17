@@ -30,10 +30,10 @@
 		reg = <0x40000000 DT_SIZE_M(256)>;
 		#address-cells = <1>;
 		#size-cells = <1>;
-		sdram: memory@1200000 {
+		sdram: memory@40000000 {
 			reg = <0x40000000 DT_SIZE_M(224)>;
 		};
-		sdram_noncache: memory@1240000 {
+		sdram_noncache: memory@4e000000 {
 			reg = <0x4e000000 DT_SIZE_M(32)>;
 		};
 	};

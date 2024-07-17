@@ -106,4 +106,5 @@ SECTIONS
 	__noncacheable_init_load_addr__ = LOADADDR(.noncacheable.init);
 	__noncacheable_start__ = ORIGIN(NONCACHEABLE);
 	__noncacheable_end__ = ORIGIN(NONCACHEABLE) + LENGTH(NONCACHEABLE);
+	__fw_size__ = __rom_region_size;
 }

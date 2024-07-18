@@ -6,6 +6,7 @@
  */
 
 #include <zephyr/init.h>
+#include <kernel_internal.h>
 #include <hpm_common.h>
 #include <hpm_soc.h>
 #include <zephyr/irq.h>
@@ -19,28 +20,53 @@
 #endif
 
 #ifdef CONFIG_XIP
-__attribute__ ((section(".nor_cfg_option"))) const uint32_t option[4] = {0xfcf90001, 0x00000007, 0x0, 0x0};
-uint32_t __fw_size__[] = {32768};
+__attribute__ ((section(".nor_cfg_option"))) const uint32_t option[4] = {0xfcf90002, 0x00000007, 0xE, 0x0};
 #endif
-__attribute__((weak)) void _init_noncache(void)
+__attribute__((weak)) void c_startup(void)
 {
 	uint32_t i, size;
 
-	extern uint8_t __noncacheable_data_load_start[];
-	extern uint8_t __noncacheable_bss_start__[], __noncacheable_bss_end__[];
-	extern uint8_t __noncacheable_init_start__[], __noncacheable_init_end__[];
+    extern uint8_t __ramfunc_start__[], __ramfunc_end__[];
+    extern uint8_t __noncacheable_bss_start__[], __noncacheable_bss_end__[];
+    extern uint8_t __noncacheable_init_start__[], __noncacheable_init_end__[];
+    extern uint8_t __fast_load_addr__[], __noncacheable_init_load_addr__[];
+    extern uint8_t __fast_ram_bss_start__[], __fast_ram_bss_end__[];
+    extern uint8_t __fast_ram_init_start__[], __fast_ram_init_end__[], __fast_ram_init_load_addr__[];
+	extern uint8_t __isr_load_addr__[], __isr_entry_load_addr__[];
+    extern uint8_t __isr_ram_start__[], __isr_load_size__[], __isr_entry_start__[], __isr_entry_size__[];
 
-	/* noncacheable bss section */
-	size = __noncacheable_bss_end__ - __noncacheable_bss_start__;
-	for (i = 0; i < size; i++) {
-		*(__noncacheable_bss_start__ + i) = 0;
-	}
+    /* noncacheable bss section */
+    size = __noncacheable_bss_end__ - __noncacheable_bss_start__;
+    for (i = 0; i < size; i++) {
+        *(__noncacheable_bss_start__ + i) = 0;
+    }
 
-	/* noncacheable init section LMA: etext + data length + ramfunc legnth */
-	size = __noncacheable_init_end__ - __noncacheable_init_start__;
-	for (i = 0; i < size; i++) {
-		*(__noncacheable_init_start__ + i) = *(__noncacheable_data_load_start + i);
-	}
+    /* fast_ram bss section */
+    size = __fast_ram_bss_end__ - __fast_ram_bss_start__;
+    for (i = 0; i < size; i++) {
+        *(__fast_ram_bss_start__ + i) = 0;
+    }
+
+    /* ramfunc section LMA: etext + data length */
+    size = __ramfunc_end__ - __ramfunc_start__;
+    for (i = 0; i < size; i++) {
+        *(__ramfunc_start__ + i) = *(__fast_load_addr__ + i);
+    }
+
+    /* noncacheable init section LMA: etext + data length + ramfunc legnth + tdata length*/
+    size = __noncacheable_init_end__ - __noncacheable_init_start__;
+    for (i = 0; i < size; i++) {
+        *(__noncacheable_init_start__ + i) = *(__noncacheable_init_load_addr__ + i);
+    }
+
+    /* fast_ram init section LMA: etext + data length + ramfunc legnth + tdata length*/
+    size = __fast_ram_init_end__ - __fast_ram_init_start__;
+    for (i = 0; i < size; i++) {
+        *(__fast_ram_init_start__ + i) = *(__fast_ram_init_load_addr__ + i);
+    }
+
+    z_early_memcpy(&__isr_ram_start__, &__isr_load_addr__, (uintptr_t) &__isr_load_size__);
+    z_early_memcpy(&__isr_entry_start__, &__isr_entry_load_addr__, (uintptr_t) &__isr_entry_size__);
 }
 
 static void soc_init_clock(void)

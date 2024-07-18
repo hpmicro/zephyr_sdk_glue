@@ -9,8 +9,8 @@
 #include "hpm6750evk2-pinctrl.dtsi"
 
 / {
-	model = "HPMicro HPM6750EVK";
-	compatible = "HPMicro,hpm6750evk";
+	model = "HPMicro HPM6750EVK2";
+	compatible = "HPMicro,hpm6750evk2";
 
 	aliases {
 		led0 = &led_r;
@@ -24,17 +24,23 @@
 	chosen {
 		zephyr,console = &uart0;
 		zephyr,shell-uart = &uart0;
-		zephyr,sram = &sram;
-		zephyr,itcm = &ilm;
-		zephyr,dtcm = &dlm;
+		zephyr,sram = &sdram;
 		zephyr,flash = &flash0;
 		zephyr,code-partition = &slot0_partition;
         zephyr,canbus = &can0;
 	};
 
-	dram: memory@40000000 {
+	ext_ram: memory@40000000 {
 		device_type = "memory";
-		reg = <0x40000000 DT_SIZE_M(16)>;
+		reg = <0x40000000 DT_SIZE_M(32)>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		sdram: memory@40000000 {
+			reg = <0x40000000 DT_SIZE_M(28)>;
+		};
+		sdram_noncache: memory@41c00000 {
+			reg = <0x41c00000 DT_SIZE_M(4)>;
+		};
 	};
 
 	leds {

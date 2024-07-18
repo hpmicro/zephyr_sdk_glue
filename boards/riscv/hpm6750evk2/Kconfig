@@ -1,7 +1,11 @@
 # Copyright (c) 2023 HPMicro
 # SPDX-License-Identifier: BSD-3-Clause
 
-if BOARD_HPM6750EVK
-# add board option
+if BOARD_HPM6750EVK2
+
+config INIT_EXT_RAM
+	bool "Initialize external RAM(SDRAM or DDR)"
+	default y
+	select HAS_HPMSDK_FEMC
 
 endif #BOARD_HPM6750EVK

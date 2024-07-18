@@ -58,13 +58,13 @@
 		ilm: memory@0 {
 			compatible = "zephyr,memory-region";
 			reg = <0x0 DT_SIZE_K(256)>;
-			zephyr,memory-region = "ITCM";
+			zephyr,memory-region = "ILM";
 		};
 
 		dlm: memory@80000 {
 			compatible = "zephyr,memory-region";
 			reg = <0x080000 DT_SIZE_K(256)>;
-			zephyr,memory-region = "DTCM";
+			zephyr,memory-region = "DLM";
 		};
 
 		core0_ilm_slv: memory@1000000 {
@@ -75,9 +75,33 @@
 			reg = <0x1040000 DT_SIZE_K(256)>;
 		};
 
-		sram: memory@1080000 {
+		axi_sram: memory@1080000 {
 			compatible = "mmio-sram";
-			reg = <0x01080000 DT_SIZE_K(1024)>;
+			reg = <0x01080000 DT_SIZE_K(768)>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			sram: memory@1080000 {
+				reg = <0x01080000 DT_SIZE_K(512)>;
+			};
+			axi_noncache: memory@1100000 {
+				reg = <0x1100000 DT_SIZE_K(256)>;
+			};
+		};
+
+		ahb_sram: memory@f0300000 {
+			compatible = "zephyr,memory-region";
+			reg = <0xf0300000 DT_SIZE_K(32)>;
+			zephyr,memory-region = "AHB_SRAM";
+		};
+
+		apb_sram: memory@f40f0000 {
+			compatible = "zephyr,memory-region";
+			reg = <0xf4130000 DT_SIZE_K(8)>;
+			zephyr,memory-region = "APB_SRAM";
+		};
+
+		share_ram: memory@117c000 {
+			reg = <0x117c000 DT_SIZE_K(16)>;
 		};
 
 		plic: interrupt-controller@e4000000 {
@@ -126,14 +150,6 @@
 			compatible = "hpmicro,xpi";
 			reg = <0xf3044000 DT_SIZE_K(16)>;
 			status = "disabled";
-		};
-
-		noncache: memory@1100000 {
-			reg = <0x1100000 DT_SIZE_K(256)>;
-		};
-
-		share_ram: memory@117c000 {
-			reg = <0x117c000 DT_SIZE_K(16)>;
 		};
 
 		gpio0: peripheral@f0000000 {

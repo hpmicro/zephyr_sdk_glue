@@ -1,4 +1,5 @@
 # Copyright (c) 2023 HPMicro
 # SPDX-License-Identifier: BSD-3-Clause
 
-message("add board cmake ok ${CONFIG_BOARD}")
+zephyr_library()
+zephyr_library_sources(board.c)

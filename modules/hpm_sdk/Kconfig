@@ -82,5 +82,7 @@ config HAS_HPMSDK_DAC
 	bool
 config HAS_HPMSDK_PCFG
 	bool
+config HAS_HPMSDK_FEMC
+	bool
 
 endif 

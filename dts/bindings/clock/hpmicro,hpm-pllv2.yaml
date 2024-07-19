@@ -1,0 +1,50 @@
+# Copyright (c) 2022 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro Clock
+
+compatible: "hpmicro,hpm-pllv2"
+
+include: [clock-controller.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  clock-sys-core:
+    required: true
+    type: int
+    description: Configuring the core of the clock. 0 or 1
+
+  ram-up-time:
+    required: true
+    type: int
+    description: Configure the External OSC ramp-up time. 32KHZ clock
+
+  sysctl-present:
+    type: int
+    required: true
+    description: |
+      Clock presets
+    enum:
+      - 1
+      - 2
+      - 4
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+
+  clock-frequency:
+    required: true
+    type: int
+    description: Clock Frequency HZ
+
+  "#clock-cells":
+    const: 3
+
+clock-cells:
+  - name
+  - src
+  - div

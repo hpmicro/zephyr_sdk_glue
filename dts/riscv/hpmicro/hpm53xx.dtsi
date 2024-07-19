@@ -40,15 +40,11 @@
 		ranges;
 
 		clk: clock-controller@f40c0000 {
-			compatible = "hpmicro,hpm-clock";
+			compatible = "hpmicro,hpm-pllv2";
 			reg = <0xf40c0000 0x4000>;
 			clock-frequency = <DT_FREQ_M(960)>;
 			reg-names = "clk";
 			status = "okay";
-			clock-sys-core = <HPM_CLOCK_CPU0>;
-			ram-up-time = <(32*1000*9)>;
-			sysctl-present = <2>;
-			#clock-cells = <3>;
 		};
 
 		ilm: memory@0 {

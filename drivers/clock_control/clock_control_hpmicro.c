@@ -8,7 +8,7 @@
  * 2024-04-29   HPMicro         first edition
  */
 
-#define DT_DRV_COMPAT hpmicro_hpm_clock
+#define DT_DRV_COMPAT hpmicro_hpm_pll
 #define CLOCK_NODE DT_NODELABEL(clk)
 
 #include <stdint.h>

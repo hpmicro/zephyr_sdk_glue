@@ -8,7 +8,7 @@
  * 2024-04-29   HPMicro         first edition
  */
 
-#define DT_DRV_COMPAT hpmicro_hpm_pll
+#define DT_DRV_COMPAT hpmicro_hpm_pllv2
 #define CLOCK_NODE DT_NODELABEL(clk)
 
 #include <stdint.h>
@@ -17,10 +17,10 @@
 #include <drivers/clock_control/hpmicro_clock_control.h>
 
 #include <hpm_clock_drv.h>
-#include <hpm_pllctl_drv.h>
+#include <hpm_pllctlv2_drv.h>
 
 struct clock_hpm_cfg {
-	PLLCTL_Type *pll_base;
+	PLLCTLV2_Type *pll_base;
 	SYSCTL_Type *sysctl_base;
 	uint32_t sys_core;
 	uint32_t sysctl_preset;
@@ -73,7 +73,7 @@ clock_control_hpm_get_status(const struct device *dev,
 
 
 static const struct clock_hpm_cfg config = {
-	.pll_base = (PLLCTL_Type *)DT_REG_ADDR_BY_NAME(CLOCK_NODE, pll),
+	.pll_base = (PLLCTLV2_Type *)DT_REG_ADDR_BY_NAME(CLOCK_NODE, pll),
 	.sysctl_base = (SYSCTL_Type *)DT_REG_ADDR_BY_NAME(CLOCK_NODE, sysctl),
 	.sys_core = DT_PROP(CLOCK_NODE, clock_sys_core),
 	.sysctl_preset = DT_PROP(CLOCK_NODE, sysctl_present),

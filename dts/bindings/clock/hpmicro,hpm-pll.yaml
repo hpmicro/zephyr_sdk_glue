@@ -3,7 +3,7 @@
 
 description: HPMicro Clock
 
-compatible: "hpmicro,hpm-clock"
+compatible: "hpmicro,hpm-pll"
 
 include: [clock-controller.yaml, base.yaml]
 

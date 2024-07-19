@@ -43,7 +43,7 @@
 		ranges;
 
 		clk: clock-controller@f4100000 {
-			compatible = "hpmicro,hpm-clock";
+			compatible = "hpmicro,hpm-pll";
 			reg = <0xf4000000 DT_SIZE_K(256)
 				0xf4100000 DT_SIZE_K(256)>;
 			clock-frequency = <DT_FREQ_M(648)>;

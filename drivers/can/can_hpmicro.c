@@ -258,7 +258,7 @@ static int hpm_can_init(const struct device *dev)
 
     /* Set Interrupt Enable Mask */
     config->irq_txrx_enable_mask = CAN_EVENT_RECEIVE | CAN_EVENT_TX_PRIMARY_BUF | CAN_EVENT_TX_SECONDARY_BUF | CAN_EVENT_ERROR;
-    config->irq_error_enable_mask = CAN_ERROR_BUS_ERROR_INT_ENABLE | CAN_ERROR_ARBITRAITION_LOST_INT_ENABLE | CAN_ERROR_PASSIVE_INT_ENABLE;
+    config->irq_error_enable_mask = CAN_ERROR_BUS_ERROR_INT_ENABLE | CAN_ERROR_ARBITRATION_LOST_INT_ENABLE | CAN_ERROR_PASSIVE_INT_ENABLE;
 
     /* Set CAN filter list */
     config->filter_list_num = data->can_filter_count;

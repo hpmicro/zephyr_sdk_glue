@@ -98,7 +98,7 @@ static void soc_init_clock(void)
     clock_add_to_group(clock_mot1, 0);
     clock_add_to_group(clock_acmp, 0);
     clock_add_to_group(clock_dao, 0);
-    clock_add_to_group(clock_msyn, 0);
+    clock_add_to_group(clock_synt, 0);
     clock_add_to_group(clock_lmm0, 0);
     clock_add_to_group(clock_pdm, 0);
 

@@ -14,4 +14,7 @@ config FLASH_LOAD_OFFSET
 config FLASH_LOAD_SIZE
 	default $(dt_chosen_reg_size_hex,$(DT_CHOSEN_Z_CODE_PARTITION))
 
+config HEAP_MEM_POOL_SIZE
+	default 16384
+
 endif

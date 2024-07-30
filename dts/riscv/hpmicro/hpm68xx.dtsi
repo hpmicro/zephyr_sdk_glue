@@ -97,7 +97,7 @@
 			reg-names = "prio", "irq_en", "reg";
 			riscv,max-priority = <7>;
 			riscv,ndev = <127>;
-			interrupts-extended = <&cpu0_intc 0>;
+			interrupts-extended = <&cpu0_intc 11>;
 		};
 
 		plic_sw: interrupt-controller@e6400000 {

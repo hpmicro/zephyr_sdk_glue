@@ -28,11 +28,17 @@ config RISCV_HAS_PLIC
 config RISCV_GP
 	default y
 
+config 2ND_LVL_ISR_TBL_OFFSET
+	default 12
+
+config 2ND_LVL_INTR_00_OFFSET
+	default 11
+
 config MAX_IRQ_PER_AGGREGATOR
-	default 112
+	default 127
 
 config NUM_IRQS
-	default 128
+	default 140
 
 source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/riscv/hpmicro/hpm67xx/Kconfig.defconfig.hpm6*"
 

@@ -40,7 +40,7 @@
 };
 
 &plic {
-	interrupts-extended = <&cpu0_intc 0 &cpu1_intc 0>;
+	interrupts-extended = <&cpu0_intc 11 &cpu1_intc 11>;
 };
 
 &plic_sw {

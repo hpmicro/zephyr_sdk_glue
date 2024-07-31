@@ -1,0 +1,20 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+DT_COMPAT_HPM_SPI := hpmicro,hpm-spi
+
+config SPI_HPMICRO
+	bool "HPMicro SPI driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_SPI_ENABLED
+	select HAS_HPMSDK_SPI
+	help
+	  Enable support for hpmicro spi driver.
+
+if SPI_HPMICRO
+config SPI_HPM_SPI_DMA
+	bool "HPM SPI DMA Support"
+	select DMA
+	help
+	  Enable the SPI DMA mode for SPI instances
+	  that enable dma channels in their device tree node.
+endif # SPI_HPM

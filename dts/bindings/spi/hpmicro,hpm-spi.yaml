@@ -1,0 +1,53 @@
+# Copyright 2022 hpmicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro controller
+
+compatible: "hpmicro,hpm-spi"
+
+include: ["spi-controller.yaml", "pinctrl-device.yaml"]
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    pinctrl-0:
+      type: phandles
+      required: true
+
+    cs-sck-delay:
+      type: int
+      required: false
+      description: |
+        the minimum time from the chip select assert to the first clock
+        edge. If not set, the minimum supported delay is used.
+        0 - 1/2 SCK period; 1 - 2/2 SCK period;
+        2 - 3/2 SCK period; 3 - 4/2 SCK period;
+
+    cs-minimum-high-time:
+      type: int
+      required: false
+      description: |
+        The minimum time that SPI CS should stay HIGH.
+        ( SCK period / 2 ) * ( x + 1)
+
+    dmas:
+      description: |
+        Optional TX & RX dma specifiers.  Each specifier will have a phandle
+        reference to the dmac controller, the channel number, and peripheral
+        trigger source.
+
+        For example dmas for TX, RX on SERCOM3
+           dmas = <&dmac 0 0xb>, <&dmac 1 0xa>;
+
+    dma-names:
+      description: |
+        Required if the dmas property exists.  This should be "tx" and "rx"
+        to match the dmas property.
+
+        For example
+           dma-names = "tx", "rx";
+

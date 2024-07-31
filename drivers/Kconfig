@@ -9,5 +9,6 @@ rsource "pinctrl/Kconfig.hpmicro"
 rsource "dma/Kconfig.hpmicro"
 rsource "gpio/Kconfig.hpmicro"
 rsource "can/Kconfig.hpmicro"
+rsource "spi/Kconfig.hpmicro"
 
 endmenu

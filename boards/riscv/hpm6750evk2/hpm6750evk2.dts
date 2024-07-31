@@ -156,6 +156,7 @@
 &xdma {
 	status = "okay";
 };
+
 &pwm2 {
 	status = "okay";
 	period-init = <50>;

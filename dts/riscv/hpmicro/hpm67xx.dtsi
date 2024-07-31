@@ -202,10 +202,34 @@
 			status = "okay";
 		};
 
+		pwm0: pwm@f0200000 {
+			compatible = "hpmicro,hpm-pwm";
+			reg = <0xf0200000 0x10000>;
+			clock-name = <CLOCK_MOT0>;
+			status = "disabled";
+			#pwm-cells = <3>;
+		};
+
+		pwm1: pwm@f0210000 {
+			compatible = "hpmicro,hpm-pwm";
+			reg = <0xf0210000 0x10000>;
+			clock-name = <CLOCK_MOT1>;
+			status = "disabled";
+			#pwm-cells = <3>;
+		};
+
 		pwm2: pwm@f0220000 {
 			compatible = "hpmicro,hpm-pwm";
 			reg = <0xf0220000 0x10000>;
-			clock-name = <20382983>;
+			clock-name = <CLOCK_MOT2>;
+			status = "disabled";
+			#pwm-cells = <3>;
+		};
+
+		pwm3: pwm@f0230000 {
+			compatible = "hpmicro,hpm-pwm";
+			reg = <0xf0230000 0x10000>;
+			clock-name = <CLOCK_MOT3>;
 			status = "disabled";
 			#pwm-cells = <3>;
 		};

@@ -1,0 +1,11 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+DT_COMPAT_HPM_PWM := hpmicro,hpm-pwm
+
+config PWM_HPMICRO
+	bool "HPMicro PWM driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_PWM_ENABLED
+	select HAS_HPMSDK_PWM
+	help
+	  Enable hpmicro pwm driver.

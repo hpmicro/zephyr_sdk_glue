@@ -322,7 +322,7 @@
 			reg = <0xf0010000 0x4000>;
 			interrupts = <19 1>;
 			interrupt-parent = <&plic>;
-			clk-name = <19661056>;
+			clk-name = <CLOCK_ADC0>;
 			clk-source = <3>;
 			clk-divider = <2>;
 			sample-time = <20>;
@@ -335,7 +335,20 @@
 			reg = <0xf0014000 0x4000>;
 			interrupts = <20 1>;
 			interrupt-parent = <&plic>;
-			clk-name = <19661056>;
+			clk-name = <CLOCK_ADC1>;
+			clk-source = <3>;
+			clk-divider = <2>;
+			sample-time = <20>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
+
+		adc2: adc@f0018000 {
+			compatible = "hpmicro,hpm-adc12";
+			reg = <0xf0018000 0x4000>;
+			interrupts = <21 1>;
+			interrupt-parent = <&plic>;
+			clk-name = <CLOCK_ADC2>;
 			clk-source = <3>;
 			clk-divider = <2>;
 			sample-time = <20>;
@@ -348,7 +361,7 @@
 			reg = <0xf001C000 0x4000>;
 			interrupts = <22 1>;
 			interrupt-parent = <&plic>;
-			clk-name = <19661056>;
+			clk-name = <CLOCK_ADC3>;
 			clk-source = <3>;
 			clk-divider = <2>;
 			sample-time = <20>;

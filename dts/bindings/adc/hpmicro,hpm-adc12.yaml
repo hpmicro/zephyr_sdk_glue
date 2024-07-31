@@ -1,0 +1,86 @@
+# Copyright 2022 hpmicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM ADC
+
+compatible: "hpmicro,hpm-adc12"
+
+include: [adc-controller.yaml, pinctrl-device.yaml]
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    clk-name:
+      type: int
+      required: true
+      description: converter clock name
+
+    clk-source:
+      type: int
+      required: true
+      description: converter clock source
+
+    clk-divider:
+      type: int
+      required: true
+      description: clock divider for the converter
+
+    sample-time:
+      type: int
+      required: true
+      description: sample time in clock cycles
+
+    en-hw-trig:
+      type: boolean
+      required: false
+      description: enables hardware triggered adc sampling
+
+    trig-input-src:
+      type: int
+      required: false
+      description: |
+        interconnection manager input resources
+        HPM_TRGM0_INPUT_SRC_VSS 0x0
+        HPM_TRGM0_INPUT_SRC_VDD 0x1
+        HPM_TRGM0_INPUT_SRC_TRGM0_IN0 0x2
+        HPM_TRGM0_INPUT_SRC_TRGM0_IN1 0x3
+        HPM_TRGM0_INPUT_SRC_TRGM0_IN2 0x4
+        ....
+        HPM_TRGM0_INPUT_SRC_DEBUG_FLAG 0x38
+
+    trig-base:
+      type: int
+      required: false
+      description: |
+        interconnection manager base address
+        HPM_TRGM0_BASE 0xF020C000UL
+        HPM_TRGM1_BASE 0xF021C000UL
+        HPM_TRGM2_BASE 0xF022C000UL
+        HPM_TRGM3_BASE 0xF023C000UL
+
+
+    trig-num:
+      type: int
+      required: false
+      description: |
+        interconnection manager number
+        TRGM_TRGOCFG_ADC0_STRGI 48
+        TRGM_TRGOCFG_ADC1_STRGI 49
+        TRGM_TRGOCFG_ADC2_STRGI 50
+        TRGM_TRGOCFG_ADC3_STRGI 51
+
+    "#io-channel-cells":
+      const: 1
+
+    pinctrl-0:
+      required: true
+
+    pinctrl-names:
+      required: true
+
+io-channel-cells:
+    - input

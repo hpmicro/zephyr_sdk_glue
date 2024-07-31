@@ -39,7 +39,7 @@ static int hpmicro_pwm_set_cycles(const struct device *dev, uint32_t channel,
 	pwm_config_t pwm_config;
 	pwm_cmp_config_t cmp_config[2] = {0};
 	PWM_Type *pwm_base = config->base;
-	uint8_t trig_en = false;
+	// uint8_t trig_en = false;
 
 	pwm_get_default_pwm_config(pwm_base, &pwm_config);
 	if (flags == PWM_POLARITY_INVERTED) {

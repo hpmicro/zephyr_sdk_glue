@@ -19,6 +19,12 @@
 		};
 	};
 
+	pinmux_gpioe: pinmux_gpioe {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 4), IOC_TYPE_IOC, 0, 0)>;
+		};
+	};
+
 	pinmux_gpiof: pinmux_gpiof {
 		group0 {
 			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTF, 6), IOC_TYPE_IOC, 0, 0)>,
@@ -30,6 +36,15 @@
 
 		group1 {
 			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTF, 2), IOC_TYPE_IOC, 0, 0)>;
+		};
+	};
+
+	pinmux_spi3: pinmux_spi3 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 5), IOC_TYPE_IOC, 0, 5)>,
+					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 6), IOC_TYPE_IOC, 0, 5)>,
+					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 7), IOC_TYPE_IOC, 0, 5)>;
+					 input-enable;
 		};
 	};
 };

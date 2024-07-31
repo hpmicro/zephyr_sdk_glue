@@ -233,6 +233,54 @@
 			interrupt-parent = <&plic>;
 			status = "disabled";
 		};
+
+		spi0: spi@f0070000 {
+			compatible = "hpmicro,hpm-spi";
+			reg = <0xf0070000 0x4000>;
+			interrupts = <39 0>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			cs-sck-delay = <3>;
+			cs-minimum-high-time = <11>;
+		};
+
+		spi1: spi@f0074000 {
+			compatible = "hpmicro,hpm-spi";
+			reg = <0xf0074000 0x4000>;
+			interrupts = <40 0>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			cs-sck-delay = <3>;
+			cs-minimum-high-time = <11>;
+		};
+
+		spi2: spi@f0078000 {
+			compatible = "hpmicro,hpm-spi";
+			reg = <0xf0078000 0x4000>;
+			interrupts = <41 0>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			cs-sck-delay = <3>;
+			cs-minimum-high-time = <11>;
+		};
+
+		spi3: spi@f007c000 {
+			compatible = "hpmicro,hpm-spi";
+			reg = <0xf007c000 0x4000>;
+			interrupts = <42 0>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			cs-sck-delay = <3>;
+			cs-minimum-high-time = <11>;
+		};
 	};
 };
 

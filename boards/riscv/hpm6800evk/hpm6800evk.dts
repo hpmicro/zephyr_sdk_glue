@@ -80,10 +80,26 @@
 	dma-names = "rx", "tx";
 };
 
+&gpioe {
+	pinctrl-0 = <&pinmux_gpioe>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
 &gpiof {
 	pinctrl-0 = <&pinmux_gpiof>;
 	pinctrl-names = "default";
 	status = "okay";
+};
+
+&spi3 {
+	status = "okay";
+	pinctrl-0 = <&pinmux_spi3>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpioe 4 GPIO_ACTIVE_LOW>;
+	/* HDMA channels 0 and 1, muxed to SPI2 RX and TX */
+	dmas = <&hdma 2 4>, <&hdma 3 5>;
+	dma-names = "rx", "tx";
 };
 
 &xpi0 {

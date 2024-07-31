@@ -47,4 +47,10 @@
 					 input-enable;
 		};
 	};
+
+	pinmux_adc0: pinmux_adc0 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 24), IOC_TYPE_IOC, 1, 0)>;
+		};
+	};
 };

@@ -92,6 +92,12 @@
 	status = "okay";
 };
 
+&adc0 {
+	status = "okay";
+	pinctrl-0 = <&pinmux_adc0>;
+	pinctrl-names = "default";
+};
+
 &spi3 {
 	status = "okay";
 	pinctrl-0 = <&pinmux_spi3>;

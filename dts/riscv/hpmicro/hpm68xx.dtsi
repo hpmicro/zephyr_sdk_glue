@@ -234,6 +234,19 @@
 			status = "disabled";
 		};
 
+		adc0: adc@f00e0000 {
+			compatible = "hpmicro,hpm-adc16";
+			reg = <0xf00e0000 0x4000>;
+			interrupts = <59 1>;
+			interrupt-parent = <&plic>;
+			clk-name = <CLOCK_ADC0>;
+			clk-source = <3>;
+			clk-divider = <2>;
+			sample-time = <20>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
+
 		spi0: spi@f0070000 {
 			compatible = "hpmicro,hpm-spi";
 			reg = <0xf0070000 0x4000>;

@@ -1,0 +1,9 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM RGB DISPLAY
+
+compatible: "hpmicro,hpm-display-rgb"
+
+include: ["base.yaml","pinctrl-device.yaml", "hpmicro,hpm-display.yaml"]
+

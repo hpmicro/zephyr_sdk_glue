@@ -84,5 +84,12 @@ config HAS_HPMSDK_PCFG
 	bool
 config HAS_HPMSDK_FEMC
 	bool
-
+config HAS_HPMSDK_MIPI_DSI_PHY
+	bool
+config HAS_HPMSDK_MIPI_DSI
+	bool
+config HAS_HPMSDK_PIXELMUX
+	bool
+config HAS_HPMSDK_LVB
+	bool
 endif 

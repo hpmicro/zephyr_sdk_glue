@@ -1,0 +1,16 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM RGB
+
+compatible: "hpmicro,hpm-rgb"
+
+include: ["base.yaml"]
+
+properties:
+  endpoint_in:
+      type: phandle
+      required: true
+      description: video data source of the rgb
+  test:
+      type: int

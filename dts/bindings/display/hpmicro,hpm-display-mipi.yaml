@@ -1,0 +1,28 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM MIPI DISPLAY
+
+compatible: "hpmicro,hpm-display-mipi"
+
+include: ["base.yaml","pinctrl-device.yaml", "hpmicro,hpm-display.yaml"]
+
+properties:
+  mipi_lane_num:
+    type: int
+    enum:
+      - 1
+      - 2
+      - 3
+      - 4
+  mipi_lane_speed:
+    type: int
+    description: uint Mbps
+  mipi_cmd:
+    type: uint8-array
+    description: |
+      mipi panel init commond.
+      [len, delay, data0, data1...., ]
+      len: delay + datas. at least is 1 (only delay).
+      delay: delay before send the cmd. uint is ms. the delay domain is mandatory and it >= 0.
+      data: mipi commond data. optional

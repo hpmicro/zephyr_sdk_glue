@@ -1,0 +1,83 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM LVB
+compatible: "hpmicro,hpm-lvb"
+include: ["base.yaml"]
+
+child-binding:
+  description: phy in lvb
+  compatible: "hpmicro,hpm-lvds"
+  include: ["base.yaml"]
+  properties:
+    endpoint_in:
+      type: phandle
+      required: true
+      description: video data source of the lvds
+    ch_mapping:
+      type: int
+      default: 0
+      enum:
+       - 0
+       - 1
+      description: channel mapping(lvds format). 0-vesa, 1-jeida
+    rterm_enable:
+      type: int
+      default: 1
+      enum:
+      - 0
+      - 1
+      description: enbale terminal resistance. 0-disable, 1-enable
+    amp_mv:
+      type: int
+      default: 5
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+      description: |
+        Output voltage Adjustment.
+        lvb_lvds_lane_amp_50_mv = 0
+        lvb_lvds_lane_amp_100_mv = 1
+        lvb_lvds_lane_amp_150_mv = 2
+        lvb_lvds_lane_amp_200_mv = 3
+        lvb_lvds_lane_amp_250_mv = 4
+        lvb_lvds_lane_amp_300_mv = 5
+        lvb_lvds_lane_amp_350_mv = 6
+        lvb_lvds_lane_amp_400_mv = 7
+        lvb_lvds_lane_amp_450_mv = 8
+        lvb_lvds_lane_amp_500_mv = 9
+        lvb_lvds_lane_amp_550_mv = 10
+        lvb_lvds_lane_amp_600_mv = 11
+    vcom_mv:
+      type: int
+      default: 5
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+      description: |
+        lvb_lvds_lane_vcom_0_7_v = 0
+        lvb_lvds_lane_vcom_0_8_v = 1
+        lvb_lvds_lane_vcom_0_9_v = 2
+        lvb_lvds_lane_vcom_1_0_v = 3
+        lvb_lvds_lane_vcom_1_1_v = 4
+        lvb_lvds_lane_vcom_1_2_v = 5
+        lvb_lvds_lane_vcom_1_3_v = 6
+        lvb_lvds_lane_vcom_1_4_v = 7
+        lvb_lvds_lane_vcom_1_5_v = 8

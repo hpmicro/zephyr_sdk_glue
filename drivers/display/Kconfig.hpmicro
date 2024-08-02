@@ -1,0 +1,30 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+
+menuconfig DISPLAY_HPMICRO
+	bool "HPMicro DISPLAY driver"
+	default n
+	select DISPLAY
+	select HAS_HPMSDK_LCDC
+	help
+		Enable the hpmicro display driver.
+
+if DISPLAY_HPMICRO
+config HPM_DISPLAY_PIXELMUX
+	bool "HPMicro PIXELMUX MODULE"
+	default n
+	select HAS_HPMSDK_PIXELMUX
+	help
+		Enable HPMicro PIXELMUX module
+config HPM_DISPLAY_MIPI_DSI
+	bool "Support mipi_dsi panel"
+	default y if HPM_DISPLAY_PIXELMUX
+	select HAS_HPMSDK_MIPI_DSI
+	select HAS_HPMSDK_MIPI_DSI_PHY
+
+config HPM_DISPLAY_LVDS
+	bool "Support lvds panel"
+	default y if HPM_DISPLAY_PIXELMUX
+	select HAS_HPMSDK_LVB
+endif

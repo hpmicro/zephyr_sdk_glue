@@ -1,0 +1,13 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM LVDS DISPLAY
+
+compatible: "hpmicro,hpm-display-lvds"
+
+include: ["base.yaml","pinctrl-device.yaml", "hpmicro,hpm-display.yaml"]
+
+properties:
+    dual_lvds_phy:
+      type: boolean
+      description: lvds phy is lvds_dual

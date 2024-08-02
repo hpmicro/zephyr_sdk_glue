@@ -1,0 +1,11 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM PIXELMUX
+
+compatible: "hpmicro,hpm-pixelmux"
+
+include: ["base.yaml"]
+
+
+  

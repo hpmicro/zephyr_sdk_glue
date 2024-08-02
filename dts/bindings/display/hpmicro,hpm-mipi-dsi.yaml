@@ -1,0 +1,18 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM MIPI-DSI
+
+compatible: "hpmicro,hpm-mipi-dsi"
+
+include: ["base.yaml"]
+
+properties:
+  endpoint_in:
+      type: phandle
+      required: true
+      description: video data source of the mipi-dsi
+  id:
+    type: int
+    required: true
+    description: mipi dsi instance number

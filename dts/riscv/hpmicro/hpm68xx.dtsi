@@ -286,6 +286,87 @@
 			cs-sck-delay = <3>;
 			cs-minimum-high-time = <11>;
 		};
+
+		display {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			pixelmux: pixelmux@f1034000 {
+				compatible = "hpmicro,hpm-pixelmux";
+				reg = <0xf1034000 DT_SIZE_K(16)>;
+			};
+
+			lcdc0: lcdc@f1000000 {
+				compatible = "hpmicro,hpm-lcdc";
+				id = <0>;
+				reg = <0xf1000000 DT_SIZE_K(16)>;
+				router = <&pixelmux>;
+				interrupts = <73 1>;
+				interrupt-parent = <&plic>;
+				clocks = <&clk CLK_PLL4CLK0 CLK_SRC_OSC24M 1>, <&clk CLOCK_LCD0 CLK_SRC_PLL4_CLK0 10>;
+				clock-names = "pll", "lcdc";
+				status = "disabled";
+			};
+
+			lcdc1: lcdc@f1004000 {
+				compatible = "hpmicro,hpm-lcdc";
+				id = <1>;
+				reg = <0xf1004000 DT_SIZE_K(16)>;
+				router = <&pixelmux>;
+				interrupts = <74 1>;
+				interrupt-parent = <&plic>;
+				clocks = <&clk CLK_PLL4CLK0 CLK_SRC_OSC24M 1>, <&clk CLOCK_LCD1 CLK_SRC_PLL4_CLK0 10>;
+				clock-names = "pll", "lcdc";
+				status = "disabled";
+			};
+
+			mipi_dsi0: mipi_dsi@f1020000 {
+				compatible = "hpmicro,hpm-mipi-dsi";
+				id = <0>;
+				reg = <0xf1020000 DT_SIZE_K(16)>, <0xf4140000 DT_SIZE_K(16)>, <0xf1034000 DT_SIZE_K(16)>;
+				reg-names = "mipi_dsi", "mipi_dsi_phy", "pixelmux";
+				clocks = <&clk CLOCK_DSI0 0 0>;
+				clock-names = "dsi";
+				interrupts = <81 1>;
+				interrupt-parent = <&plic>;
+				status = "disabled";
+			};
+
+			mipi_dsi1: mipi_dsi@f1024000 {
+				compatible = "hpmicro,hpm-mipi-dsi";
+				id = <1>;
+				reg = <0xf1024000 DT_SIZE_K(16)>, <0xf4144000 DT_SIZE_K(16)>, <0xf1034000 DT_SIZE_K(16)>;
+				reg-names = "mipi_dsi", "mipi_dsi_phy", "pixelmux";
+				clocks = <&clk CLOCK_DSI1 0 0>;
+				clock-names = "dsi";
+				interrupts = <82 1>;
+				interrupt-parent = <&plic>;
+				status = "disabled";
+			};
+
+			lvb: lvb@f1030000 {
+				compatible = "hpmicro,hpm-lvb";
+				reg = <0xf1030000 DT_SIZE_K(16)>, <0xf1034000 DT_SIZE_K(16)>;
+				reg-names = "lvb", "pixelmux";
+				clocks = <&clk CLOCK_LVB 0 0>;
+				clock-names = "lvb";
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				lvb_lvds0: lvds@0 {
+					compatible = "hpmicro,hpm-lvds";
+					reg = <0>;
+				};
+
+				lvb_lvds1: lvds@1 {
+					compatible = "hpmicro,hpm-lvds";
+					reg = <1>;
+				};
+			};
+
+			rgb0: rgb {
+				compatible = "hpmicro,hpm-rgb";
+			};
+		};
 	};
 };
 

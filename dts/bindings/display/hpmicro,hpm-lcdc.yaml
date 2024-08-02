@@ -1,0 +1,18 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM LCDC
+
+compatible: "hpmicro,hpm-lcdc"
+
+include: ["base.yaml"]
+
+properties:
+  id:
+    type: int
+    required: true
+    description: ip instance number
+  router:
+    type: phandle
+    description: lcdc router module(pxelmux)
+  

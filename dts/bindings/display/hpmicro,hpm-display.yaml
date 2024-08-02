@@ -1,0 +1,81 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM DISPLAY
+
+include: ["base.yaml","pinctrl-device.yaml"]
+
+properties:
+  panel_name:
+    type: string
+  endpoint_in:
+    type: phandle
+    required: true
+    description: video data source of the panel
+  pixel_clock_khz:
+    type: int
+    required: true
+    description: pixel clock of display panel, UINT KHz
+  hactive:
+    type: int
+    required: true
+  hfront_porch:
+    type: int
+    required: true
+  hback_porch:
+    type: int
+    required: true
+  hsync_len:
+    type: int
+    required: true
+  vactive:
+    type: int
+    required: true
+  vfront_porch:
+    type: int
+    required: true
+  vback_porch:
+    type: int
+    required: true
+  vsync_len:
+    type: int
+    required: true
+  hsync_pol:
+    type: int
+    default: 0
+    description: Horizontal Synchronization Signal Polarity, 0-High Active, 1-Low Active
+  vsync_pol:
+    type: int
+    default: 0
+    description: Vertical Synchronization Signal Polarity, 0-High Active, 1-Low Active
+  de_pol:
+    type: int
+    default: 0
+    description: Data Enable Signal Polarity, 0-High Active, 1-Low Active
+  pixel_clk_pol:
+    type: int
+    default: 0
+    description: Pixel Clock Signal Polarity, 0-High Active, 1-Low Active
+  pixel_data_pol:
+    type: int
+    default: 0
+    description: Pixel Data Signal Polarity, 0-High Active, 1-Low Active
+  reset-time:
+    type: int
+    default: 0
+    description: time of panel reset period, uint ms
+  pixel-format:
+    type: int
+    default: 8
+    enum:
+      - 8
+      - 16
+  gpios:
+    type: phandle-array
+  backlight-gpios:
+    type: phandle-array
+  reset-gpios:
+    type: phandle-array
+  cfg-gpios:
+    type: phandle-array
+    description: use to panel configrate

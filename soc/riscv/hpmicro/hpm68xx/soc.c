@@ -8,6 +8,7 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/init.h>
 #include <kernel_internal.h>
+#include <zephyr/linker/linker-defs.h>
 #include <hpm_common.h>
 #include <hpm_soc.h>
 #include <zephyr/irq.h>
@@ -116,12 +117,9 @@ static void soc_init_clock(void)
 
 static void soc_init_pmp(void)
 {
-    extern uint32_t __noncacheable_start__[];
-    extern uint32_t __noncacheable_end__[];
-
-    uint32_t start_addr = (uint32_t) __noncacheable_start__;
-    uint32_t end_addr = (uint32_t) __noncacheable_end__;
-    uint32_t length = end_addr - start_addr;
+#ifdef CONFIG_NOCACHE_MEMORY
+    uint32_t start_addr = (uint32_t) &_nocache_ram_start;
+    uint32_t length = (uint32_t) &_nocache_ram_size;
 
     if (length == 0) {
         return;
@@ -144,6 +142,7 @@ static void soc_init_pmp(void)
     pmp_entry[2].pma_addr = PMA_NAPOT_ADDR(start_addr, length);
     pmp_entry[2].pma_cfg.val = PMA_CFG(ADDR_MATCH_NAPOT, MEM_TYPE_MEM_NON_CACHE_BUF, AMO_EN);
     pmp_config(&pmp_entry[0], ARRAY_SIZE(pmp_entry));
+#endif
 }
 
 static int hpmicro_soc_init(void)

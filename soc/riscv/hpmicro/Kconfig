@@ -24,11 +24,6 @@ config SOC_ANDES_V5_HWDSP
 	help
 		This option enables the AndeStar v5 hardware DSP, in order to
 		support using the DSP instructions.
-
-config RISCV_ISA_EXT_ZICSR
-	bool
-config RISCV_ISA_EXT_ZIFENCEI
-	bool
 	
 source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/riscv/hpmicro/*/Kconfig.soc"
 

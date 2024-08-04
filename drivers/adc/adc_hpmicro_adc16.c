@@ -10,7 +10,7 @@
 #include <zephyr/drivers/adc.h>
 #include <hpm_adc16_drv.h>
 #include <hpm_clock_drv.h>
-#if DT_NODE_HAS_PROP(adc0, trig-base)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(adc0), trig-base)
 #include <hpm_trgm_drv.h>
 #endif
 #include <zephyr/drivers/pinctrl.h>
@@ -30,7 +30,7 @@ struct hpmicro_adc16_config {
 	uint32_t sample_time;
 	void (*irq_config_func)(const struct device *dev);
 	const struct pinctrl_dev_config *pincfg;
-#if DT_NODE_HAS_PROP(adc0, trig-base)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(adc0), trig-base)
 	bool trig_en;
 	TRGM_Type *trig_reg;
 	uint32_t trig_num;
@@ -50,7 +50,7 @@ struct hpmicro_adc16_data {
 	uint8_t resolution;
 };
 
-#if DT_NODE_HAS_PROP(adc0, trig-base)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(adc0), trig-base)
 static void hpmicro_init_trigger_mux(TRGM_Type * ptr, uint32_t hpm_trig_input_src, uint32_t trig_num)
 {
     trgm_output_t trgm_output_cfg;
@@ -171,7 +171,7 @@ static void hpmicro_adc16_start_channel(const struct device *dev)
     dma_cfg.buff_len_in_4bytes = channel_num;
     dma_cfg.stop_en            = false;
     dma_cfg.stop_pos           = 0;
-#if DT_NODE_HAS_PROP(adc0, trig-base)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(adc0), trig-base)
 	if (config->trig_en) {
 		hpmicro_init_trigger_mux(config->trig_reg, config->trig_input_src, config->trig_num);
 	}
@@ -181,12 +181,12 @@ static void hpmicro_adc16_start_channel(const struct device *dev)
 
     /* Enable sequence complete interrupt */
     adc16_enable_interrupts(base, adc16_event_seq_full_complete);
-#if DT_NODE_HAS_PROP(adc0, trig-base)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(adc0), trig-base)
 	if (!config->trig_en) {
 #endif
     	/* SW trigger */
     	adc16_trigger_seq_by_sw(base);
-#if DT_NODE_HAS_PROP(adc0, trig-base)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(adc0), trig-base)
 	}
 #endif
 }

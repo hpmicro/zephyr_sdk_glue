@@ -59,22 +59,12 @@ SECTIONS
 		__noncacheable_bss_end__ = .;
 	} GROUP_LINK_IN(NONCACHEABLE AT> RAM)
 
-	SECTION_PROLOGUE(.ahb_sram,(NOLOAD),)
-	{
-        KEEP(*(.ahb_sram))
-	} GROUP_LINK_IN(AHB_SRAM)
-
-	SECTION_PROLOGUE(.apb_sram,(NOLOAD),)
-	{
-        KEEP(*(.apb_sram))
-	} GROUP_LINK_IN(APB_SRAM)
-
 	SECTION_PROLOGUE(.isr_section,,SUBALIGN(8))
 	{
 		__isr_ram_start__ = .;
         KEEP(*(.isr_section))
 		__isr_ram_end__ = .;
-	} GROUP_LINK_IN(ILM)
+	} GROUP_LINK_IN(ILM AT> ROMABLE_REGION)
 
 	SECTION_PROLOGUE(.fast_ram.init,,SUBALIGN(8))
 	{

@@ -1,0 +1,23 @@
+family:
+- name: hpmicro
+  series:
+  - name: hpm53xx
+    socs:
+    - name: hpm5301
+    - name: hpm5321
+    - name: hpm5331
+    - name: hpm5361
+  - name: hpm63xx
+    socs:
+    - name: hpm6320
+    - name: hpm6330
+    - name: hpm6360
+  - name: hpm67xx
+    socs:
+    - name: hpm6450
+    - name: hpm6750
+  - name: hpm68xx
+    socs:
+    - name: hpm6830
+    - name: hpm6850
+    - name: hpm6880

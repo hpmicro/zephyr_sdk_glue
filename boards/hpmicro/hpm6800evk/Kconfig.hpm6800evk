@@ -2,5 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_HPM6800EVK
-	bool "HPMicro HPM6800EVK"
-	depends on SOC_HPM6880
+	select SOC_HPM6880

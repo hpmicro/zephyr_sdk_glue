@@ -1,0 +1,100 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HPM68XX
+	bool "HPMicro HPM68 Series"
+	select RISCV
+	select RISCV_PRIVILEGED
+	select RISCV_HAS_PLIC
+	help
+	  Enable support for HPMicro HPM68 series SoC
+
+config SOC_HPM6830
+	bool
+	select ATOMIC_OPERATIONS_BUILTIN
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+    select RISCV_ISA_EXT_C
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+	select CPU_HAS_DCACHE
+	select CPU_HAS_ICACHE
+	select RISCV_PMP
+
+config SOC_HPM6850
+	bool
+	select ATOMIC_OPERATIONS_BUILTIN
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+    select RISCV_ISA_EXT_C
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+	select CPU_HAS_DCACHE
+	select CPU_HAS_ICACHE
+	select RISCV_PMP
+
+config SOC_HPM6880
+	bool
+	select ATOMIC_OPERATIONS_BUILTIN
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+    select RISCV_ISA_EXT_C
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+	select CPU_HAS_DCACHE
+	select CPU_HAS_ICACHE
+	select RISCV_PMP
+
+if SOC_SERIES_HPM68XX
+
+choice
+prompt "Base CPU ISA options"
+default RV32I_CPU
+
+config RV32I_CPU
+	bool "RISCV32 CPU ISA"
+	select RISCV_ISA_RV32I
+
+config RV32E_CPU
+	bool "RISCV32E CPU ISA"
+	select RISCV_ISA_RV32E
+
+endchoice
+
+choice
+prompt "FPU options"
+default NO_FPU
+
+config NO_FPU
+	bool "No FPU"
+
+config SINGLE_PRECISION_FPU
+	bool "Single precision FPU"
+	select CPU_HAS_FPU
+
+config DOUBLE_PRECISION_FPU
+	bool "Double precision FPU"
+	select CPU_HAS_FPU_DOUBLE_PRECISION
+
+endchoice
+
+config SOC_ANDES_V5_HWDSP
+	bool "AndeStar V5 DSP ISA"
+	select RISCV_SOC_CONTEXT_SAVE
+	depends on !RISCV_GENERIC_TOOLCHAIN
+	help
+		This option enables the AndeStar v5 hardware DSP, in order to
+		support using the DSP instructions.
+
+config SOC_ANDES_V5_PMA
+	bool "Andes V5 Physical Memory Attribute (PMA)"
+	default y
+	select ARCH_HAS_NOCACHE_MEMORY_SUPPORT
+	help
+		This option enables the Andes V5 PMA, in order to support SW to
+		configure physical memory attribute by PMA CSRs. The address
+		matching of Andes V5 PMA is like RISC-V PMP NAPOT mode
+		(power-of-two alignment).

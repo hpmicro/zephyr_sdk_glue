@@ -5,8 +5,18 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # default value between 40 to 60, after plic init, before console init
+if SOC_FAMILY_HPM
+
+rsource "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/hpmicro/*/Kconfig.defconfig.series"
+
 config SERIAL_INIT_PRIORITY
     default KERNEL_INIT_PRIORITY_DEVICE
     depends on SERIAL
 
-source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/riscv/hpmicro/*/Kconfig.defconfig.series"
+config PINCTRL
+    default y
+
+config CLOCK_CONTROL
+    default y
+
+endif

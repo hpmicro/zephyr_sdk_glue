@@ -1,47 +1,20 @@
 # Copyright (c) 2023-2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
-
-choice
-	prompt "HPMicro HPM67xx Selection"
-	depends on SOC_SERIES_HPM67XX
-
-config SOC_HPM6450
-	bool "SOC_HPM6450"
-	select ATOMIC_OPERATIONS_C
-	select INCLUDE_RESET_VECTOR
-	select RISCV_ISA_EXT_M
-	select RISCV_ISA_EXT_A
-    select RISCV_ISA_EXT_C
-	select RISCV_ISA_RV32I
-	select RISCV_ISA_EXT_ZICSR
-	select RISCV_ISA_EXT_ZIFENCEI
+config SOC_SERIES_HPM67XX
+	bool "HPMicro HPM64/67 Series"
+	select SOC_FAMILY_HPM
 	select HAS_HPMSDK_PLLCTL
 	select HAS_HPMSDK_PMP
 	select HAS_HPMSDK_PCFG
+	help
+	  Enable support for HPMicro HPM68 series SoC
+
+config SOC_SERIES
+	default "hpm67xx" if SOC_SERIES_HPM67XX
 
 config SOC_HPM6750
-	bool "SOC_HPM6750"
-	select ATOMIC_OPERATIONS_C
-	select INCLUDE_RESET_VECTOR
-	select RISCV_ISA_EXT_M
-	select RISCV_ISA_EXT_A
-    select RISCV_ISA_EXT_C
-	select RISCV_ISA_RV32I
-	select RISCV_ISA_EXT_ZICSR
-	select RISCV_ISA_EXT_ZIFENCEI
-	select HAS_HPMSDK_PLLCTL
-	select HAS_HPMSDK_PMP
-	select HAS_HPMSDK_PCFG
+	bool
+	select SOC_SERIES_HPM67XX
 
-endchoice
-
-
-if SOC_SERIES_HPM67XX
-
-config HAS_HPMICRO_ADC12
-	bool "mcu support adc12"
-
-config HAS_HPMICRO_ADC16
-	bool "mcu support adc12"
-
-endif # SOC_SERIES_HPM67XX
+config SOC
+	default "hpm6750" if SOC_HPM6750

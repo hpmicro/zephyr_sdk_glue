@@ -2,5 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_HPM6750EVK2
-	bool "HPMicro HPM6750EVK2"
-	depends on SOC_HPM6750
+	select SOC_HPM6750

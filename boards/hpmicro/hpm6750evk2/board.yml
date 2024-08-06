@@ -1,0 +1,5 @@
+board:
+  name: hpm6750evk2
+  vendor: hpmicro
+  socs:
+    - name: hpm6750

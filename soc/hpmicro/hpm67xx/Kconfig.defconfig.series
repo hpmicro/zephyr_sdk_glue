@@ -19,9 +19,6 @@ config RISCV_GENERIC_TOOLCHAIN
 config RISCV_SOC_INTERRUPT_INIT
 	default y
 
-config RISCV_HAS_PLIC
-	default y
-
 config RISCV_GP
 	default y
 
@@ -37,6 +34,6 @@ config MAX_IRQ_PER_AGGREGATOR
 config NUM_IRQS
 	default 140
 
-source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/riscv/hpmicro/hpm67xx/Kconfig.defconfig.hpm6*"
+source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/hpmicro/hpm67xx/Kconfig.defconfig.hpm67*"
 
 endif # SOC_SERIES_HPM67XX

@@ -1,6 +1,0 @@
-# Copyright (c) 2024 HPMicro
-# SPDX-License-Identifier: Apache-2.0
-
-config BOARD_HPM6300EVK
-	bool "HPMicro HPM6300EVK"
-	depends on SOC_HPM6360

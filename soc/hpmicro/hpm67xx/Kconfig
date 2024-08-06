@@ -1,16 +1,16 @@
-# Copyright (c) 2024 HPMicro
+# Copyright (c) 2023-2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
-config SOC_SERIES_HPM68XX
+config SOC_SERIES_HPM67XX
 	select RISCV
 	select RISCV_PRIVILEGED
 	select RISCV_HAS_PLIC
 	help
-	  Enable support for HPMicro HPM68 series SoC
+	  Enable support for HPMicro HPM64/67 series SoC
 
-config SOC_HPM6830
+config SOC_HPM6750
 	bool
-	select ATOMIC_OPERATIONS_BUILTIN
+	select ATOMIC_OPERATIONS_C
 	select INCLUDE_RESET_VECTOR
 	select RISCV_ISA_EXT_M
 	select RISCV_ISA_EXT_A
@@ -19,35 +19,8 @@ config SOC_HPM6830
 	select RISCV_ISA_EXT_ZIFENCEI
 	select CPU_HAS_DCACHE
 	select CPU_HAS_ICACHE
-	# select RISCV_PMP
 
-config SOC_HPM6850
-	bool
-	select ATOMIC_OPERATIONS_BUILTIN
-	select INCLUDE_RESET_VECTOR
-	select RISCV_ISA_EXT_M
-	select RISCV_ISA_EXT_A
-    select RISCV_ISA_EXT_C
-	select RISCV_ISA_EXT_ZICSR
-	select RISCV_ISA_EXT_ZIFENCEI
-	select CPU_HAS_DCACHE
-	select CPU_HAS_ICACHE
-	# select RISCV_PMP
-
-config SOC_HPM6880
-	bool
-	select ATOMIC_OPERATIONS_BUILTIN
-	select INCLUDE_RESET_VECTOR
-	select RISCV_ISA_EXT_M
-	select RISCV_ISA_EXT_A
-    select RISCV_ISA_EXT_C
-	select RISCV_ISA_EXT_ZICSR
-	select RISCV_ISA_EXT_ZIFENCEI
-	select CPU_HAS_DCACHE
-	select CPU_HAS_ICACHE
-	# select RISCV_PMP
-
-if SOC_SERIES_HPM68XX
+if SOC_SERIES_HPM67XX
 
 choice
 prompt "Base CPU ISA options"
@@ -98,4 +71,4 @@ config SOC_ANDES_V5_PMA
 		matching of Andes V5 PMA is like RISC-V PMP NAPOT mode
 		(power-of-two alignment).
 
-endif # SOC_SERIES_HPM68XX
+endif # SOC_SERIES_HPM67XX

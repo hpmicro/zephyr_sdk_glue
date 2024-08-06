@@ -8,6 +8,6 @@ config SOC_FAMILY_HPM
 
 if SOC_FAMILY_HPM
 
-source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/hpmicro/*/Kconfig"
+rsource "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/hpmicro/*/Kconfig"
 
 endif # SOC_FAMILY_HPM

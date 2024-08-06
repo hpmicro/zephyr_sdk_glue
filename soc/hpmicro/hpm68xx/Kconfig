@@ -50,31 +50,31 @@ config SOC_HPM6880
 if SOC_SERIES_HPM68XX
 
 choice
-prompt "Base CPU ISA options"
-default RV32I_CPU
+	prompt "Base CPU ISA options"
+	default HPM68_RV32I
 
-config RV32I_CPU
+config HPM68_RV32I
 	bool "RISCV32 CPU ISA"
 	select RISCV_ISA_RV32I
 
-config RV32E_CPU
+config HPM68_RV32E
 	bool "RISCV32E CPU ISA"
 	select RISCV_ISA_RV32E
 
 endchoice
 
 choice
-prompt "FPU options"
-default NO_FPU
+	prompt "FPU options"
+	default HPM68_NO_FPU
 
-config NO_FPU
+config HPM68_NO_FPU
 	bool "No FPU"
 
-config SINGLE_PRECISION_FPU
+config HPM68_SINGLE_PRECISION_FPU
 	bool "Single precision FPU"
 	select CPU_HAS_FPU
 
-config DOUBLE_PRECISION_FPU
+config HPM68_DOUBLE_PRECISION_FPU
 	bool "Double precision FPU"
 	select CPU_HAS_FPU_DOUBLE_PRECISION
 

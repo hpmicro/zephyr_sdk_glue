@@ -4,7 +4,7 @@
 identifier: hpm6800evk
 name: HPMicro HPM6800EVK
 type: mcu
-arch: riscv32
+arch: riscv
 toolchain:
   - zephyr
   - cross-compile
@@ -18,3 +18,4 @@ supported:
 testing:
   ignore_tags:
     - bluetooth
+vendor: hpmicro

@@ -1,7 +1,8 @@
 # Copyright (c) 2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 config SOC_SERIES_HPM68XX
-	bool "HPMicro HPM68 Series"
+	bool
+	default n
 	select SOC_FAMILY_HPM
 	select HAS_HPMSDK_PLLCTLV2
 	select HAS_HPMSDK_PMP

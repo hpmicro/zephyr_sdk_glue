@@ -123,15 +123,11 @@ SECTIONS
 		KEEP(*(.reset.*))
     } GROUP_LINK_IN(ROMABLE_REGION)
 
-    SECTION_PROLOGUE(_EXCEPTION_SECTION_NAME,,SUBALIGN(8))
+    SECTION_PROLOGUE(_EXCEPTION_SECTION_NAME,,)
     {
-		__isr_entry_start__ = .;
 		 KEEP(*(".exception.entry.*"))
 		 *(".exception.other.*")
-		__isr_entry_end__ = .;
-    } GROUP_LINK_IN(ILM AT> ROMABLE_REGION)
-	__isr_entry_load_addr__ = LOADADDR(_EXCEPTION_SECTION_NAME);
-	__isr_entry_size__ = __isr_entry_end__ -__isr_entry_start__;
+    } GROUP_LINK_IN(ROMABLE_REGION)
 
     SECTION_PROLOGUE(_TEXT_SECTION_NAME,,)
 	{

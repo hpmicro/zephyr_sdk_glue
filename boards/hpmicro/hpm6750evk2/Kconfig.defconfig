@@ -5,9 +5,6 @@ if BOARD_HPM6750EVK2
 
 DT_CHOSEN_Z_CODE_PARTITION := zephyr,code-partition
 
-config BOARD
-	default "hpm6750evk2" if BOARD_HPM6750EVK2
-
 config FLASH_LOAD_OFFSET
 	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_CODE_PARTITION))
 

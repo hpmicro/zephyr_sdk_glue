@@ -108,6 +108,7 @@
 	dma-names = "rx", "tx";
 };
 
+
 &xpi0 {
 	status = "okay";
 	flash0: flash@0 {

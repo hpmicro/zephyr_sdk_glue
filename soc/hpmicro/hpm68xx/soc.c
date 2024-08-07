@@ -34,8 +34,8 @@ __attribute__((weak)) void c_startup(void)
     extern uint8_t __fast_load_addr__[], __noncacheable_init_load_addr__[];
     extern uint8_t __fast_ram_bss_start__[], __fast_ram_bss_end__[];
     extern uint8_t __fast_ram_init_start__[], __fast_ram_init_end__[], __fast_ram_init_load_addr__[];
-	extern uint8_t __isr_load_addr__[], __isr_entry_load_addr__[];
-    extern uint8_t __isr_ram_start__[], __isr_load_size__[], __isr_entry_start__[], __isr_entry_size__[];
+	// extern uint8_t __isr_load_addr__[], __isr_entry_load_addr__[];
+    // extern uint8_t __isr_ram_start__[], __isr_load_size__[], __isr_entry_start__[], __isr_entry_size__[];
 
     /* noncacheable bss section */
     size = __noncacheable_bss_end__ - __noncacheable_bss_start__;
@@ -67,8 +67,8 @@ __attribute__((weak)) void c_startup(void)
         *(__fast_ram_init_start__ + i) = *(__fast_ram_init_load_addr__ + i);
     }
 
-    z_early_memcpy(&__isr_ram_start__, &__isr_load_addr__, (uintptr_t) &__isr_load_size__);
-    z_early_memcpy(&__isr_entry_start__, &__isr_entry_load_addr__, (uintptr_t) &__isr_entry_size__);
+    // z_early_memcpy(&__isr_ram_start__, &__isr_load_addr__, (uintptr_t) &__isr_load_size__);
+    // z_early_memcpy(&__isr_entry_start__, &__isr_entry_load_addr__, (uintptr_t) &__isr_entry_size__);
 }
 
 static void soc_init_clock(void)
@@ -94,6 +94,7 @@ static void soc_init_clock(void)
     clock_add_to_group(clock_watchdog0, 0);
     clock_add_to_group(clock_xram, 0);
     clock_add_to_group(clock_gpio, 0);
+    clock_add_to_group(clock_adc0, 0);
 
     /* Connect Group0 to CPU0 */
     clock_connect_group_to_cpu(0, 0);
@@ -117,9 +118,16 @@ static void soc_init_clock(void)
 
 static void soc_init_pmp(void)
 {
-#ifdef CONFIG_NOCACHE_MEMORY
-    uint32_t start_addr = (uint32_t) &_nocache_ram_start;
-    uint32_t length = (uint32_t) &_nocache_ram_size;
+// #ifdef CONFIG_NOCACHE_MEMORY
+    // uint32_t start_addr = (uint32_t) &_nocache_ram_start;
+    // uint32_t length = (uint32_t) &_nocache_ram_size;
+
+    extern uint32_t __noncacheable_start__[];
+    extern uint32_t __noncacheable_end__[];
+
+    uint32_t start_addr = (uint32_t) __noncacheable_start__;
+    uint32_t end_addr = (uint32_t) __noncacheable_end__;
+    uint32_t length = end_addr - start_addr;
 
     if (length == 0) {
         return;
@@ -142,7 +150,7 @@ static void soc_init_pmp(void)
     pmp_entry[2].pma_addr = PMA_NAPOT_ADDR(start_addr, length);
     pmp_entry[2].pma_cfg.val = PMA_CFG(ADDR_MATCH_NAPOT, MEM_TYPE_MEM_NON_CACHE_BUF, AMO_EN);
     pmp_config(&pmp_entry[0], ARRAY_SIZE(pmp_entry));
-#endif
+// #endif
 }
 
 static int hpmicro_soc_init(void)

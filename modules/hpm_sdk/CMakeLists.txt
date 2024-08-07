@@ -37,7 +37,6 @@ endforeach()
 add_subdirectory(${HPM_SDK_DIR}/arch ${HPM_SDK_BINARY_DIR}/arch)
 add_subdirectory(${HPM_SDK_DIR}/soc ${HPM_SDK_BINARY_DIR}/soc)
 add_subdirectory(${HPM_SDK_DIR}/drivers ${HPM_SDK_BINARY_DIR}/drivers)
-add_subdirectory(${HPM_SDK_DIR}/components/enet_phy ${HPM_SDK_BINARY_DIR}/components)
 
 sdk_inc(.)
 endif()

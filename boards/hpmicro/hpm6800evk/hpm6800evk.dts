@@ -92,23 +92,6 @@
 	status = "okay";
 };
 
-&adc0 {
-	status = "okay";
-	pinctrl-0 = <&pinmux_adc0>;
-	pinctrl-names = "default";
-};
-
-&spi3 {
-	status = "okay";
-	pinctrl-0 = <&pinmux_spi3>;
-	pinctrl-names = "default";
-	cs-gpios = <&gpioe 4 GPIO_ACTIVE_LOW>;
-	/* HDMA channels 0 and 1, muxed to SPI2 RX and TX */
-	dmas = <&hdma 2 4>, <&hdma 3 5>;
-	dma-names = "rx", "tx";
-};
-
-
 &xpi0 {
 	status = "okay";
 	flash0: flash@0 {

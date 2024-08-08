@@ -15,6 +15,9 @@ supported:
   - uart
   - dma
   - can
+  - spi
+  - adc16
+  - pwm
 testing:
   ignore_tags:
     - bluetooth

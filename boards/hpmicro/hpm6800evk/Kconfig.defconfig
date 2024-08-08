@@ -14,4 +14,10 @@ config FLASH_LOAD_SIZE
 config HEAP_MEM_POOL_SIZE
 	default 16384
 
+config BUILD_OUTPUT_HEX
+	default y
+
+config UART_INTERRUPT_DRIVEN
+	default y
+
 endif

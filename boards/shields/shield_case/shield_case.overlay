@@ -1,0 +1,11 @@
+/*
+ * Copyright (c) 2024 HPMicro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+&uart3 {
+	status = "okay";
+	current-speed = <115200>;
+};

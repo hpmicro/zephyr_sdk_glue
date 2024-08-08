@@ -7,6 +7,8 @@
 orsource "./$(BOARD_DIR)/Kconfig.board"
 orsource "./$(BOARD_DIR)/Kconfig"
 
+rsource "boards/shields/*/Kconfig.shield"
+
 menu "Hpmicro Zephyr Glue"
 
 rsource "drivers/Kconfig"

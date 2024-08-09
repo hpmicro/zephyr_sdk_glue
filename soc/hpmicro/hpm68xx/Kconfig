@@ -5,6 +5,7 @@ config SOC_SERIES_HPM68XX
 	select RISCV
 	select RISCV_PRIVILEGED
 	select RISCV_HAS_PLIC
+	select DYNAMIC_INTERRUPTS
 	help
 	  Enable support for HPMicro HPM68 series SoC
 

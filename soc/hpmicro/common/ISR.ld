@@ -5,5 +5,7 @@
  *
  */
 
+. = ALIGN(8);
+KEEP(*(.isr))
 KEEP(*(".exception.entry.*"))
 *(".exception.other.*")

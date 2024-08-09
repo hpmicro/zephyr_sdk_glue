@@ -498,7 +498,7 @@ void uart_hpm_irq_callback_set(const struct device *dev,
 	dev_data->user_data = user_data;
 }
 
-static void uart_hpm_isr(const struct device *dev)
+__attribute__((section(".isr"))) static void uart_hpm_isr(const struct device *dev)
 {
 	struct uart_hpm_data * const dev_data = dev->data;
 

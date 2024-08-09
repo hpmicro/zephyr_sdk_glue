@@ -19,8 +19,8 @@ config MAIN_STACK_SIZE
 config IDLE_STACK_SIZE
 	default 2048
 
-# config PRIVILEGED_STACK_SIZE
-# 	default 2048
+config PRIVILEGED_STACK_SIZE
+	default 2048
 
 config TEST_EXTRA_STACK_SIZE
 	default 8192

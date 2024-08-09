@@ -10,4 +10,32 @@ if SOC_FAMILY_HPM
 
 rsource "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/hpmicro/*/Kconfig"
 
+config HPM_BOOT_HEADER
+	bool
+	default y if XIP
+	help
+	  HPMicro XIP support
+
+if HPM_BOOT_HEADER
+
+config BOOT_NOR_CFG_OPTION_OFFSET
+	hex "SPI config block offset"
+	default 0x400
+	help
+	  HPMicro nor flash support information start offset
+
+config BOOT_HEADER_LOAD_OFFSET
+	hex "Bootheader config block offset"
+	default 0x1000
+	help
+	  HPMicro boot header symbol information start offset
+
+config APP_LOAD_ADDR_OFFSET
+	hex "APP load offset"
+	default 0x3000
+	help
+	  HPMicro app image start offset
+
+endif
+
 endif # SOC_FAMILY_HPM

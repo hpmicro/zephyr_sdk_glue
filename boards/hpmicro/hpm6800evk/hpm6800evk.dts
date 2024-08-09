@@ -22,6 +22,8 @@
 		zephyr,shell-uart = &uart0;
 		zephyr,sram = &sdram;
 		zephyr,flash = &flash0;
+		zephyr,itcm = &ilm;
+		zephyr,dtcm = &dlm;
 		zephyr,code-partition = &slot0_partition;
 	};
 

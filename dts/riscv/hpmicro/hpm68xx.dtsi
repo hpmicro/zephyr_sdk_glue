@@ -56,13 +56,13 @@
 		ilm: memory@0 {
 			compatible = "zephyr,memory-region";
 			reg = <0x0 DT_SIZE_K(256)>;
-			zephyr,memory-region = "ILM";
+			zephyr,memory-region = "ITCM";
 		};
 
 		dlm: memory@80000 {
 			compatible = "zephyr,memory-region";
 			reg = <0x080000 DT_SIZE_K(256)>;
-			zephyr,memory-region = "DLM";
+			zephyr,memory-region = "DTCM";
 		};
 
 		core0_ilm_slv: memory@1180000 {

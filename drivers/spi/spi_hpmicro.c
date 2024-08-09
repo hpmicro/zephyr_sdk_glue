@@ -171,7 +171,7 @@ static void spi_hpm_transfer_next_packet(const struct device *dev)
 
 }
 
-static void spi_hpm_isr(const struct device *dev)
+__attribute__((section(".isr")))static void spi_hpm_isr(const struct device *dev)
 {
 	const struct spi_hpm_config *config = dev->config;
 	struct spi_hpm_data *data = dev->data;

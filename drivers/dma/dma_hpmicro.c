@@ -76,7 +76,7 @@ static void hpm_dma_callback(const struct device *dev, void *param, uint8_t chan
 	data->dma_callback(data->dev, data->user_data, channel, ret);
 }
 
-static void dma_hpm_dma_irq_handler(const struct device *dev)
+__attribute__((section(".isr")))static void dma_hpm_dma_irq_handler(const struct device *dev)
 {
 	uint8_t i = 0;
 	hpm_stat_t stat;

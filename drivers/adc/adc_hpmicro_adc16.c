@@ -213,7 +213,7 @@ static void adc_context_update_buffer_pointer(struct adc_context *ctx,
 	}
 }
 
-static void hpmicro_adc16_isr(const struct device *dev)
+__attribute__((section(".isr")))static void hpmicro_adc16_isr(const struct device *dev)
 {
 	const struct hpmicro_adc16_config *config = dev->config;
 	struct hpmicro_adc16_data *data = dev->data;

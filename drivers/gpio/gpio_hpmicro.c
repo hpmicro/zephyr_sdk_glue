@@ -206,7 +206,7 @@ static int gpio_hpm_manage_callback(const struct device *dev,
 	return gpio_manage_callback(&data->callbacks, callback, set);
 }
 
-static void gpio_hpm_port_isr(const struct device *dev)
+__attribute__((section(".isr")))static void gpio_hpm_port_isr(const struct device *dev)
 {
 	const struct gpio_hpm_config *config = dev->config;
 	struct gpio_hpm_data *data = dev->data;

@@ -189,7 +189,7 @@ static void hpm_can_tc_event_handler(const struct device *dev, uint32_t index)
     }
 }
 
-static void hpm_can_isr(const struct device *dev)
+__attribute__((section(".isr")))static void hpm_can_isr(const struct device *dev)
 {
     const struct hpm_can_config *cfg = dev->config;
     CAN_Type *can = cfg->base;

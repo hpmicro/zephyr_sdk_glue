@@ -58,13 +58,13 @@
 		ilm: memory@0 {
 			compatible = "zephyr,memory-region";
 			reg = <0x0 DT_SIZE_K(256)>;
-			zephyr,memory-region = "ILM";
+			zephyr,memory-region = "ITCM";
 		};
 
 		dlm: memory@80000 {
 			compatible = "zephyr,memory-region";
 			reg = <0x080000 DT_SIZE_K(256)>;
-			zephyr,memory-region = "DLM";
+			zephyr,memory-region = "DTCM";
 		};
 
 		core0_ilm_slv: memory@1000000 {
@@ -75,17 +75,9 @@
 			reg = <0x1040000 DT_SIZE_K(256)>;
 		};
 
-		axi_sram: memory@1080000 {
+		sram: memory@1080000 {
 			compatible = "mmio-sram";
 			reg = <0x01080000 DT_SIZE_K(768)>;
-			#address-cells = <1>;
-			#size-cells = <1>;
-			sram: memory@1080000 {
-				reg = <0x01080000 DT_SIZE_K(512)>;
-			};
-			axi_noncache: memory@1100000 {
-				reg = <0x1100000 DT_SIZE_K(256)>;
-			};
 		};
 
 		ahb_sram: memory@f0300000 {
@@ -378,7 +370,6 @@
             clk-source = <3>;
             clk-divider = <5>;
             bus-speed = <500000>;
-            sjw = <1>;
             status = "disabled";
         };
 	};

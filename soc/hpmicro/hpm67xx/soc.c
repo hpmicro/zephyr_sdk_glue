@@ -5,16 +5,18 @@
  *
  */
 
+#include <zephyr/devicetree.h>
 #include <zephyr/init.h>
-#include <kernel_internal.h>
+#include <zephyr/logging/log.h>
 #include <hpm_common.h>
 #include <hpm_soc.h>
-#include <zephyr/irq.h>
-#include <zephyr/logging/log.h>
-#include "hpm_pmp_drv.h"
 #include "hpm_clock_drv.h"
 #include "hpm_pllctl_drv.h"
 #include "hpm_pcfg_drv.h"
+#ifdef CONFIG_NOCACHE_MEMORY
+#include <zephyr/linker/linker-defs.h>
+#include "hpm_pmp_drv.h"
+#endif
 #ifdef CONFIG_XIP
 #include "hpm_bootheader.h"
 #endif
@@ -24,49 +26,6 @@ __attribute__ ((section(".nor_cfg_option"))) const uint32_t option[4] = {0xfcf90
 #endif
 __attribute__((weak)) void c_startup(void)
 {
-	uint32_t i, size;
-
-    extern uint8_t __ramfunc_start__[], __ramfunc_end__[];
-    extern uint8_t __noncacheable_bss_start__[], __noncacheable_bss_end__[];
-    extern uint8_t __noncacheable_init_start__[], __noncacheable_init_end__[];
-    extern uint8_t __fast_load_addr__[], __noncacheable_init_load_addr__[];
-    extern uint8_t __fast_ram_bss_start__[], __fast_ram_bss_end__[];
-    extern uint8_t __fast_ram_init_start__[], __fast_ram_init_end__[], __fast_ram_init_load_addr__[];
-	extern uint8_t __isr_load_addr__[], __isr_entry_load_addr__[];
-    extern uint8_t __isr_ram_start__[], __isr_load_size__[], __isr_entry_start__[], __isr_entry_size__[];
-
-    /* noncacheable bss section */
-    size = __noncacheable_bss_end__ - __noncacheable_bss_start__;
-    for (i = 0; i < size; i++) {
-        *(__noncacheable_bss_start__ + i) = 0;
-    }
-
-    /* fast_ram bss section */
-    size = __fast_ram_bss_end__ - __fast_ram_bss_start__;
-    for (i = 0; i < size; i++) {
-        *(__fast_ram_bss_start__ + i) = 0;
-    }
-
-    /* ramfunc section LMA: etext + data length */
-    size = __ramfunc_end__ - __ramfunc_start__;
-    for (i = 0; i < size; i++) {
-        *(__ramfunc_start__ + i) = *(__fast_load_addr__ + i);
-    }
-
-    /* noncacheable init section LMA: etext + data length + ramfunc legnth + tdata length*/
-    size = __noncacheable_init_end__ - __noncacheable_init_start__;
-    for (i = 0; i < size; i++) {
-        *(__noncacheable_init_start__ + i) = *(__noncacheable_init_load_addr__ + i);
-    }
-
-    /* fast_ram init section LMA: etext + data length + ramfunc legnth + tdata length*/
-    size = __fast_ram_init_end__ - __fast_ram_init_start__;
-    for (i = 0; i < size; i++) {
-        *(__fast_ram_init_start__ + i) = *(__fast_ram_init_load_addr__ + i);
-    }
-
-    z_early_memcpy(&__isr_ram_start__, &__isr_load_addr__, (uintptr_t) &__isr_load_size__);
-    z_early_memcpy(&__isr_entry_start__, &__isr_entry_load_addr__, (uintptr_t) &__isr_entry_size__);
 }
 
 static void soc_init_clock(void)
@@ -183,50 +142,35 @@ static void soc_init_clock(void)
     clock_set_source_divider(clock_mchtmr1, clk_src_osc24m, 1);
 }
 
+#ifdef CONFIG_NOCACHE_MEMORY
 static void soc_init_pmp(void)
 {
-    uint32_t start_addr;
-    uint32_t end_addr;
-    uint32_t length;
-    pmp_entry_t pmp_entry[16];
-    uint8_t index = 0;
+    volatile uint32_t start_addr = (uint32_t) &_nocache_ram_start;
+    volatile uint32_t length = (uint32_t) &_nocache_ram_size;
 
-    /* Init noncachable memory */
-    extern uint32_t __noncacheable_start__[];
-    extern uint32_t __noncacheable_end__[];
-    start_addr = (uint32_t) __noncacheable_start__;
-    end_addr = (uint32_t) __noncacheable_end__;
-    length = end_addr - start_addr;
-    if (length > 0) {
-        /* Ensure the address and the length are power of 2 aligned */
-        assert((length & (length - 1U)) == 0U);
-        assert((start_addr & (length - 1U)) == 0U);
-        pmp_entry[index].pmp_addr = PMP_NAPOT_ADDR(start_addr, length);
-        pmp_entry[index].pmp_cfg.val = PMP_CFG(READ_EN, WRITE_EN, EXECUTE_EN, ADDR_MATCH_NAPOT, REG_UNLOCK);
-        pmp_entry[index].pma_addr = PMA_NAPOT_ADDR(start_addr, length);
-        pmp_entry[index].pma_cfg.val = PMA_CFG(ADDR_MATCH_NAPOT, MEM_TYPE_MEM_NON_CACHE_BUF, AMO_EN);
-        index++;
+    if (length == 0) {
+        return;
     }
 
-    /* Init share memory */
-    extern uint32_t __share_mem_start__[];
-    extern uint32_t __share_mem_end__[];
-    start_addr = (uint32_t)__share_mem_start__;
-    end_addr = (uint32_t)__share_mem_end__;
-    length = end_addr - start_addr;
-    if (length > 0) {
-        /* Ensure the address and the length are power of 2 aligned */
-        assert((length & (length - 1U)) == 0U);
-        assert((start_addr & (length - 1U)) == 0U);
-        pmp_entry[index].pmp_addr = PMP_NAPOT_ADDR(start_addr, length);
-        pmp_entry[index].pmp_cfg.val = PMP_CFG(READ_EN, WRITE_EN, EXECUTE_EN, ADDR_MATCH_NAPOT, REG_UNLOCK);
-        pmp_entry[index].pma_addr = PMA_NAPOT_ADDR(start_addr, length);
-        pmp_entry[index].pma_cfg.val = PMA_CFG(ADDR_MATCH_NAPOT, MEM_TYPE_MEM_NON_CACHE_BUF, AMO_EN);
-        index++;
-    }
+    /* Ensure the address and the length are power of 2 aligned */
+    assert((length & (length - 1U)) == 0U);
+    assert((start_addr & (length - 1U)) == 0U);
 
-    pmp_config(&pmp_entry[0], index);
+    pmp_entry_t pmp_entry[3] = { 0 };
+    pmp_entry[0].pmp_addr = PMP_NAPOT_ADDR(0x0000000, 0x80000000);
+    pmp_entry[0].pmp_cfg.val = PMP_CFG(READ_EN, WRITE_EN, EXECUTE_EN, ADDR_MATCH_NAPOT, REG_UNLOCK);
+
+
+    pmp_entry[1].pmp_addr = PMP_NAPOT_ADDR(0x80000000, 0x80000000);
+    pmp_entry[1].pmp_cfg.val = PMP_CFG(READ_EN, WRITE_EN, EXECUTE_EN, ADDR_MATCH_NAPOT, REG_UNLOCK);
+
+    pmp_entry[2].pmp_addr = PMP_NAPOT_ADDR(start_addr, length);
+    pmp_entry[2].pmp_cfg.val = PMP_CFG(READ_EN, WRITE_EN, EXECUTE_EN, ADDR_MATCH_NAPOT, REG_UNLOCK);
+    pmp_entry[2].pma_addr = PMA_NAPOT_ADDR(start_addr, length);
+    pmp_entry[2].pma_cfg.val = PMA_CFG(ADDR_MATCH_NAPOT, MEM_TYPE_MEM_NON_CACHE_BUF, AMO_EN);
+    pmp_config(&pmp_entry[0], ARRAY_SIZE(pmp_entry));
 }
+#endif
 
 static int hpmicro_soc_init(void)
 {
@@ -234,7 +178,9 @@ static int hpmicro_soc_init(void)
 
 	key = irq_lock();
 	soc_init_clock();
+#ifdef CONFIG_NOCACHE_MEMORY
 	soc_init_pmp();
+#endif
 	irq_unlock(key);
 
 	return 0;

@@ -12,8 +12,8 @@
 MEMORY
 {
 
-#if (DT_REG_SIZE(DT_NODELABEL(ext_ram)) > 0) && !IS_CHOSEN_SRAM(sdram)
-	SDRAM (wx) : ORIGIN = DT_REG_ADDR(DT_NODELABEL(ext_ram)), LENGTH = DT_REG_SIZE(DT_NODELABEL(ext_ram))
+#if (DT_REG_SIZE(DT_NODELABEL(dram)) > 0) && !IS_CHOSEN_SRAM(dram)
+	SDRAM (wx) : ORIGIN = DT_REG_ADDR(DT_NODELABEL(dram)), LENGTH = DT_REG_SIZE(DT_NODELABEL(dram))
 #endif
 
 }

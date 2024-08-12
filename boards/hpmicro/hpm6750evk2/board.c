@@ -119,40 +119,9 @@ void _init_ext_ram(void)
     sdram_config.write_recover_in_ns = 12;          /* Twr/Tdpl */
     sdram_config.self_refresh_recover_in_ns = 72;   /* Txsr */
 
-    // uint32_t femc_clk_in_hz;
-    // clock_add_to_group(clock_femc, 0);
-    // board_init_sdram_pins();
-    // femc_clk_in_hz = board_init_femc_clock();
-
-    // femc_config_t config = {0};
-    // femc_sdram_config_t sdram_config = {0};
-
-    // femc_default_config(HPM_FEMC, &config);
-    // femc_init(HPM_FEMC, &config);
-
-    // sdram_config.bank_num = FEMC_SDRAM_BANK_NUM_4;
-    // sdram_config.prescaler = 0x3;
-    // sdram_config.burst_len_in_byte = 8;
-    // sdram_config.auto_refresh_count_in_one_burst = 1;
-    // sdram_config.col_addr_bits = FEMC_SDRAM_COLUMN_ADDR_9_BITS;
-    // sdram_config.cas_latency = FEMC_SDRAM_CAS_LATENCY_3;
-
-    // sdram_config.precharge_to_act_in_ns = 18;   /* Trp */
-    // sdram_config.act_to_rw_in_ns = 18;          /* Trcd */
-    // sdram_config.refresh_recover_in_ns = 70;     /* Trfc/Trc */
-    // sdram_config.write_recover_in_ns = 12;      /* Twr/Tdpl */
-    // sdram_config.cke_off_in_ns = 42;             /* Trcd */
-    // sdram_config.act_to_precharge_in_ns = 42;   /* Tras */
-
-    // sdram_config.self_refresh_recover_in_ns = 66;   /* Txsr */
-    // sdram_config.refresh_to_refresh_in_ns = 66;     /* Trfc/Trc */
-    // sdram_config.act_to_act_in_ns = 12;             /* Trrd */
-    // sdram_config.idle_timeout_in_ns = 6;
-    // sdram_config.cs_mux_pin = FEMC_IO_MUX_NOT_USED;
-
     sdram_config.cs = FEMC_SDRAM_CS0;
-    sdram_config.base_address = DT_REG_ADDR(DT_NODELABEL(ext_ram));
-    sdram_config.size_in_byte = DT_REG_SIZE(DT_NODELABEL(ext_ram));
+    sdram_config.base_address = DT_REG_ADDR(DT_NODELABEL(dram));
+    sdram_config.size_in_byte = DT_REG_SIZE(DT_NODELABEL(dram));
     sdram_config.port_size = FEMC_SDRAM_PORT_SIZE_32_BITS;
     sdram_config.refresh_count = (8192UL);
     sdram_config.refresh_in_ms = (64UL);

@@ -3,15 +3,13 @@
 
 if BOARD_HPM6750EVK2
 
-DT_CHOSEN_Z_CODE_PARTITION := zephyr,code-partition
-
-config FLASH_LOAD_OFFSET
-	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_CODE_PARTITION))
-
-config FLASH_LOAD_SIZE
-	default $(dt_chosen_reg_size_hex,$(DT_CHOSEN_Z_CODE_PARTITION))
-
 config HEAP_MEM_POOL_SIZE
 	default 16384
+
+config BUILD_OUTPUT_HEX
+	default y
+
+config UART_INTERRUPT_DRIVEN
+	default y
 
 endif

@@ -3,14 +3,6 @@
 
 if BOARD_HPM6800EVK
 
-DT_CHOSEN_Z_CODE_PARTITION := zephyr,code-partition
-
-config FLASH_LOAD_OFFSET
-	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_CODE_PARTITION))
-
-config FLASH_LOAD_SIZE
-	default $(dt_chosen_reg_size_hex,$(DT_CHOSEN_Z_CODE_PARTITION))
-
 config HEAP_MEM_POOL_SIZE
 	default 16384
 

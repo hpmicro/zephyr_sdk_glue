@@ -17,8 +17,10 @@ supported:
   - spi
   - dma
   - pwm
-  - adc
+  - adc12
+  - adc16
   - can
 testing:
   ignore_tags:
     - bluetooth
+vendor: hpmicro

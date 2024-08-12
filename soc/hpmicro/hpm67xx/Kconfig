@@ -5,6 +5,7 @@ config SOC_SERIES_HPM67XX
 	select RISCV
 	select RISCV_PRIVILEGED
 	select RISCV_HAS_PLIC
+	select DYNAMIC_INTERRUPTS
 	help
 	  Enable support for HPMicro HPM64/67 series SoC
 
@@ -65,6 +66,7 @@ config SOC_ANDES_V5_PMA
 	bool "Andes V5 Physical Memory Attribute (PMA)"
 	default y
 	select ARCH_HAS_NOCACHE_MEMORY_SUPPORT
+	select HAS_HPMSDK_PMP
 	help
 		This option enables the Andes V5 PMA, in order to support SW to
 		configure physical memory attribute by PMA CSRs. The address

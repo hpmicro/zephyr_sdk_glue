@@ -1,0 +1,39 @@
+/*
+ * Copyright 2024 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	aliases {
+		pwm-led0 = &pwm_led0;
+		pwm-2 = &pwm2;
+	};
+
+	pwmleds {
+		compatible = "pwm-leds";
+		pwm_led0: pwm_led_0 {
+			pwms = <&pwm2 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+			label = "Green PWM LED";
+			status = "okay";
+		};
+	};
+};
+
+&pwm2 {
+	status = "okay";
+	period-init = <50>;
+	dead-zone-in-half-cycle = <100>;
+	pinctrl-0 = <&pinmux_pwm2>;
+	pinctrl-names = "default";
+};
+
+&pinctrl {
+		pinmux_pwm2: pinmux_pwm2 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 31), IOC_TYPE_IOC, 0, 16)>,
+						<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 30), IOC_TYPE_IOC, 0, 16)>,
+						<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 4), IOC_TYPE_IOC, 0, 16)>;
+		};
+	};
+};
+

@@ -1,0 +1,14 @@
+/*
+ * Copyright 2024 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/* use green led */
+/ {
+	aliases {
+		led0 = &led_g;
+		led1 = &led_r;
+		led2 = &led_b;
+	};
+};
+

@@ -13,7 +13,7 @@
 	compatible = "HPMicro,hpm6800evk";
 
 	aliases {
-		led0 = &led;
+		led0 = &led_r;
 		sw0 = &key1;
 	};
 
@@ -34,9 +34,15 @@
 
 	leds {
 		compatible = "gpio-leds";
-		led: led {
+		led_r: led_r {
+			gpios = <&gpiof 1 (GPIO_PULL_DOWN | GPIO_ACTIVE_LOW)>;
+		};
+		led_g: led_g {
 			gpios = <&gpiof 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_LOW)>;
 		};
+		led_b: led_b {
+			gpios = <&gpiof 5 (GPIO_PULL_DOWN | GPIO_ACTIVE_LOW)>;
+		};		
 	};
 
 	gpio_keys {

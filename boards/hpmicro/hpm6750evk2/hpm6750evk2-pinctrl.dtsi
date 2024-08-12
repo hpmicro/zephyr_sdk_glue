@@ -68,14 +68,6 @@
 		};
 	};
 
-	pinmux_pwm2: pinmux_pwm2 {
-		group0 {
-			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 31), IOC_TYPE_IOC, 0, 16)>,
-					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 30), IOC_TYPE_IOC, 0, 16)>,
-					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 4), IOC_TYPE_IOC, 0, 16)>;
-		};
-	};
-
 	pinmux_adc0: pinmux_adc0 {
 		group0 {
 			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 24), IOC_TYPE_IOC, 1, 0)>,

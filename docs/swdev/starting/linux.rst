@@ -111,6 +111,11 @@ linux上的环境配置
         west build -p always -b hpm6750evk2 samples/basic/button
 
 ``-p`` 选项, ``always`` 重新编译, ``auto`` 增量编译。
+``-S`` 选项, 特定的硬件或者配置选项支持,如:
+    
+    .. code-block:: console
+
+        west build -p always -b hpm6750evk2 -S blinky_pwm samples/basic/blinky_pwm    
 
 #. 烧录或调试
 

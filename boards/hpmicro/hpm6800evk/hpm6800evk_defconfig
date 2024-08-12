@@ -12,3 +12,5 @@ CONFIG_GPIO=y
 # Serial driver option
 CONFIG_SERIAL=y
 
+# Nocache options, place in RAM region
+CONFIG_NOCACHE_MEMORY=y

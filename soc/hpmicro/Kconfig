@@ -19,7 +19,7 @@ config HPM_BOOT_HEADER
 if HPM_BOOT_HEADER
 
 config BOOT_NOR_CFG_OPTION_OFFSET
-	hex "SPI config block offset"
+	hex "Nor flash config block offset"
 	default 0x400
 	help
 	  HPMicro nor flash support information start offset

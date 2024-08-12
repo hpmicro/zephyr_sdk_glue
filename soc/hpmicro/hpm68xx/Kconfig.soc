@@ -4,7 +4,6 @@ config SOC_SERIES_HPM68XX
 	bool
 	select SOC_FAMILY_HPM
 	select HAS_HPMSDK_PLLCTLV2
-	select HAS_HPMSDK_PMP
 	select HAS_HPMSDK_PCFG
 	help
 	  Enable support for HPMicro HPM68 series SoC

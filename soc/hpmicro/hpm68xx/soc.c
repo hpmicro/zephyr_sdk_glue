@@ -76,8 +76,8 @@ static void soc_init_clock(void)
 #ifdef CONFIG_NOCACHE_MEMORY
 static void soc_init_pmp(void)
 {
-    uint32_t start_addr = (uint32_t) &_nocache_ram_start;
-    uint32_t length = (uint32_t) &_nocache_ram_size;
+    volatile uint32_t start_addr = (uint32_t) &_nocache_ram_start;
+    volatile uint32_t length = (uint32_t) &_nocache_ram_size;
 
     if (length == 0) {
         return;

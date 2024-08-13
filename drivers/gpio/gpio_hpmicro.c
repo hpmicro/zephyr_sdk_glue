@@ -13,10 +13,11 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pinctrl.h>
 #include <zephyr/drivers/gpio/gpio_utils.h>
+#include <zephyr/logging/log.h>
 #include <soc.h>
 
 #include <hpm_gpio_drv.h>
-
+LOG_MODULE_REGISTER(hpmicro_hpm_gpio, CONFIG_GPIO_LOG_LEVEL);
 struct gpio_hpm_config {
 	struct gpio_driver_config common;
 	GPIO_Type *gpio_base;
@@ -44,7 +45,7 @@ static int gpio_hpm_configure(const struct device *dev,
 
 	ret = pinctrl_apply_state(config->pincfg, PINCTRL_STATE_DEFAULT);
 	if (ret < 0) {
-		return ret;
+		LOG_INF("port[%d],pin[%d] pinctrl no corresponding", port_base, pin);
 	}
 #endif
 	if (((flags & GPIO_INPUT) != 0) && ((flags & GPIO_OUTPUT) != 0)) {

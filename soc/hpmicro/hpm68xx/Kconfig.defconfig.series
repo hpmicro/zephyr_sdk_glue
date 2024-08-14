@@ -16,6 +16,12 @@ config RISCV_GENERIC_TOOLCHAIN
 	default y if "$(ZEPHYR_TOOLCHAIN_VARIANT)" = "zephyr"
 	default n
 
+config ICACHE
+	default y
+
+config DCACHE
+	default y
+
 config RISCV_SOC_INTERRUPT_INIT
 	default y
 

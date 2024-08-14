@@ -21,6 +21,20 @@ SECTION_FUNC(init, _start)
     call _init_ext_ram
 #endif
 
+#ifdef CONFIG_ICACHE
+	call l1c_ic_enable
+#else
+	call l1c_ic_disable
+#endif
+
+#ifdef CONFIG_DCACHE
+    call l1c_dc_enable
+    call l1c_dc_invalidate_all
+#else
+    call l1c_dc_invalidate_all
+    call l1c_dc_disable
+#endif
+
 #ifdef __nds_execit
 	/* Initialize EXEC.IT table */
 	la t0, _ITB_BASE_

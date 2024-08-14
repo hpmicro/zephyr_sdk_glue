@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-#ifdef CONFIG_DT_HAS_HPMICRO_HPM_DISPLAY_MIPI_ENABLED
 #include "display.h"
 #include <hpm_clock_drv.h>
 #include <hpm_mipi_dsi_drv.h>
@@ -167,7 +166,6 @@ static void hpm_display_mipi_panel_cmd_init(const struct device *dev)
     const struct hpm_display_config *config = dev->config;
     struct hpm_mipi_cfg *mipi_panel_cfg = config->panel.private;
     struct hpm_interface_mipi_dsi *interface = config->interface;
-    const struct hpm_lcdc *lcdc = &config->lcdc;
     const uint8_t *mipi_cmd = mipi_panel_cfg->mipi_cmd;
     const int mipi_cmd_len = mipi_panel_cfg->mipi_cmd_len;
     const uint8_t *cmd_index;
@@ -179,15 +177,11 @@ static void hpm_display_mipi_panel_cmd_init(const struct device *dev)
      * [len, delay, data0, data1...., ]
      * len: delay + datas. at least is 1 (only delay).
      */
-    int j = 0;
     for (int i = 0; i < mipi_cmd_len;) {
         cmd_len = mipi_cmd[i] - 1;
         delay   = mipi_cmd[i + 1];
         cmd_index = mipi_cmd + i + 2;
         i += (mipi_cmd[i] + 1);
-
-        if (delay)
-            k_msleep(delay);
 
         if (cmd_len) {
             ret = mipi_dsi_dcs_write_buffer(interface->mipi_base, 0, cmd_index, cmd_len);
@@ -195,6 +189,9 @@ static void hpm_display_mipi_panel_cmd_init(const struct device *dev)
                 LOG_HEXDUMP_ERR(cmd_index, cmd_len, "mipi_cmd failed:");
             }
         }
+
+        if (delay)
+            k_msleep(delay);
     }
     k_msleep(2);
 }
@@ -250,5 +247,3 @@ static const struct display_driver_api hpm_display_api = {
 };
 
 DT_INST_FOREACH_STATUS_OKAY(HPM_DISPLAY_INIT)
-
-#endif /* CONFIG_DT_HAS_HPMICRO_HPM_DISPLAY_MIPI_ENABLED */

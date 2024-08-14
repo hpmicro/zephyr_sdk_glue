@@ -138,7 +138,7 @@
 				03 00 B3 3F  03 00 C0 22  03 00 C1 48  03 00 C2 59  03 00 C3 15  03 00 C4 15  
 				03 00 C5 28  03 00 C6 1C  03 00 C7 1E  03 00 C8 C4  03 00 C9 1C  03 00 CA 2B  
 				03 00 CB A3  03 00 CC 1F  03 00 CD 1E  03 00 CE 52  03 00 CF 24  03 00 D0 2A  
-				03 00 D1 58  03 00 D2 68  03 00 D3 3F  05 00 FF 98 81 00  02 00 11  02 02 29];
+				03 00 D1 58  03 00 D2 68  03 00 D3 3F  05 00 FF 98 81 00  02 78 11  02 00 29];
 		};
 
 		panel_tm103xdgp01: panel_tm103xdgp01 {
@@ -182,9 +182,9 @@
 	backlight-gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
 	reset-gpios = <&gpioa 14 GPIO_ACTIVE_LOW>;
 	cfg-gpios = <&gpioy 5 GPIO_ACTIVE_HIGH>;
-	reset-time = <10>;
+	reset-time-active = <10>;
 	pixel-format = <PANEL_PIXEL_FORMAT_ARGB_8888>;
-	status = "okay";
+	status = "disabled";
 };
 
 &panel_cc10128007 {
@@ -202,7 +202,8 @@
 	pinctrl-0 = <&pinmux_mipi_lvds_tx0>;
 	pinctrl-names = "default";
 	reset-gpios = <&gpiob 1 GPIO_ACTIVE_LOW>;
-	reset-time = <10>;
+	reset-time-active = <1>;
+	reset-time-inactive = <10>;
 	status = "disabled";
 };
 
@@ -211,7 +212,7 @@
 	pinctrl-0 = <&pinmux_lvb_lvds_dual>;
 	pinctrl-names = "default";
 	reset-gpios = <&gpioa 31 GPIO_ACTIVE_LOW>;
-	reset-time = <10>;
+	reset-time-active = <10>;
 	pixel-format = <PANEL_PIXEL_FORMAT_ARGB_8888>;
 	status = "disabled";
 };

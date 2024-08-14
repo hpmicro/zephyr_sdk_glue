@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-#ifdef CONFIG_DT_HAS_HPMICRO_HPM_DISPLAY_RGB_ENABLED
-
 #include "display.h"
 #include "hpm_clock_drv.h"
 #ifdef CONFIG_HPM_DISPLAY_PIXELMUX
@@ -108,5 +106,3 @@ static const struct display_driver_api hpm_display_api = {
 };
 
 DT_INST_FOREACH_STATUS_OKAY(HPM_DISPLAY_INIT)
-
-#endif /* CONFIG_DT_HAS_HPMICRO_HPM_DISPLAY_RGB_ENABLED */

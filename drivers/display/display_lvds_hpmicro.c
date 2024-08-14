@@ -10,8 +10,6 @@
 #include <hpm_clock_drv.h>
 #include <hpm_lvb_drv.h>
 
-#ifdef CONFIG_DT_HAS_HPMICRO_HPM_DISPLAY_LVDS_ENABLED
-
 LOG_MODULE_REGISTER(display_hpm_lvds, CONFIG_DISPLAY_LOG_LEVEL);
 
 #define DT_DRV_COMPAT hpmicro_hpm_display_lvds
@@ -286,4 +284,3 @@ static const struct display_driver_api hpm_display_api = {
 };
 
 DT_INST_FOREACH_STATUS_OKAY(HPM_DISPLAY_INIT)
-#endif /* CONFIG_DT_HAS_HPMICRO_HPM_DISPLAY_LVDS_ENABLED */

@@ -109,7 +109,6 @@ int hpm_display_lcdc_init(const struct device *dev)
     display_pixel_format_t pixel_format;
     lcdc_config_t lcdc_config = {0};
     lcdc_layer_config_t layer;
-    int ret;
 
     if (panel->pixel_format == PIXEL_FORMAT_ARGB_8888) {
         pixel_format = display_pixel_format_argb8888;
@@ -117,13 +116,11 @@ int hpm_display_lcdc_init(const struct device *dev)
         pixel_format = display_pixel_format_rgb565;
     } else {
         LOG_ERR("HPMicro display can't support (%d) pixel format", panel->pixel_format);
-        ret = -1;
-        goto ERROR;
+        return -1;
     }
 
     if (hpm_display_lcdc_fb_alloc(dev) < 0) {
-        ret = -1;
-        goto ERROR;
+        return -1;
     }
 
     lcdc_get_default_config(lcdc->lcdc_base, &lcdc_config);
@@ -142,20 +139,14 @@ int hpm_display_lcdc_init(const struct device *dev)
 
     if (status_success != lcdc_config_layer(lcdc->lcdc_base, 0, &layer, true)) {
         LOG_ERR("failed to configure layer");
-        ret = -1;
-        goto ERROR1;
+        hpm_display_lcdc_fb_free(dev);
+        return -1;
     }
 
     lcdc_turn_on_display(lcdc->lcdc_base);
     lcdc_enable_interrupt(lcdc->lcdc_base, LCDC_INT_EN_VS_BLANK_MASK);
 
     return 0;
-
-ERROR1:
-    hpm_display_lcdc_fb_free(dev);
-ERROR:
-
-    return ret;
 }
 
 void hpm_display_lcdc_isr(const struct device *dev)
@@ -216,17 +207,19 @@ void hpm_display_panel_reset(const struct device *dev)
 {
     const struct hpm_display_config *config = dev->config;
     const struct hpm_panel_info *panel = &config->panel;
-
-    if (panel->reset_time < 1)
-        return;
-
     /*
      * 1: active
      * 0: inactive
      */
-    hpm_display_panel_gpio_reset(dev, 1);
-    k_msleep(panel->reset_time);
+    if (panel->reset_time_active > 0) {
+        hpm_display_panel_gpio_reset(dev, 1);
+        k_msleep(panel->reset_time_active);
+    }
+
     hpm_display_panel_gpio_reset(dev, 0);
+
+    if (panel->reset_time_inactive > 0)
+        k_msleep(panel->reset_time_inactive);
 }
 
 int hpm_display_blanking_on(const struct device *dev)

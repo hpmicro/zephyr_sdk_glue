@@ -1,7 +1,7 @@
 # Copyright 2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
-description: HPMicro HPM DISPLAY
+description: HPMicro DISPLAY
 
 include: ["base.yaml","pinctrl-device.yaml"]
 
@@ -60,10 +60,14 @@ properties:
     type: int
     default: 0
     description: Pixel Data Signal Polarity, 0-High Active, 1-Low Active
-  reset-time:
+  reset-time-active:
     type: int
     default: 0
     description: time of panel reset period, uint ms
+  reset-time-inactive:
+    type: int
+    default: 0
+    description: time of panel reset release, uint ms
   pixel-format:
     type: int
     default: 8

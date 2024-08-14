@@ -44,7 +44,8 @@ struct hpm_panel_info {
     const struct gpio_dt_spec backlight_gpio;
     const struct gpio_dt_spec reset_gpio;
     const struct gpio_dt_spec cfg_gpio;
-    const int reset_time;
+    const int reset_time_active;
+    const int reset_time_inactive;
     int pixel_format;
     void *private;
 };
@@ -117,7 +118,8 @@ struct hpm_display_data {
             .backlight_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, backlight_gpios, {0}),         \
             .reset_gpio     = GPIO_DT_SPEC_INST_GET_OR(inst, reset_gpios, {0}),             \
             .cfg_gpio       = GPIO_DT_SPEC_INST_GET_OR(inst, cfg_gpios, {0}),               \
-            .reset_time     = DT_INST_PROP_OR(inst, reset_time, 0),                         \
+            .reset_time_active = DT_INST_PROP_OR(inst, reset_time_active, 0),               \
+            .reset_time_inactive = DT_INST_PROP_OR(inst, reset_time_inactive, 0),           \
             HPM_PANEL_TIMING(inst)                                                          \
             DISPLAY_PANEL_PRIVATE(inst)                                                     \
         },                                                                                  \

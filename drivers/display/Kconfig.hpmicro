@@ -4,27 +4,39 @@
 
 menuconfig DISPLAY_HPMICRO
 	bool "HPMicro DISPLAY driver"
-	default n
+	default y
+	depends on DT_HAS_HPMICRO_HPM_LCDC_ENABLED
 	select DISPLAY
 	select HAS_HPMSDK_LCDC
 	help
 		Enable the hpmicro display driver.
 
 if DISPLAY_HPMICRO
+config HPM_DISPLAY_RGB
+	bool "Support rgb panel"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_DISPLAY_RGB_ENABLED
+
 config HPM_DISPLAY_PIXELMUX
 	bool "HPMicro PIXELMUX MODULE"
-	default n
+	default y
+	depends on DT_HAS_HPMICRO_HPM_PIXELMUX_ENABLED
 	select HAS_HPMSDK_PIXELMUX
 	help
 		Enable HPMicro PIXELMUX module
+
+if HPM_DISPLAY_PIXELMUX
 config HPM_DISPLAY_MIPI_DSI
 	bool "Support mipi_dsi panel"
-	default y if HPM_DISPLAY_PIXELMUX
+	default y
+	depends on DT_HAS_HPMICRO_HPM_DISPLAY_MIPI_ENABLED
 	select HAS_HPMSDK_MIPI_DSI
 	select HAS_HPMSDK_MIPI_DSI_PHY
 
 config HPM_DISPLAY_LVDS
 	bool "Support lvds panel"
-	default y if HPM_DISPLAY_PIXELMUX
+	default y
+	depends on DT_HAS_HPMICRO_HPM_DISPLAY_LVDS_ENABLED
 	select HAS_HPMSDK_LVB
+endif
 endif

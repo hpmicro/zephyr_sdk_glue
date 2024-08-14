@@ -1,7 +1,7 @@
 # Copyright 2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
-description: HPMicro HPM LVDS DISPLAY
+description: HPMicro LVDS DISPLAY
 
 compatible: "hpmicro,hpm-display-lvds"
 

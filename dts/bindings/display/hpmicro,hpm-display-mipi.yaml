@@ -1,7 +1,7 @@
 # Copyright 2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
-description: HPMicro HPM MIPI DISPLAY
+description: HPMicro MIPI DISPLAY
 
 compatible: "hpmicro,hpm-display-mipi"
 
@@ -24,5 +24,5 @@ properties:
       mipi panel init commond.
       [len, delay, data0, data1...., ]
       len: delay + datas. at least is 1 (only delay).
-      delay: delay before send the cmd. uint is ms. the delay domain is mandatory and it >= 0.
+      delay: delay after send the cmd. uint is ms. the delay domain is mandatory and it >= 0.
       data: mipi commond data. optional

@@ -8,21 +8,19 @@ on HPMicro soc, providing drivers, devicetree and kconfig.
 
 | Name | Description |
 |--------|--------|
-| application | complete project |
-| boards | board support files |
-| cmake | cmake extensions |
-| docs | documentation |
+| application | Complete project |
+| boards | Boards and shields support files |
+| cmake | Cmake extensions |
+| docs | Documentation |
 | drivers | Zephyr standard driver files |
-| dts | devicetree files |
-| include | header files |
-| modules | additional modules |
+| dts | Devicetree files |
+| include | Header files |
+| modules | Additional modules |
+| snippets | HPMicro resources selection |
 | soc | SoC specific source |
-| zephyr | zephyr build definition |
+| zephyr | Zephyr build definition |
 
 ## SDK documentation
 
 - Please refer to for [linux starting](docs/swdev/starting/linux.rst) more details about start building.
 - Please refer to for [windows starting](docs/swdev/starting/windows.rst) more details about start building.
-
-
-##TODO:

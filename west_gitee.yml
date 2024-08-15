@@ -35,3 +35,4 @@ manifest:
   # West-related configuration for the sdk_glue repository.
   self:
     path: sdk_glue
+    west-commands: scripts/west-commands.yml

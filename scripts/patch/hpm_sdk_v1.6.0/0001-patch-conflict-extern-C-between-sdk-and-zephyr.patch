@@ -1,0 +1,36 @@
+From 227c07f7c2f0c754496df26d8e0aa905c410fa56 Mon Sep 17 00:00:00 2001
+From: Yingda WU <yingda.wu@hpmicro.com>
+Date: Wed, 14 Aug 2024 10:22:36 +0800
+Subject: [PATCH 1/2] patch: conflict "extern "C"" between sdk and zephyr
+
+- delete sdk "extern "C"" declaration
+
+Signed-off-by: Yingda WU <yingda.wu@hpmicro.com>
+---
+ hpm_sdk/soc/HPM6800/HPM6880/hpm_interrupt.h | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/hpm_sdk/soc/HPM6800/HPM6880/hpm_interrupt.h b/hpm_sdk/soc/HPM6800/HPM6880/hpm_interrupt.h
+index 92141f14..9839f106 100644
+--- a/hpm_sdk/soc/HPM6800/HPM6880/hpm_interrupt.h
++++ b/hpm_sdk/soc/HPM6800/HPM6880/hpm_interrupt.h
+@@ -1024,11 +1024,11 @@ ATTR_ALWAYS_INLINE static inline void uninstall_s_isr(uint32_t irq)
+         RESTORE_FCSR()                                  \
+         RESTORE_UCODE()
+ 
+-#ifdef __cplusplus
+-#define EXTERN_C extern "C"
+-#else
+-#define EXTERN_C
+-#endif
++// #ifdef __cplusplus
++// #define EXTERN_C extern "C"
++// #else
++// #define EXTERN_C
++// #endif
+ 
+ #define ISR_NAME_M(irq_num) default_isr_##irq_num
+ #define ISR_NAME_S(irq_num) default_isr_s_##irq_num
+-- 
+2.25.1
+

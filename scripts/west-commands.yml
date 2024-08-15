@@ -1,0 +1,7 @@
+# Keep the help strings in sync with the values in the .py files!
+west-commands:
+  - file: scripts/west_commands/supply.py
+    commands:
+      - name: supply
+        class: Supply
+        help: one-line help for what my-command-name does

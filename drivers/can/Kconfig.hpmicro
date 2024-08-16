@@ -12,3 +12,14 @@ config CAN_HPMICRO
     select HAS_HPMSDK_CAN
     help
         Enable the HPMICRO CAN driver
+
+DT_COMPAT_HPM_MCAN := hpmicro,hpm-mcan
+
+config MCAN_HPMICRO
+	bool "HPMICRO MCAN driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_MCAN_ENABLED
+    select HAS_HPMSDK_MCAN
+    help
+        Enable the HPMICRO MCAN driver
+

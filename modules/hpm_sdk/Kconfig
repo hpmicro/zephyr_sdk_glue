@@ -58,6 +58,8 @@ config HAS_HPMSDK_CAM
 	bool
 config HAS_HPMSDK_CAN
 	bool
+config HAS_HPMSDK_MCAN
+	bool
 config HAS_HPMSDK_JPEG
 	bool
 config HAS_HPMSDK_ENET

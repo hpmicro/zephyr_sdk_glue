@@ -1,0 +1,39 @@
+From 913cdedd697b72fe6ac626b1fa734ffaa8224ce8 Mon Sep 17 00:00:00 2001
+From: Qiang Shang <qiang.shang@hpmicro.com>
+Date: Tue, 20 Aug 2024 14:32:55 +0800
+Subject: [PATCH] fix mcan driver attribute issue on zephyr
+
+---
+ drivers/src/hpm_mcan_drv.c         | 2 +-
+ soc/HPM6800/HPM6880/hpm_mcan_soc.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/src/hpm_mcan_drv.c b/drivers/src/hpm_mcan_drv.c
+index 1c3707bc9..563066d12 100644
+--- a/drivers/src/hpm_mcan_drv.c
++++ b/drivers/src/hpm_mcan_drv.c
+@@ -109,7 +109,7 @@ typedef struct mcan_bit_timing_table_struct {
+  **********************************************************************************************************************/
+ 
+ #if defined(MCAN_SOC_MSG_BUF_IN_AHB_RAM) && (MCAN_SOC_MSG_BUF_IN_AHB_RAM == 1)
+-ATTR_PLACE_AT(".ahb_sram") uint32_t mcan_soc_msg_buf[MCAN_MSG_BUF_SIZE_IN_WORDS * MCAN_SOC_MAX_COUNT];
++ATTR_PLACE_AT("AHB_SRAM") uint32_t mcan_soc_msg_buf[MCAN_MSG_BUF_SIZE_IN_WORDS * MCAN_SOC_MAX_COUNT];
+ #endif
+ 
+ static const mcan_bit_timing_table_t k_mcan_bit_timing_tbl[3] = {
+diff --git a/soc/HPM6800/HPM6880/hpm_mcan_soc.h b/soc/HPM6800/HPM6880/hpm_mcan_soc.h
+index 2ed784db3..e9437e994 100644
+--- a/soc/HPM6800/HPM6880/hpm_mcan_soc.h
++++ b/soc/HPM6800/HPM6880/hpm_mcan_soc.h
+@@ -51,7 +51,7 @@
+ #define MCAN_TSU_TBSEL_MCAN6 (0x06)
+ #define MCAN_TSU_TBSEL_MCAN7 (0x07)
+ 
+-ATTR_PLACE_AT(".ahb_sram") extern uint32_t mcan_soc_msg_buf[MCAN_MSG_BUF_SIZE_IN_WORDS * MCAN_SOC_MAX_COUNT];
++ATTR_PLACE_AT("AHB_SRAM") extern uint32_t mcan_soc_msg_buf[MCAN_MSG_BUF_SIZE_IN_WORDS * MCAN_SOC_MAX_COUNT];
+ 
+ #ifdef __cpluspus
+ extern "C" {
+-- 
+2.33.1.windows.1
+

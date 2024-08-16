@@ -20,6 +20,7 @@ supported:
   - pwm
   - i2c
   - video
+  - mcan
 testing:
   ignore_tags:
     - bluetooth

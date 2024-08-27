@@ -1,0 +1,29 @@
+/*
+ * Copyright 2024 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+    chosen {
+        zephyr,display = &panel_tm103xdgp01;
+    };
+};
+
+&lcdc0 {
+    status = "okay";
+};
+
+&lvb_lvds0 {
+    status = "okay";
+};
+
+&panel_tm103xdgp01 {
+    status = "okay";
+};
+
+/*
+ * backlight control
+ */
+&gpioa {
+    status = "okay";
+};

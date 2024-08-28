@@ -21,6 +21,7 @@ supported:
   - adc16
   - can
   - cam
+  - sdxc
 testing:
   ignore_tags:
     - bluetooth

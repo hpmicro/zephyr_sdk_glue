@@ -1,0 +1,107 @@
+
+/*
+ * Copyright 2024 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ 
+{
+    aliases {
+        sdhc0 = &sd;
+    };
+    chosen {
+    };
+
+};
+&gpiod {
+    pinctrl-0 = <&pinmux_gpiod>;
+    pinctrl-names = "default";
+    status = "okay";
+};
+
+&sd {
+    status = "okay";
+    pinctrl-0 = <&pinmux_sd>;
+    pinctrl-names = "default";
+    cd-gpios = <&gpiod 5 ( GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+    pwr-gpios = <&gpiod 7 ( GPIO_PULL_UP | GPIO_ACTIVE_HIGH )>;
+    power-delay-ms = <0>;
+    pwr-3v3-support;
+    pwr-3v0-support;
+    pwr-1v8-support;
+    embedded-4-bit-support;
+    sdmmc {
+        compatible = "zephyr,sdmmc-disk";
+        status = "okay";
+    };
+};
+
+&emmc {
+    status = "disabled";
+    pinctrl-0 = <&pinmux_emmc>;
+    pinctrl-names = "default";
+    power-delay-ms = <0>;
+    mmc-hs200-1_8v;
+    mmc-hs400-1_8v;
+    pwr-1v8-support;
+    embedded-4-bit-support;
+    sdmmc {
+        compatible = "zephyr,mmc-disk";
+        status = "disabled";
+    };
+};
+
+&pinctrl {
+    pinmux_sd: pinmux_sd {
+        group0 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 13), IOC_TYPE_IOC, 0, 17)>;
+            bias-pull-up;
+            input-enable;
+            drive-strength = "r110";
+        };
+        group1 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 16), IOC_TYPE_IOC, 0, 17)>;
+            bias-pull-up;
+            input-enable;
+            drive-strength = "r111";
+        };
+        group2 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 17), IOC_TYPE_IOC, 0, 17)>,
+                     <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 15), IOC_TYPE_IOC, 0, 17)>,
+                     <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 14), IOC_TYPE_IOC, 0, 17)>,
+                     <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 12), IOC_TYPE_IOC, 0, 17)>;
+            bias-pull-up;
+            drive-strength = "r111";
+        };
+    };
+    pinmux_emmc: pinmux_emmc {
+        group0 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 0), IOC_TYPE_IOC, 0, 17)>;
+            bias-pull-up;
+            input-enable;
+        };
+        group1 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 1), IOC_TYPE_IOC, 0, 17)>;
+            bias-pull-up;
+            input-enable;
+            drive-strength = "r111";
+        };
+        group2 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 2), IOC_TYPE_IOC, 0, 17)>;
+            bias-pull-up;
+            input-enable;
+            drive-strength = "r111";
+        };
+        group3 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 6), IOC_TYPE_IOC, 0, 17)>;
+            bias-pull-up;
+            drive-strength = "r111";
+        };
+    };
+    pinmux_gpiod: pinmux_gpiod {
+        group0 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 05), IOC_TYPE_IOC, 0, 0)>,
+                    <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 07), IOC_TYPE_IOC, 0, 0)>;
+        };
+    };
+};

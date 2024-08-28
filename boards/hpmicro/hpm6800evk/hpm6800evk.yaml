@@ -21,6 +21,7 @@ supported:
   - i2c
   - video
   - mcan
+  - sdxc
 testing:
   ignore_tags:
     - bluetooth

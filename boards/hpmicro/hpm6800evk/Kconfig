@@ -4,8 +4,8 @@
 if BOARD_HPM6800EVK
 
 config INIT_EXT_RAM
-	bool "Initialize external RAM(SDRAM or DDR)"
-	default y
+    bool "Initialize external RAM(SDRAM or DDR)"
+    default y
 
 choice
 	prompt "DDR Type Selection"
@@ -13,10 +13,16 @@ choice
 	default DDR3L
 
 config DDR2
-	bool "DDR Type DDR2"
+    bool "DDR Type DDR2"
 
 config DDR3L
-	bool "DDR Type DDR3L"
+    bool "DDR Type DDR3L"
 endchoice
+
+config HPMICRO_BOARD_SUPPORT_EMMC
+    bool "SUPPORT EMMC"
+    default n
+    help
+        SUPPORT EMMC
 
 endif #BOARD_HPM6800EVK

@@ -1,0 +1,66 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM SDHC
+
+compatible: "hpmicro,hpm-sdhc"
+
+include: [sdhc.yaml, pinctrl-device.yaml]
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  clk-name:
+    type: int
+    required: true
+    description: SDHC clock name
+
+  clk-source:
+    type: int
+    required: true
+    description: SDHC clock source
+
+  clk-divider:
+    type: int
+    required: true
+    description: SDHC clock divider
+
+  pwr-gpios:
+    type: phandle-array
+    description: |
+      Power pin
+      This pin defaults to active high when consumed by the SD card. The
+      property value should ensure the flags properly describe the signal
+      that is presented to the driver.
+
+  cd-gpios:
+    type: phandle-array
+    description: |
+      Detect pin
+      This pin defaults to active low when produced by the SD card. The
+      property value should ensure the flags properly describe the signal
+      that is presented to the driver.
+
+  embedded-4-bit-support:
+    type: boolean
+    description: |
+      The host controller supports 4bit width mode
+
+  pwr-3v3-support:
+    type: boolean
+    description: |
+      3.3v support
+
+  pwr-3v0-support:
+    type: boolean
+    description: |
+      3.0v support
+
+  pwr-1v8-support:
+    type: boolean
+    description: |
+      1.8v support

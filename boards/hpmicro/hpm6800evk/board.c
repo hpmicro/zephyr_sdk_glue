@@ -10,6 +10,7 @@
 #include "hpm_clock_drv.h"
 #include "hpm_ddrctl_regs.h"
 #include "hpm_ddrphy_regs.h"
+#include "hpm_sdxc_drv.h"
 
 #include <zephyr/sys/util.h>
 
@@ -146,6 +147,60 @@ void init_ddr2_800(void)
     /* Wait for normal mode */
     while ((HPM_DDRCTL->STAT & DDRCTL_STAT_OPERATING_MODE_MASK) != 0x1) {
     }
+}
+
+uint32_t hpm_board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq, bool need_inverse)
+{
+    uint32_t actual_freq = 0;
+    do {
+        if ((ptr != HPM_SDXC0) && (ptr != HPM_SDXC1)) {
+            break;
+        }
+        clock_name_t sdxc_clk = (ptr == HPM_SDXC0) ? clock_sdxc0 : clock_sdxc1;
+        clock_add_to_group(sdxc_clk, 0);
+        sdxc_enable_inverse_clock(ptr, false);
+        sdxc_enable_sd_clock(ptr, false);
+
+        clock_set_source_divider(sdxc_clk, clk_src_pll1_clk0, 4U);
+        /* Configure the clock below 400KHz for the identification state */
+        if (freq <= 400000UL) {
+            /* Set clock to 375KHz */
+            sdxc_set_clock_divider(ptr, 534U);
+        }
+            /* configure the clock to 24MHz for the SDR12/Default speed */
+        else if (freq <= 26000000UL) {
+            /* Set clock to 25MHz */
+            sdxc_set_clock_divider(ptr, 8U);
+        }
+            /* Configure the clock to 50MHz for the SDR25/High speed/50MHz DDR/50MHz SDR */
+        else if (freq <= 52000000UL) {
+            /* Set clock to 50MHz */
+            sdxc_set_clock_divider(ptr, 4U);
+        }
+            /* Configure the clock to 100MHz for the SDR50 */
+        else if (freq <= 100000000UL) {
+            /* Set clock to 100MHz */
+            sdxc_set_clock_divider(ptr, 2U);
+        }
+            /* Configure the clock to 166MHz for SDR104/HS200/HS400  */
+        else if (freq <= 208000000UL) {
+            /* 166MHz */
+            clock_set_source_divider(sdxc_clk, clk_src_pll1_clk1, 4U);
+            sdxc_set_clock_divider(ptr, 1U);
+        }
+            /* For other unsupported clock ranges, configure the clock to 24MHz */
+        else {
+            /* Set clock to 25MHz */
+            sdxc_set_clock_divider(ptr, 5U);
+        }
+        if (need_inverse) {
+            sdxc_enable_inverse_clock(ptr, true);
+        }
+        sdxc_enable_sd_clock(ptr, true);
+        actual_freq = clock_get_frequency(sdxc_clk) / sdxc_get_clock_divider(ptr);
+    } while (false);
+
+    return actual_freq;
 }
 
 void init_ddr3l_1333(void)

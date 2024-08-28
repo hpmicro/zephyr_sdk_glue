@@ -56,6 +56,8 @@ static void soc_init_clock(void)
     clock_add_to_group(clock_xdma, 0);
     clock_add_to_group(clock_adc0, 0);
     clock_add_to_group(clock_can3, 0);
+    clock_add_to_group(clock_sdxc0, 0);
+    clock_add_to_group(clock_sdxc1, 0);
 
     /* Connect Group0 to CPU0 */
     clock_connect_group_to_cpu(0, 0);
@@ -105,16 +107,16 @@ static void soc_init_pmp(void)
 
 static int hpmicro_soc_init(void)
 {
-	uint32_t key;
+    uint32_t key;
 
-	key = irq_lock();
-	soc_init_clock();
+    key = irq_lock();
+    soc_init_clock();
 #ifdef CONFIG_NOCACHE_MEMORY
-	soc_init_pmp();
+    soc_init_pmp();
 #endif
-	irq_unlock(key);
+    irq_unlock(key);
 
-	return 0;
+    return 0;
 }
 
 SYS_INIT(hpmicro_soc_init, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);

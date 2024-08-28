@@ -1,0 +1,17 @@
+# HPMICRO CASTCAN configuration options
+
+# Copyright (c) 2022-2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_SDHC := hpmicro,hpm-sdhc
+
+config SDHC_HPMICRO
+    bool "HPMICRO SDHC driver"
+    default y
+    depends on DT_HAS_HPMICRO_HPM_SDHC_ENABLED
+    select HAS_HPMSDK_SDXC
+    select SDHC_SUPPORTS_NATIVE_MODE if SD_STACK
+    select SDHC_SUPPORTS_UHS if SD_STACK
+    select SD_UHS_PROTOCOL if SD_STACK
+    help
+        Enable the HPMICRO SDHC driver

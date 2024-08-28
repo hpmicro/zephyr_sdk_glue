@@ -11,6 +11,7 @@
 #include <hpm_soc.h>
 #include "hpm_clock_drv.h"
 #include "hpm_femc_drv.h"
+#include "hpm_sdxc_drv.h"
 
 uint32_t board_init_femc_clock(void)
 {
@@ -82,6 +83,50 @@ void init_sdram_pins(void)
     HPM_IOC->PAD[IOC_PAD_PC31].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(12);
     HPM_IOC->PAD[IOC_PAD_PC02].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(12);
     HPM_IOC->PAD[IOC_PAD_PC03].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(12);
+}
+
+uint32_t hpm_board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq, bool need_inverse)
+{
+    uint32_t actual_freq = 0;
+    do {
+        if (ptr != HPM_SDXC1) {
+            break;
+        }
+        clock_name_t sdxc_clk = (ptr == HPM_SDXC0) ? clock_sdxc0 : clock_sdxc1;
+        sdxc_enable_inverse_clock(ptr, false);
+        sdxc_enable_sd_clock(ptr, false);
+        /* Configure the clock below 400KHz for the identification state */
+        if (freq <= 400000UL) {
+            clock_set_source_divider(sdxc_clk, clk_src_osc24m, 63);
+        }
+            /* configure the clock to 24MHz for the SDR12/Default speed */
+        else if (freq <= 26000000UL) {
+            clock_set_source_divider(sdxc_clk, clk_src_osc24m, 1);
+        }
+            /* Configure the clock to 50MHz for the SDR25/High speed/50MHz DDR/50MHz SDR */
+        else if (freq <= 52000000UL) {
+            clock_set_source_divider(sdxc_clk, clk_src_pll1_clk1, 8);
+        }
+            /* Configure the clock to 100MHz for the SDR50 */
+        else if (freq <= 100000000UL) {
+            clock_set_source_divider(sdxc_clk, clk_src_pll1_clk1, 4);
+        }
+            /* Configure the clock to 166MHz for SDR104/HS200/HS400  */
+        else if (freq <= 208000000UL) {
+            clock_set_source_divider(sdxc_clk, clk_src_pll2_clk0, 2);
+        }
+            /* For other unsupported clock ranges, configure the clock to 24MHz */
+        else {
+            clock_set_source_divider(sdxc_clk, clk_src_osc24m, 1);
+        }
+        if (need_inverse) {
+            sdxc_enable_inverse_clock(ptr, true);
+        }
+        sdxc_enable_sd_clock(ptr, true);
+        actual_freq = clock_get_frequency(sdxc_clk);
+    } while (false);
+
+    return actual_freq;
 }
 
 void board_init_sdram_pins(void)

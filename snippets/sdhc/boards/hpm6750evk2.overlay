@@ -1,0 +1,74 @@
+
+/*
+ * Copyright 2024 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ 
+{
+    aliases {
+        sdhc0 = &sd;
+    };
+    chosen {
+    };
+
+};
+&gpiod {
+    pinctrl-0 = <&pinmux_gpiod>;
+    pinctrl-names = "default";
+    status = "okay";
+};
+
+&gpioc {
+    pinctrl-0 = <&pinmux_gpioc>;
+    pinctrl-names = "default";
+    status = "okay";
+};
+&sd {
+    status = "okay";
+    pinctrl-0 = <&pinmux>;
+    pinctrl-names = "default";
+    cd-gpios = <&gpiod 15 ( GPIO_PULL_UP | GPIO_ACTIVE_LOW )>;
+    pwr-gpios = <&gpioc 20 ( GPIO_PULL_UP | GPIO_ACTIVE_HIGH )>;
+    power-delay-ms = <0>;
+    pwr-3v3-support;
+    pwr-3v0-support;
+    mmc-hs200-1_8v;
+    mmc-hs400-1_8v;
+    embedded-4-bit-support;
+    sdmmc {
+        compatible = "zephyr,sdmmc-disk";
+        status = "okay";
+    };
+};
+&pinctrl {
+    pinmux: pinmux {
+        group0 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 21), IOC_TYPE_IOC, 0, 17)>;
+            bias-pull-up;
+            input-enable;
+            power-source = "3v3";
+            drive-strength = "r110";
+        };
+        group1 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 22), IOC_TYPE_IOC, 0, 17)>,
+                     <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 18), IOC_TYPE_IOC, 0, 17)>,
+                     <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 17), IOC_TYPE_IOC, 0, 17)>,
+                     <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 27), IOC_TYPE_IOC, 0, 17)>,
+                     <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 26), IOC_TYPE_IOC, 0, 17)>;
+            bias-pull-up;
+            power-source = "3v3";
+            drive-strength = "r110";
+        };
+    };
+    pinmux_gpiod: pinmux_gpiod {
+        group0 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTD, 15), IOC_TYPE_IOC, 0, 0)>;
+        };
+    };
+    pinmux_gpioc: pinmux_gpioc {
+        group0 {
+            pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTC, 20), IOC_TYPE_IOC, 0, 0)>;
+        };
+    };
+};

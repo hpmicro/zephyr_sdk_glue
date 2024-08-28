@@ -375,6 +375,32 @@
             cs-minimum-high-time = <11>;
         };
 
+        sd: sdxc@f1134000 {
+            compatible = "hpmicro,hpm-sdhc";
+            reg = <0xf1134000 0x4000>;
+            interrupts = <96 1>;
+            interrupt-parent = <&plic>;
+            clk-name = <CLOCK_SDXC1>;
+            clk-source = <2>;
+            clk-divider = <4>;
+            max-bus-freq = <100000000>;
+            min-bus-freq = <400000>;
+            status = "disabled";
+        };
+
+        emmc: sdxc@f1130000 {
+            compatible = "hpmicro,hpm-sdhc";
+            reg = <0xf1130000 0x4000>;
+            interrupts = <95 1>;
+            interrupt-parent = <&plic>;
+            clk-name = <CLOCK_SDXC0>;
+            clk-source = <2>;
+            clk-divider = <4>;
+            max-bus-freq = <100000000>;
+            min-bus-freq = <400000>;
+            status = "disabled";
+        };
+
         display {
             #address-cells = <1>;
             #size-cells = <1>;
@@ -552,7 +578,6 @@
             bus-speed = <500000>;
             status = "disabled";
         };
-
     };
 };
 

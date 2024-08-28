@@ -4,8 +4,14 @@
 if BOARD_HPM6750EVK2
 
 config INIT_EXT_RAM
-	bool "Initialize external RAM(SDRAM or DDR)"
-	default y
-	select HAS_HPMSDK_FEMC
+    bool "Initialize external RAM(SDRAM or DDR)"
+    default y
+    select HAS_HPMSDK_FEMC
+
+config HPMICRO_BOARD_SUPPORT_EMMC
+    bool "SUPPORT EMMC"
+    default n
+    help
+      SUPPORT EMMC
 
 endif #BOARD_HPM6750EVK

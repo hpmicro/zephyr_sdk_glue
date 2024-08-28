@@ -224,14 +224,14 @@ void hpm_display_panel_reset(const struct device *dev)
 
 int hpm_display_blanking_on(const struct device *dev)
 {
-    hpm_display_panel_gpio_backlight(dev, 1);
+    hpm_display_panel_gpio_backlight(dev, 0);
 
     return 0;
 }
 
 int hpm_display_blanking_off(const struct device *dev)
 {
-    hpm_display_panel_gpio_backlight(dev, 0);
+    hpm_display_panel_gpio_backlight(dev, 1);
 
     return 0;
 }

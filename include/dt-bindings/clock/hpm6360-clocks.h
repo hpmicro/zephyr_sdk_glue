@@ -10,7 +10,7 @@
  *
  *<---------------------- AUTO_GENERATE ---------------------->
  *    This file was auto-generated, do not edit anything.
- *    generated on 2024-04-28 20:23:20 
+ *    generated on 2024-09-13 14:28:09 
  */
 
 #define CLK_SRC_OSC24M  0
@@ -77,6 +77,7 @@
 #define CLOCK_WATCHDOG0  17957632
 #define CLOCK_WATCHDOG1  18023169
 #define CLOCK_PUART  4294902784
+#define CLOCK_PTMR  4294902785
 #define CLOCK_PWDG  4294904576
 #define CLOCK_ETH0  20447265
 #define CLOCK_SDP  17434112
@@ -94,7 +95,7 @@
 #define CLOCK_ACMP  19924234
 #define CLOCK_PDM  20120064
 #define CLOCK_DAO  20185601
-#define CLOCK_MSYN  20251917
+#define CLOCK_SYNT  20251917
 #define CLOCK_FFA0  17761550
 #define CLOCK_LMM0  17107200
 #define CLOCK_TSNS  18090240

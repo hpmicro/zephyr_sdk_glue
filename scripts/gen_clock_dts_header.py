@@ -49,11 +49,21 @@ class dts_header:
         header_macro = 'ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_' + re.sub(r'[^a-zA-Z0-9_]', '_', self.output_name).upper()
         return ("#endif  /* %s */" % header_macro)
 
+    def check_series_name(self, name):
+        match = re.search(r'HPM\d{4}', name)
+        if match:
+            soc = match.group(0)
+            series = soc[:5] + '00'
+            return series
+        else:
+            return None
+            
     def check_clock_path(self):
         soc = self.soc
-        clock_path = os.path.join(operate_dir, soc, "hpm_clock_drv.h")
-        sysctl_path = os.path.join(operate_dir, soc, "hpm_sysctl_drv.h")
-        sysctl_reg_path = os.path.join(operate_dir, soc, "hpm_sysctl_regs.h")
+        series = self.check_series_name(soc)
+        clock_path = os.path.join(operate_dir, series, soc, "hpm_clock_drv.h")
+        sysctl_path = os.path.join(operate_dir, series, soc, "hpm_sysctl_drv.h")
+        sysctl_reg_path = os.path.join(operate_dir, series, "ip", "hpm_sysctl_regs.h")
 
         if not os.path.exists(clock_path):
             raise self.config_error(

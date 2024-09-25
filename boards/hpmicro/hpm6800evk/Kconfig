@@ -10,6 +10,7 @@ config INIT_EXT_RAM
 choice
 	prompt "DDR Type Selection"
 	depends on INIT_EXT_RAM
+	default DDR3L
 
 config DDR2
 	bool "DDR Type DDR2"

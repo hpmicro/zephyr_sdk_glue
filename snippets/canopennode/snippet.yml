@@ -1,0 +1,14 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+name: canopennode
+append:
+  EXTRA_CONF_FILE: canopennode.conf
+
+boards:
+  hpm6750evk2/hpm6750:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm6750evk2.overlay
+  hpm6800evk/hpm6880:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm6800evk.overlay

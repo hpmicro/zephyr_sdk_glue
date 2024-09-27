@@ -336,7 +336,6 @@ static int hpm_mcan_init(const struct device *dev)
     }
 
     mcan_get_default_config(can, config);
-    config->mode = mcan_mode_loopback_internal;
 
     clock_set_source_divider(cfg->clock_name, cfg->clock_src, cfg->clock_div);
 
@@ -390,12 +389,15 @@ static int hpm_mcan_set_mode(const struct device *dev, can_mode_t mode)
 #endif /* CONFIG_CAN_FD_MODE */
 
     if ((mode & CAN_MODE_LOOPBACK) != 0) {
+        config->mode = mcan_mode_loopback_internal;
         mcan->CCCR |= MCAN_CCCR_MON_MASK | MCAN_CCCR_TEST_MASK;
         mcan->TEST |= MCAN_TEST_LBCK_MASK;
     }
     else if ((mode & CAN_MODE_LISTENONLY) != 0) {
+        config->mode = mcan_mode_listen_only;
         mcan->CCCR |= MCAN_CCCR_MON_MASK;
     } else {
+        config->mode = mcan_mode_normal;
         mcan->CCCR &= ~(MCAN_CCCR_MON_MASK | MCAN_CCCR_TEST_MASK);
     }
 
@@ -938,6 +940,10 @@ static int hpm_mcan_start(const struct device *dev)
     if (data->started) {
         return -EALREADY;
     }
+
+#if CONFIG_CANOPEN
+    can_config->baudrate = 1000000;
+#endif
 
     uint32_t can_clk_freq = clock_get_frequency(config->clock_name);
     mcan_init(can, can_config, can_clk_freq);

@@ -29,6 +29,7 @@ manifest:
       import:
         name-allowlist:
           - west-commands
+          - canopennode
     - name: sdk_env
       path: sdk_env
       url: https://github.com/hpmicro/sdk_env.git

@@ -6,6 +6,7 @@
  */
 
 #include <zephyr/devicetree.h>
+#include <zephyr/sys/util.h>
 #include <hpm_common.h>
 #include <hpm_soc.h>
 #include "hpm_clock_drv.h"
@@ -129,4 +130,18 @@ void _init_ext_ram(void)
     sdram_config.delay_cell_value = 0;
 
     femc_config_sdram(HPM_FEMC, femc_clk_in_hz, &sdram_config);
+}
+
+void sys_arch_reboot(int type)
+{
+    ARG_UNUSED(type);
+
+    HPM_PPOR->RESET_ENABLE = (1UL << 31);
+    HPM_PPOR->RESET_HOT &= ~(1UL << 31);
+    HPM_PPOR->RESET_COLD |= (1UL << 31);
+
+    HPM_PPOR->SOFTWARE_RESET = 1000U;
+    while(1) {
+
+    }
 }

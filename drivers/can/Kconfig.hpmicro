@@ -23,3 +23,9 @@ config MCAN_HPMICRO
     help
         Enable the HPMICRO MCAN driver
 
+config CAN_MAX_FILTER
+	int "Maximum number of concurrent active filters"
+	default 4
+	range 1 16
+	help
+	  Maximum number of filters supported by the can_add_rx_callback() API call.

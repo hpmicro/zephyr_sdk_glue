@@ -220,8 +220,12 @@ __attribute__((section(".isr")))static void hpm_can_isr(const struct device *dev
         can_clear_tx_rx_flags(can, CAN_EVENT_TX_SECONDARY_BUF);
     }
 
+    if ((tx_rx_flags & CAN_EVENT_ERROR) !=0) {
+        can_clear_tx_rx_flags(can, CAN_EVENT_ERROR);
+    }
+
     /* Handle error flags */
-    if ((error_flags & (CAN_ERROR_WARNING_LIMIT_FLAG | CAN_ERROR_PASSIVE_MODE_ACTIVE_FLAG | CAN_ERROR_BUS_ERROR_INT_FLAG)) != 0U) {
+    if ((error_flags) != 0U) {
         hpm_can_state_change_handler(dev);
         can_clear_error_interrupt_flags(can, error_flags);
     }
@@ -708,6 +712,10 @@ static int hpm_can_start(const struct device *dev)
     if (data->started) {
         return -EALREADY;
     }
+
+#if CONFIG_CANOPEN
+    can_config->baudrate = 500000;
+#endif
 
     uint32_t can_clk_freq = clock_get_frequency(config->clock_name);
     (void)can_init(config->base, can_config, can_clk_freq);

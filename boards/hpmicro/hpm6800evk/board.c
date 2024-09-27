@@ -12,6 +12,8 @@
 #include "hpm_ddrctl_regs.h"
 #include "hpm_ddrphy_regs.h"
 
+#include <zephyr/sys/util.h>
+
 static void _cpu_wait_ms(uint32_t cpu_freq, uint32_t ms)
 {
     uint32_t ticks_per_us = (cpu_freq + 1000000UL - 1UL) / 1000000UL;
@@ -259,4 +261,15 @@ void _init_ext_ram(void)
 #if defined(CONFIG_DDR3L) && (CONFIG_DDR3L)
     init_ddr3l_1333();
 #endif
+}
+
+void sys_arch_reboot(int type)
+{
+    ARG_UNUSED(type);
+
+    HPM_PPOR->RESET_ENABLE = (1UL << 31);
+    HPM_PPOR->SOFTWARE_RESET = 1000U;
+    while(1) {
+
+    }
 }

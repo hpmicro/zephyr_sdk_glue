@@ -51,6 +51,9 @@ static void soc_init_clock(void)
     clock_add_to_group(clock_watchdog0, 0);
     clock_add_to_group(clock_xram, 0);
     clock_add_to_group(clock_gpio, 0);
+    clock_add_to_group(clock_spi3, 0);
+    clock_add_to_group(clock_hdma, 0);
+    clock_add_to_group(clock_xdma, 0);
     clock_add_to_group(clock_adc0, 0);
 
     /* Connect Group0 to CPU0 */

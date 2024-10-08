@@ -30,7 +30,9 @@ LOG_MODULE_REGISTER(spi_hpmicro);
 
 struct spi_hpm_config {
 	SPI_Type *base;
-	clock_name_t clock_source;
+	uint32_t clock_name;
+	uint32_t clock_src;
+	uint32_t clock_div;
 	void (*irq_config_func)(const struct device *dev);
 	uint32_t cs2sclk;
 	uint32_t csht;
@@ -148,15 +150,15 @@ static void spi_hpm_transfer_next_packet(const struct device *dev)
 		return;
     }
 
-	/* enable interrupt */
-	spi_enable_interrupt(base, spi_rx_fifo_threshold_int | spi_tx_fifo_threshold_int | spi_end_int);
-
 	/* command phase, write cmd to start transfer */
     stat = spi_write_command(base, spi_master_mode, &control_config, NULL);
     if (stat != status_success) {
         LOG_ERR("SPI write command failed");
 		return;
     }
+
+		/* enable interrupt */
+		spi_enable_interrupt(base, spi_rx_fifo_threshold_int | spi_tx_fifo_threshold_int | spi_end_int);
 #else
 	stat = spi_transfer(base, &control_config, NULL, NULL,
                 (uint8_t *)tx_data, tx_size, (uint8_t *)rx_data, rx_size);
@@ -178,26 +180,27 @@ __attribute__((section(".isr")))static void spi_hpm_isr(const struct device *dev
 	SPI_Type *base = config->base;
 	volatile uint32_t irq_status;
 #ifdef CONFIG_SPI_INTERRUPT_DRIVEN
-	uint8_t data_len;
+	uint8_t data_len_in_bytes;
 	hpm_stat_t stat;
 #endif
 
 	irq_status = spi_get_interrupt_status(base);
 
 	if (irq_status & spi_end_int) {
+		spi_disable_interrupt(base, spi_end_int | spi_rx_fifo_threshold_int | spi_tx_fifo_threshold_int);
 		spi_hpm_master_transfer_callback(base, data);
 		spi_clear_interrupt_status(base, spi_end_int);
 #ifdef CONFIG_SPI_INTERRUPT_DRIVEN
 	} else if (irq_status & (spi_rx_fifo_threshold_int | spi_tx_fifo_threshold_int)) {
-		data_len = (base->TRANSFMT & SPI_TRANSFMT_DATALEN_MASK) >> SPI_TRANSFMT_DATALEN_SHIFT;
+		data_len_in_bytes = spi_get_data_length_in_bytes(base);
 		if(data->control_config.common_config.trans_mode == spi_trans_read_only) {
-			stat = spi_read_data(base, data_len, data->rx_buf, 1);
+			stat = spi_read_data(base, data_len_in_bytes, data->rx_buf, 1);
 			(data->rx_buf)++;
 		} else if (data->control_config.common_config.trans_mode == spi_trans_write_only) {
-			stat = spi_write_data(base, data_len, data->tx_buf, 1);
+			stat = spi_write_data(base, data_len_in_bytes, data->tx_buf, 1);
 			(data->tx_buf)++;
 		} else if (data->control_config.common_config.trans_mode == spi_trans_write_read_together) {
-			stat = spi_write_read_data(base, data_len, data->tx_buf, 1, data->rx_buf, 1);
+			stat = spi_write_read_data(base, data_len_in_bytes, data->tx_buf, 1, data->rx_buf, 1);
 			(data->tx_buf)++;
 			(data->rx_buf)++;
 		} else {
@@ -254,7 +257,7 @@ static int spi_hpm_configure(const struct device *dev,
 	}
 
 	/* set SPI sclk frequency for master */
-	timing_config.master_config.clk_src_freq_in_hz = clock_get_frequency(config->clock_source);
+	timing_config.master_config.clk_src_freq_in_hz = clock_get_frequency(config->clock_name);
 	timing_config.master_config.sclk_freq_in_hz = spi_cfg->frequency;
 	timing_config.master_config.cs2sclk = config->cs2sclk;
 	timing_config.master_config.csht    = config->csht;
@@ -319,7 +322,7 @@ static void spi_hpm_dma_callback(const struct device *dev, void *arg, uint32_t c
 			data->status_flags |= SPI_HPM_SPI_DMA_ERROR_FLAG;
 		}
 	}
-	spi_context_complete(&data->ctx, 0);
+	spi_context_complete(&data->ctx, dev, 0);
 }
 
 static int spi_hpm_dma_tx_load(const struct device *dev, const uint8_t *buf, size_t len)
@@ -450,7 +453,8 @@ static int transceive_dma(const struct device *dev,
 	spi_control_config_t control_config;
 
 	/* set SPI control config for master */
-    spi_master_get_default_control_config(&control_config);
+	spi_master_get_default_control_config(&control_config);
+	control_config.slave_config.slave_data_only = false;
 
 	spi_context_lock(&data->ctx, asynchronous, cb, userdata, spi_cfg);
 
@@ -698,6 +702,9 @@ static int spi_hpm_init(const struct device *dev)
 		return err;
 	}
 
+	clock_set_source_divider(config->clock_name, config->clock_src, config->clock_div);
+	clock_add_to_group(config->clock_name, 0);
+
 	spi_context_unlock_unconditionally(&data->ctx);
 
 	return 0;
@@ -751,7 +758,9 @@ static const struct spi_driver_api spi_hpm_driver_api = {
 									\
 	static const struct spi_hpm_config spi_hpm_config_##n = {	\
 		.base = (SPI_Type *) DT_INST_REG_ADDR(n),		\
-		.clock_source = clock_spi ## n,	\
+		.clock_name = DT_INST_CLOCKS_CELL(n, name),	\
+		.clock_src = DT_INST_CLOCKS_CELL(n, src),	\
+		.clock_div = DT_INST_CLOCKS_CELL(n, div),	\
 		.irq_config_func = spi_hpm_config_func_##n,		\
 		.cs2sclk = UTIL_AND(				\
 			DT_INST_NODE_HAS_PROP(n, cs_sck_delay),	\

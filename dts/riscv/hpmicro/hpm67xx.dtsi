@@ -230,6 +230,7 @@
 			compatible = "hpmicro,hpm-i2c";
 			#address-cells = <1>;
 			#size-cells = <0>;
+			clocks = <&clk CLOCK_I2C0 CLK_SRC_OSC24M 1>;
 			clock-frequency = <I2C_BITRATE_STANDARD>;
 			reg = <0xf3020000 0x4000>;
 			interrupts = <68 1>;
@@ -240,7 +241,8 @@
 		spi0: spi@f0030000 {
 			compatible = "hpmicro,hpm-spi";
 			reg = <0xf0030000 0x4000>;
-			interrupts = <27 0>;
+			clocks = <&clk CLOCK_SPI0 CLK_SRC_PLL1_CLK1 8>;
+			interrupts = <27 1>;
 			interrupt-parent = <&plic>;
 			status = "disabled";
 			#address-cells = <1>;
@@ -252,7 +254,8 @@
 		spi1: spi@f0034000 {
 			compatible = "hpmicro,hpm-spi";
 			reg = <0xf0034000 0x4000>;
-			interrupts = <28 0>;
+			clocks = <&clk CLOCK_SPI1 CLK_SRC_PLL1_CLK1 8>;
+			interrupts = <28 1>;
 			interrupt-parent = <&plic>;
 			status = "disabled";
 			#address-cells = <1>;
@@ -264,7 +267,8 @@
 		spi2: spi@f0038000 {
 			compatible = "hpmicro,hpm-spi";
 			reg = <0xf0038000 0x4000>;
-			interrupts = <29 0>;
+			clocks = <&clk CLOCK_SPI2 CLK_SRC_PLL1_CLK1 8>;
+			interrupts = <29 1>;
 			interrupt-parent = <&plic>;
 			status = "disabled";
 			#address-cells = <1>;
@@ -273,16 +277,54 @@
 			cs-minimum-high-time = <11>;
 		};
 
+
 		spi3: spi@f003c000 {
 			compatible = "hpmicro,hpm-spi";
 			reg = <0xf003c000 0x4000>;
-			interrupts = <30 0>;
+			clocks = <&clk CLOCK_SPI3 CLK_SRC_PLL1_CLK1 8>;
+			interrupts = <30 1>;
 			interrupt-parent = <&plic>;
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
 			cs-sck-delay = <3>;
 			cs-minimum-high-time = <11>;
+		};
+
+		i2c1: i2c@f3024000 {
+			compatible = "hpmicro,hpm-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks = <&clk CLOCK_I2C1 CLK_SRC_OSC24M 1>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			reg = <0xf3024000 0x4000>;
+			interrupts = <69 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		i2c2: i2c@f3028000 {
+			compatible = "hpmicro,hpm-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks = <&clk CLOCK_I2C2 CLK_SRC_OSC24M 1>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			reg = <0xf3028000 0x4000>;
+			interrupts = <70 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		i2c3: i2c@f302c000 {
+			compatible = "hpmicro,hpm-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks = <&clk CLOCK_I2C3 CLK_SRC_OSC24M 1>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			reg = <0xf302c000 0x4000>;
+			interrupts = <71 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
 		};
 
 		hdma: hdma@f00c4000 {
@@ -361,17 +403,36 @@
 			#io-channel-cells = <1>;
 		};
 
-        can0: can@f0080000 {
-            compatible = "hpmicro,hpm-can";
-            reg = <0xf0080000 0x4000>;
-            interrupts = <47 1>;
-            interrupt-parent = <&plic>;
-            clk-name = <20578347>;
-            clk-source = <3>;
-            clk-divider = <5>;
-            bus-speed = <500000>;
-            status = "disabled";
-        };
+		can0: can@f0080000 {
+				compatible = "hpmicro,hpm-can";
+				reg = <0xf0080000 0x4000>;
+				interrupts = <47 1>;
+				interrupt-parent = <&plic>;
+				clk-name = <20578347>;
+				clk-source = <3>;
+				clk-divider = <5>;
+				bus-speed = <500000>;
+				status = "disabled";
+		};
+
+		camera0: camera0@f1008000 {
+			compatible = "hpmicro,hpm-camera";
+			clocks = <&clk CLOCK_CAMERA0 CLK_SRC_OSC24M 1>;
+			reg = <0xf1008000 0x4000>;
+			interrupts = <97 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		camera1: camera1@f100c000 {
+			compatible = "hpmicro,hpm-camera";
+			clocks = <&clk CLOCK_CAMERA1 CLK_SRC_OSC24M 1>;
+			reg = <0xf100c000 0x4000>;
+			interrupts = <98 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
 	};
 };
 

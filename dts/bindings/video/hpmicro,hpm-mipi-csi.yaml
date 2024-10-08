@@ -1,0 +1,22 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM MIPI CSI
+
+compatible: "hpmicro,hpm-mipi-csi"
+
+include: [base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  mipi_csi_phy_reg:
+    type:  array
+    required: true
+
+  interrupts:
+    required: true
+
+  clocks:
+    required: true

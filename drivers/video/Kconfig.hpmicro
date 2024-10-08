@@ -1,0 +1,48 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config CAMERA_HPMICRO
+	bool "HPMicro CAMERA driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_CAMERA_ENABLED
+	select HAS_HPMSDK_CAM
+	select VIDEO
+	help
+	  Enable the hpmicro cam driver.
+
+config CAMERA_HPMICRO_INIT_PRIORITY
+	int "CAMERA HPMICRO init priority"
+	default 50
+	depends on CAMERA_HPMICRO
+	help
+	  Initialization priority for the CAM(MIPI CSI and DVP) interface on an HPMicro device.
+
+config MIPI_CSI_HPMICRO
+	bool "HPMicro MIPI CSI driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_MIPI_CSI_ENABLED
+	select HAS_HPMSDK_MIPI_CSI
+	select HAS_HPMSDK_MIPI_CSI_PHY
+	help
+	  Enable the hpmicro mipi csi driver.
+
+config VIDEO_HPMICRO_INIT_PRIORITY
+	int "VIDEO HPMICRO init priority"
+	default 60
+	depends on VIDEO
+	help
+	  Initialization priority for the VIDEO on an HPMicro device.
+
+if SOC_SERIES_HPM68XX
+
+config CAMERA_PIXELMUX_HPMICRO
+	bool
+	default y
+	select HAS_HPMSDK_PIXELMUX
+	help
+	  Enable the hpmicro camera pixel mux driver
+
+endif
+
+
+

@@ -1,0 +1,47 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM CAMERA
+
+compatible: "hpmicro,hpm-camera"
+
+include: [base.yaml, pinctrl-device.yaml]
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  clocks:
+    required: true
+
+  pinctrl-0:
+    required: true
+
+  pinctrl-names:
+    required: true
+
+  pixclk_sampling_falling:
+    required: true
+    type: int
+
+  hsync_active_low:
+    required: true
+    type: int
+
+  vsync_active_low:
+    required: true
+    type: int
+
+  interface:
+    type: string
+    description: |
+      Description A human-readable string describing the camera interface type.
+      Applications can use it to identify whether the interface used by the CAM is mipi or dvp
+
+  mipi_csi_controller:
+    type: phandle
+    description: phandle of the mipi csi controller
+

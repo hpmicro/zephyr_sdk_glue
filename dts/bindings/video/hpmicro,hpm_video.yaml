@@ -1,0 +1,24 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM VIDEO
+
+compatible: "hpmicro,hpm-video"
+
+include: [base.yaml]
+
+properties:
+
+  video_count:
+    type: int
+
+  sensor:
+    type: phandle
+    required: true
+    description: phandle of connected sensor device
+
+  camera:
+    type: phandle
+    required: true
+    description: phandle of connected hpmicro camera
+

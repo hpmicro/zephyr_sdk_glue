@@ -13,3 +13,6 @@ add_subdirectory(spi)
 add_subdirectory(pwm)
 add_subdirectory(adc)
 add_subdirectory(display)
+
+add_subdirectory(i2c)
+add_subdirectory(video)

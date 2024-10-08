@@ -1,0 +1,12 @@
+# Copyright 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPMICRO_HPM_I2C := hpmicro,hpm-i2c
+
+config I2C_HPMICRO
+	bool "HPMicro I2C driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_I2C_ENABLED
+	select HAS_HPMSDK_I2C
+	help
+	  Enable the hpmicro i2c driver.

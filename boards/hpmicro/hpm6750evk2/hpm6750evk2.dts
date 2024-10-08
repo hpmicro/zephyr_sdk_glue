@@ -17,6 +17,7 @@
 		led1 = &led_g;
 		led2 = &led_b;
 		sw0 = &pbutn;
+		eeprom-0 = &eeprom;
 	};
 
 	chosen {
@@ -59,6 +60,19 @@
 			gpios = <&gpioz 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		};
 	};
+
+	video {
+		video0: video0 {
+			compatible = "hpmicro,hpm-video";
+			status = "disabled";
+		};
+
+		video1: video1 {
+			compatible = "hpmicro,hpm-video";
+			status = "disabled";
+		};
+	};
+
 };
 
 &uart0 {
@@ -111,6 +125,45 @@
 	status = "okay";	
 };
 
+&gpioy {
+	pinctrl-0 = <&pinmux_gpioy>;
+	pinctrl-names = "default";
+	status = "okay";	
+};
+
+&i2c0 {
+	status = "disabled";
+	pinctrl-0 = <&pinmux_i2c0>;
+	pinctrl-names = "default";
+
+	ov7725: ov7725@21 {
+		compatible = "ovti,ov7725";
+		reg = <0x21>;
+		status = "disabled";
+
+		reset-gpios = <&gpioa 22 GPIO_ACTIVE_HIGH>;
+	};
+
+
+	eeprom: eeprom@50 {
+		compatible = "atmel,at24";
+		status = "disabled";
+		reg = <0x50>;
+		size = <256>;
+		address-width = <8>;
+		timeout = <25>;
+		pagesize = <16>;
+	};
+};
+&spi2 {
+	status = "disabled";
+	pinctrl-0 = <&pinmux_spi2>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpioe 31 GPIO_ACTIVE_LOW>;
+	/* HDMA channels 0 and 1, muxed to SPI2 RX and TX */
+	dmas = <&hdma 0 4>, <&hdma 1 5>;
+	dma-names = "rx", "tx";
+};
 &hdma {
 	status = "okay";
 };
@@ -145,3 +198,21 @@
 		};
 	};
 };
+
+&camera0 {
+	status = "disabled";
+	interface = "dvp";
+	pinctrl-0 = <&pinmux_dvp0>;
+	pinctrl-names = "default";
+	pixclk_sampling_falling = <1>;
+	hsync_active_low = <1>;
+	vsync_active_low = <1>;
+};
+
+&video0 {
+	status = "disabled";
+	video_count = <1>;
+	sensor = <&ov7725>;
+	camera = <&camera0>;
+};
+

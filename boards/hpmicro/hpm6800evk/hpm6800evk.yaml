@@ -18,6 +18,8 @@ supported:
   - spi
   - adc16
   - pwm
+  - i2c
+  - video
 testing:
   ignore_tags:
     - bluetooth

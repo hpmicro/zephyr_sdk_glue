@@ -1,0 +1,20 @@
+sample:
+  name: Video capture
+tests:
+  sample.video.capture:
+    build_only: true
+    tags: video
+    platform_allow:
+      - hpm6750evk
+      - hpm6750evk2
+      - hpm6750evkmini
+      - hpm6800evk
+    depends_on: video
+    integration_platforms:
+      - hpm6750evk
+      - hpm6750evk2
+      - hpm6750evkmini
+      - hpm6800evk
+    platform_exclude:
+      - hpm5300evk
+      - hpm6300evk

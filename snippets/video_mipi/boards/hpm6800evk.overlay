@@ -1,0 +1,69 @@
+/*
+ * Copyright 2024 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+ 
+/ {
+    chosen {
+        zephyr,display = &panel_mc10128007;
+        zephyr,camera = &video0;
+    };
+};
+
+&adc0 {
+	status = "disabled";
+};
+
+
+&i2c0 {
+	status = "okay";
+	pinctrl-0 = <&pinmux_i2c0>;
+	pinctrl-names = "default";
+
+	ov5640: ov5640@3c {
+		compatible = "ovti,ov5640";
+		reg = <0x3c>;
+		status = "okay";
+
+		reset-gpios = <&gpioa 22 GPIO_ACTIVE_HIGH>;
+		powerdown-gpios = <&gpioa 21 GPIO_ACTIVE_LOW>;
+	};
+
+};
+
+&mipi_csi1 {
+	status = "okay";
+};
+
+
+&camera1 {
+	status = "okay";
+	interface = "mipi";
+	pinctrl-0 = <&pinmux_mipi_csi1>;
+	pinctrl-names = "default";
+	mipi_csi_controller = <&mipi_csi1>;
+	pixclk_sampling_falling = <0>;
+	hsync_active_low = <0>;
+	vsync_active_low = <0>;
+};
+
+&video0 {
+	status = "okay";
+	video_count = <1>;
+	sensor = <&ov5640>;
+	camera = <&camera1>;
+};
+
+&lcdc0 {
+	status = "okay";
+};
+
+&mipi_dsi0 {
+	status = "okay";
+};
+
+&panel_mc10128007 {
+	status = "okay";
+};
+
+

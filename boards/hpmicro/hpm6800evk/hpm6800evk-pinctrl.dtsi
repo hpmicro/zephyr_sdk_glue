@@ -34,6 +34,15 @@
 		};
 	};
 
+	pinmux_i2c1: pinmux_i2c1 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 12), IOC_TYPE_IOC, 0, 4)>,
+					<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 13), IOC_TYPE_IOC, 0, 4)>;
+					drive-open-drain;
+					input-enable;
+		};
+	};
+
 	pinmux_gpiof: pinmux_gpiof {
 		group0 {
 			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTF, 6), IOC_TYPE_IOC, 0, 0)>,

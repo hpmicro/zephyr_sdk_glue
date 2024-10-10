@@ -351,6 +351,22 @@
 
 };
 
+&i2c1 {
+	status = "disabled";
+	pinctrl-0 = <&pinmux_i2c1>;
+	pinctrl-names = "default";
+
+	eeprom: eeprom@50 {
+		compatible = "atmel,at24";
+		status = "disabled";
+		reg = <0x50>;
+		size = <256>;
+		address-width = <8>;
+		timeout = <25>;
+		pagesize = <16>;
+	};
+};
+
 &mipi_csi0 {
 	status = "disabled";
 };

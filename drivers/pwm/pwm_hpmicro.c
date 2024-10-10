@@ -39,7 +39,9 @@ static int hpmicro_pwm_set_cycles(const struct device *dev, uint32_t channel,
 	pwm_config_t pwm_config;
 	pwm_cmp_config_t cmp_config[2] = {0};
 	PWM_Type *pwm_base = config->base;
-	// uint8_t trig_en = false;
+	uint32_t rld = 0, xrld = 0, prld = 0;
+	uint32_t rld_cmp = 0, xrld_cmp = 0;
+	uint16_t i, j;
 
 	pwm_get_default_pwm_config(pwm_base, &pwm_config);
 	if (flags == PWM_POLARITY_INVERTED) {
@@ -66,18 +68,51 @@ static int hpmicro_pwm_set_cycles(const struct device *dev, uint32_t channel,
 		return -ENOTSUP;
 	}
 
-	if ((PWM_RLD_RLD_GET(pwm_base->RLD)) != period_cycles) {
+	if (period_cycles >  0xffffff) {
+		for (i = 1; i <= 16; i++) {
+			if ((period_cycles / (i + 1)) <= 0xffffff) {
+				rld = period_cycles / (i + 1);
+				xrld = i;
+				prld = (xrld << 24) | rld;
+				for (j = 0; j <= 16; j++) {
+					if (((period_cycles - pulse_cycles) / (j + 1)) <= 0xffffff) {
+						rld_cmp = (period_cycles - pulse_cycles) / (j + 1);
+						xrld_cmp = j;
+						break;
+					} else if (j >= 16) {
+						return -ENOTSUP;
+					}
+				}
+				break;
+			} else if (i >= 16) {
+				return -ENOTSUP;
+			}
+		}
+	} else {
+		rld = period_cycles;
+		xrld = 0;
+		prld = period_cycles;
+		rld_cmp = period_cycles - pulse_cycles;
+		xrld_cmp = 0;
+	}
+
+	if (prld != ((PWM_RLD_XRLD_GET(pwm_base->RLD) << 24) | PWM_RLD_RLD_GET(pwm_base->RLD))) {
+
 		pwm_config.enable_output = true;
 		pwm_config.dead_zone_in_half_cycle = config->dead_zone_in_half_cycle;
-		pwm_set_reload(pwm_base, 0, period_cycles);
+		pwm_set_reload(pwm_base, xrld, rld);
 		pwm_set_start_count(pwm_base, 0, 0);
 
+		cmp_config[0].enable_ex_cmp  = true;
 		cmp_config[0].mode = pwm_cmp_mode_output_compare;
-		cmp_config[0].cmp = period_cycles + 1;
-		cmp_config[0].update_trigger = pwm_shadow_register_update_on_hw_event;
+		cmp_config[0].cmp = rld + 1;
+		cmp_config[0].ex_cmp = xrld;
+		cmp_config[0].update_trigger = pwm_shadow_register_update_on_modify;
 
+		cmp_config[1].enable_ex_cmp  = true;
 		cmp_config[1].mode = pwm_cmp_mode_output_compare;
-		cmp_config[1].cmp = period_cycles;
+		cmp_config[1].cmp = rld;
+		cmp_config[1].ex_cmp = xrld;
 		cmp_config[1].update_trigger = pwm_shadow_register_update_on_modify;
 
 		if (status_success != pwm_setup_waveform(pwm_base, channel, &pwm_config, channel, &cmp_config[0], 1)) {
@@ -91,7 +126,9 @@ static int hpmicro_pwm_set_cycles(const struct device *dev, uint32_t channel,
 		pwm_issue_shadow_register_lock_event(pwm_base);
 	}
 
-	pwm_update_raw_cmp_edge_aligned(pwm_base, channel, period_cycles - pulse_cycles);
+	pwm_shadow_register_unlock(pwm_base);
+    pwm_cmp_update_cmp_value(pwm_base, channel, rld_cmp, xrld_cmp);
+	pwm_issue_shadow_register_lock_event(pwm_base);
 	return 0;
 }
 

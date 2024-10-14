@@ -33,6 +33,9 @@ static int hpmicro_video_set_fmt(const struct device *dev,
 	if (config->sensor_dev && video_set_format(config->sensor_dev, ep, fmt)) {
 		return -EIO;
 	}
+	if (config->camera_dev && video_get_format(config->camera_dev, ep, fmt)) {
+		return -EIO;
+	}
 	return 0;
 }
 

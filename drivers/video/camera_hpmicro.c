@@ -265,8 +265,12 @@ static int hpmicro_cam_get_fmt(const struct device *dev,
 	if (fmt == NULL || ep != VIDEO_EP_OUT) {
 		return -EINVAL;
 	}
-
-	fmt->pixelformat = data->pixelformat;
+	if (data->camera_interface == camera_interface_mipi_csi) {
+		/* mipi csi only support ARGB8888*/
+		fmt->pixelformat = VIDEO_PIX_FMT_XRGB32;
+	} else {
+		fmt->pixelformat = data->pixelformat;
+	}
 	fmt->height = data->cam_config.height;
 	fmt->width = data->cam_config.width;
 	fmt->pitch = data->pitch;

@@ -66,6 +66,18 @@ clock_control_hpm_get_status(const struct device *dev,
 	return CLOCK_CONTROL_STATUS_OFF;
 }
 
+static int hpm_clock_init(const struct device *dev)
+{
+	ARG_UNUSED(dev);	
+    clock_set_source_divider(clock_cpu0, clk_src_pll0_clk0, 1);
+    clock_set_source_divider(clock_cpu1, clk_src_pll0_clk0, 1);
+
+    clock_set_source_divider(clock_ahb, clk_src_pll1_clk1, 2); /*200m hz*/
+    clock_set_source_divider(clock_mchtmr0, clk_src_osc24m, 1);
+    clock_set_source_divider(clock_mchtmr1, clk_src_osc24m, 1);
+	return 0;
+}
+
 static const struct clock_hpm_cfg config = {
 	.sysctl_base = (SYSCTL_Type *)DT_REG_ADDR_BY_NAME(CLOCK_CONTROLLER, sysctl),
 };
@@ -78,6 +90,6 @@ static struct clock_control_driver_api clock_control_hpm_api = {
 };
 
 #define DT_DRV_COMPAT hpmicro_hpm_clock
-DEVICE_DT_INST_DEFINE(0, NULL, NULL, NULL, &config, PRE_KERNEL_1,
+DEVICE_DT_INST_DEFINE(0, hpm_clock_init, NULL, NULL, &config, PRE_KERNEL_1,
 		      CONFIG_CLOCK_CONTROL_INIT_PRIORITY,
 		      &clock_control_hpm_api);

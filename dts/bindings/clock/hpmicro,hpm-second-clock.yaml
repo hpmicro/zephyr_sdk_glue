@@ -1,0 +1,31 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  HPMicro second clock description.
+
+compatible: "hpmicro,hpm-second-clock"
+
+include: [clock-controller.yaml, base.yaml]
+
+properties:
+  # group:
+  #   type: int
+  #   required: false
+  #   description: |
+  #     add caller's clock in group.
+  #   enum:
+  #     - 0
+  #     - 1 
+  node-name:
+    type: int
+    required: true
+    description: |
+      second clock node name
+
+  "#clock-cells":
+    const: 2
+
+clock-cells:
+  - end-node
+  - group

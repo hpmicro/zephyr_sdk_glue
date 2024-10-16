@@ -13,6 +13,6 @@
  * @brief Obtain a reference to the HPMicro clock controller.
  *
  */
-#define HPMICRO_CLOCK_CONTROLLER DEVICE_DT_GET(DT_NODELABEL(clk))
+// #define HPMICRO_CLOCK_CONTROLLER DEVICE_DT_GET(DT_NODELABEL(clk))
 
 #endif /* ZEPHYR_INCLUDE_DRIVERS_CLOCK_CONTROL_HPMICRO_H_ */

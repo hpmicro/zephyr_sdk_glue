@@ -4,7 +4,14 @@
 config CLOCK_CONTROL_HPMICRO
 	bool "HPMICRO clock control driver"
 	default y
-	depends on DT_HAS_HPMICRO_HPM_PLL_ENABLED
+	depends on DT_HAS_HPMICRO_HPM_CLOCK_ENABLED
+    help
+        Enable the HPMICRO PLL driver
+
+config CLOCK_CONTROL_HPMICRO_PLLV1
+	bool "HPMICRO clock control driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_PLL_CLOCK_ENABLED
     select HAS_HPMSDK_PLLCTL
     help
         Enable the HPMICRO PLL driver

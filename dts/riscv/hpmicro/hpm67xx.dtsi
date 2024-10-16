@@ -36,22 +36,191 @@
 		};
 	};
 
+	clocks {
+		osc24: osc24 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-src-clock";
+		};
+
+		osc32: osc32 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-src-clock";
+		};
+
+		pll0: pll0 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pll-clock";
+			pll-frequency = <DT_FREQ_M(648)>;
+			pll-index = <0>;
+
+			clk0 {
+				src-name = <CLK_SRC_PLL0_CLK0>;
+				div-i = <0>;
+				div-p = <2>;
+			};
+		};
+
+		pll1: pll1 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pll-clock";
+			pll-frequency = <DT_FREQ_M(800)>;
+			pll-index = <1>;
+
+			clk0 {
+				src-name = <CLK_SRC_PLL1_CLK0>;
+				div-i = <0>;
+				div-p = <3>;
+			};
+
+			clk1 {
+				src-name = <CLK_SRC_PLL1_CLK1>;
+				div-i = <1>;
+				div-p = <2>;
+			};
+		};
+
+		pll2: pll2 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pll-clock";
+			pll-frequency = <DT_FREQ_M(1000)>;
+			pll-index = <2>;
+
+			clk0 {
+				src-name = <CLK_SRC_PLL2_CLK0>;
+				div-i = <0>;
+				div-p = <3>;
+			};
+
+			clk1 {
+				src-name = <CLK_SRC_PLL2_CLK1>;
+				div-i = <1>;
+				div-p = <4>;
+			};
+		};
+
+		pll3: pll3 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pll-clock";
+			pll-frequency = <614400000>;
+			pll-index = <3>;
+
+			clk0 {
+				src-name = <CLK_SRC_PLL3_CLK0>;
+				div-i = <0>;
+				div-p = <1>;				
+			};
+		};
+
+		pll4: pll4 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pll-clock";
+			pll-frequency = <DT_FREQ_M(594)>;
+			pll-index = <4>;
+			
+			clk0 {
+				src-name = <CLK_SRC_PLL4_CLK0>;
+				div-i = <0>;
+				div-p = <1>;
+			};
+		};
+
+		clk_axi: clk_axi {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_AXI0>;
+			clocks = <&pll1 1 2>;
+			status = "disabled";
+		};
+
+		clk_axic: clk_axic {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_AXI1>;
+			clocks = <&pll1 1 2>;
+			status = "disabled";
+		};
+
+		clk_axiv: clk_axiv {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_AXI2>;
+			clocks = <&pll1 1 2>;
+			status = "disabled";
+		};
+
+		clk_ahb: clk_ahb {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_AHB>;
+			clocks = <&pll1 1 2>;
+			status = "disabled";
+		};
+
+		clk_ana0: clk_ana0 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_ANA0>;
+			clocks = <&pll1 1 2>;
+			status = "disabled";
+		};
+
+		clk_ana1: clk_ana1 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_ANA1>;
+			clocks = <&pll1 1 2>;
+			status = "disabled";
+		};
+
+		clk_ana2: clk_ana2 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_ANA2>;
+			clocks = <&pll1 1 2>;
+			status = "disabled";
+		};
+
+		clk_aud0: clk_aud0 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_AUD0>;
+			clocks = <&pll3 0 25>;
+			status = "disabled";
+		};
+
+		clk_aud1: clk_aud1 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_AUD1>;
+			clocks = <&pll3 0 25>;
+			status = "disabled";
+		};
+
+		clk_aud2: clk_aud2 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-second-clock";
+			node-name = <CLOCK_AUD2>;
+			clocks = <&pll3 0 25>;
+			status = "disabled";
+		};
+
+		test: test {
+			clocks = <&clk_ahb CLOCK_UART0 0>;
+		};
+	};
+
 	soc {
 		#address-cells = <1>;
 		#size-cells = <1>;
 		compatible = "hpmicro,hpm6750";
 		ranges;
-
+		
 		clk: clock-controller@f4100000 {
-			compatible = "hpmicro,hpm-pll";
+			compatible = "hpmicro,hpm-clock";
 			reg = <0xf4000000 DT_SIZE_K(256)
 				0xf4100000 DT_SIZE_K(256)>;
-			clock-frequency = <DT_FREQ_M(648)>;
 			reg-names = "sysctl", "pll";
 			status = "okay";
-			clock-sys-core = <0>;
-			ram-up-time = <(32*1000*9)>;
-			sysctl-present = <2>;
 			#clock-cells = <3>;
 		};
 

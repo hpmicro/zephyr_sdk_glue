@@ -1,0 +1,57 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  HPMicro PLL version 1. PLLv1 supports two modes:
+  integer division mode, fraction division mode
+  Output frequency is given by the following formula:
+    integer: Fout = Fref / REFDIV * FBDIV_INT /POSDIV
+    fraction: Fout = Fref / REFDIV * (FBDIV_FRAC + (FRAC / 2^24)) / POSDIV
+
+compatible: "hpmicro,hpm-pll-clock"
+
+include: [clock-controller.yaml, base.yaml]
+
+properties:
+  pll-frequency:
+    type: int
+    description: |
+      PLL frequency Hz
+
+  pll-index:
+    type: int
+    description: |
+      PLL index,
+    enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+
+  "#clock-cells":
+    const: 2
+
+clock-cells:
+  - pll-index
+  - div
+  
+child-binding:
+  description: |
+    PLL division
+
+  properties:
+    src-name:
+      type: int
+      description: |
+        PLL divider node index
+
+    div-i:
+      type: int
+      description: |
+        PLL divider index
+
+    div-p:
+      type: int
+      description: |
+        PLL divider prescaler

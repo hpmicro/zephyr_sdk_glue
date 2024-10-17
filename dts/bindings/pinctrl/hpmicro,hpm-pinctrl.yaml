@@ -102,3 +102,27 @@ child-binding:
         enum:
           - "3v3"
           - "1v8"
+      slew-pd:
+        required: false
+        type: string
+        default: "50M"
+        enum:
+          - "50M"
+          - "100M"
+          - "150M"
+          - "200M"
+      pull-resistance-strength:
+        required: false
+        type: string
+        default: "100KOhm"
+        enum:
+          - "100KOhm"
+          - "47KOhm"
+          - "22KOhm"
+      slew-rate:
+        required: false
+        type: string
+        default: "slow"
+        enum:
+          - "slow"
+          - "fast"

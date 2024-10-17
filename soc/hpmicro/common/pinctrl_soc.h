@@ -40,10 +40,16 @@ typedef struct pinctrl_soc_pin pinctrl_soc_pin_t;
 	 << HPMICRO_FORCE_INPUT_SHIFT) |	\
 	 ((HPMICRO_DRIVER_STRENGTH & DT_ENUM_IDX(node_id, drive_strength)) \
 	 << HPMICRO_DRIVER_STRENGTH_SHIFT) |	\
-	 ((HPMICRO_DRIVER_STRENGTH & DT_ENUM_IDX(node_id, power_source)) \
-	 << HPMICRO_DRIVER_STRENGTH_SHIFT) |	\
+	 ((HPMICRO_POWER & DT_ENUM_IDX(node_id, power_source)) \
+	 << HPMICRO_POWER_SHIFT) |	\
 	 ((HPMICRO_SCHMITT_ENABLE & DT_PROP(node_id, input_schmitt_enable)) \
-	 << HPMICRO_SCHMITT_ENABLE_SHIFT))
+	 << HPMICRO_SCHMITT_ENABLE_SHIFT) |	\
+	 ((HPMICRO_SLEW_PD & DT_ENUM_IDX(node_id, slew_pd)) \
+	 << HPMICRO_SLEW_PD_SHIFT) | \
+	 ((HPMICRO_PULL_STRENGTH & DT_ENUM_IDX(node_id, pull_resistance_strength)) \
+	 << HPMICRO_PULL_STRENGTH_SHIFT) | \
+	 ((HPMICRO_SLEW_RATE & DT_ENUM_IDX(node_id, slew_rate)) \
+	 << HPMICRO_SLEW_RATE_SHIFT))
 
 #define Z_PINCTRL_STATE_PIN_INIT(node_id, prop, idx)	\
 	{										\

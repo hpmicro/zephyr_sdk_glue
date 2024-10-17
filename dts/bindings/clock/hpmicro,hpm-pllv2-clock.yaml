@@ -1,0 +1,53 @@
+# Copyright (c) 2024 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro PLL version 2.
+
+compatible: "hpmicro,hpm-pllv2"
+
+include: [clock-controller.yaml, base.yaml]
+
+properties:
+  pll-frequency:
+    type: int
+    description: |
+      PLL frequency Hz
+
+  pll-index:
+    type: int
+    description: |
+      PLL index
+    enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+
+  "#clock-cells":
+    const: 2
+
+clock-cells:
+  - pll-index
+  - div
+
+child-binding:
+  description: |
+    PLL division
+
+  properties:
+    src-name:
+      type: int
+      description: |
+        PLL divider node index
+
+    div-i:
+      type: int
+      description: |
+        PLL divider index
+
+    div-p:
+      type: int
+      description: |
+        PLL divider prescaler, freq = VCO * (1 + div-p / 5)
+

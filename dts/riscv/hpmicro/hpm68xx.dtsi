@@ -35,6 +35,95 @@
         };
     };
 
+    clocks {
+        osc24: osc24 {
+            #clock_cells = <2>;
+            compatible = "hpmicro,hpm-src-clock";
+        };
+
+		osc32: osc32 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-src-clock";
+		};
+
+		pll0: pll0 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pllv2-clock";
+			pll-frequency = <DT_FREQ_M(500)>;
+			pll-index = <0>;
+
+			clk0 {
+				src-name = <CLK_SRC_PLL0_CLK0>;
+				div-i = <0>;
+				div-p = <0>;
+			};
+		};
+
+		pll1: pll1 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pllv2-clock";
+			pll-frequency = <DT_FREQ_M(800)>;
+			pll-index = <1>;
+
+			clk0 {
+				src-name = <CLK_SRC_PLL1_CLK0>;
+				div-i = <0>;
+				div-p = <0>;
+			};
+
+			clk1 {
+				src-name = <CLK_SRC_PLL1_CLK1>;
+				div-i = <1>;
+				div-p = <1>;
+			};
+		};
+
+		pll2: pll2 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pllv2-clock";
+			pll-frequency = <DT_FREQ_M(600)>;
+			pll-index = <2>;
+
+			clk0 {
+				src-name = <CLK_SRC_PLL2_CLK0>;
+				div-i = <0>;
+				div-p = <0>;
+			};
+
+			clk1 {
+				src-name = <CLK_SRC_PLL2_CLK1>;
+				div-i = <1>;
+				div-p = <1>;
+			};
+		};
+
+		pll3: pll3 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pllv2-clock";
+			pll-frequency = <722534400>;
+			pll-index = <3>;
+
+			clk0 {
+				src-name = <CLK_SRC_PLL3_CLK0>;
+				div-i = <0>;
+				div-p = <2>;				
+			};
+		};
+
+		pll4: pll4 {
+			#clock-cells = <2>;
+			compatible = "hpmicro,hpm-pllv2-clock";
+			pll-frequency = <DT_FREQ_M(594)>;
+			pll-index = <4>;
+
+			clk0 {
+				src-name = <CLK_SRC_PLL4_CLK0>;
+				div-i = <0>;
+				div-p = <0>;
+			};
+		};
+    };
+
     soc {
         #address-cells = <1>;
         #size-cells = <1>;
@@ -42,14 +131,10 @@
         ranges;
 
         clk: clock-controller@f4000000 {
-            compatible = "hpmicro,hpm-pllv2";
+            compatible = "hpmicro,hpm-clock";
             reg = <0xf4000000 DT_SIZE_K(256)
                 0xf40c0000 DT_SIZE_K(256)>;
-            clock-frequency = <DT_FREQ_M(500)>;
             reg-names = "sysctl", "pll";
-            clock-sys-core = <0>;
-            ram-up-time = <(32*1000*9)>;
-            sysctl-present = <2>;
             #clock-cells = <3>;
             status = "okay";
         };
@@ -232,9 +317,7 @@
             reg = <0xf00e0000 0x4000>;
             interrupts = <59 1>;
             interrupt-parent = <&plic>;
-            clk-name = <CLOCK_ADC0>;
-            clk-source = <3>;
-            clk-divider = <2>;
+            clocks = <&clk CLOCK_ADC0 CLK_ADC_SRC_ANA0 1>, <&clk CLOCK_ANA0 CLK_SRC_PLL1_CLK0 4>;
             sample-time = <20>;
             status = "disabled";
             #io-channel-cells = <1>;

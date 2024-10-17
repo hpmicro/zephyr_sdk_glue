@@ -33,10 +33,10 @@ static void soc_init_clock(void)
     uint32_t cpu0_freq = clock_get_frequency(clock_cpu0);
     if (cpu0_freq == PLLCTL_SOC_PLL_REFCLK_FREQ) {
         /* Configure the External OSC ramp-up time: ~9ms */
-        pllctlv2_xtal_set_rampup_time(HPM_PLLCTLV2, DT_PROP(DT_NODELABEL(clk), ram_up_time));
+        pllctlv2_xtal_set_rampup_time(HPM_PLLCTLV2, 32UL * 1000UL * 9U);
 
         /* Select clock setting preset1 */
-        sysctl_clock_set_preset(HPM_SYSCTL, DT_PROP(DT_NODELABEL(clk), sysctl_present));
+        sysctl_clock_set_preset(HPM_SYSCTL, sysctl_preset_1);
     }
     /* Add most Clocks to group 0 */
     clock_add_to_group(clock_cpu0, 0);
@@ -62,10 +62,6 @@ static void soc_init_clock(void)
 
     /* Bump up DCDC voltage to 1150mv */
     pcfg_dcdc_set_voltage(HPM_PCFG, 1150);
-
-    /* Configure PLL1_CLK0 Post Divider to 1 */
-    pllctlv2_set_postdiv(HPM_PLLCTLV2, 0, 0, 0);
-    pllctlv2_init_pll_with_freq(HPM_PLLCTLV2, 0, CONFIG_MAIN_FREQUENCY);
 
     /* Configure axis to 200MHz */
     clock_set_source_divider(clock_axis, clk_src_pll1_clk0, 4);

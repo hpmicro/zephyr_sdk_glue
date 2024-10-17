@@ -9,14 +9,6 @@ compatible: "hpmicro,hpm-second-clock"
 include: [clock-controller.yaml, base.yaml]
 
 properties:
-  # group:
-  #   type: int
-  #   required: false
-  #   description: |
-  #     add caller's clock in group.
-  #   enum:
-  #     - 0
-  #     - 1 
   node-name:
     type: int
     required: true

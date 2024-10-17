@@ -5,7 +5,6 @@
  *
  */
 
-#include <hpm_common.h>
 #include <hpm_soc.h>
 #include "hpm_pcfg_drv.h"
 #include "hpm_clock_drv.h"

@@ -21,7 +21,7 @@ properties:
   pll-index:
     type: int
     description: |
-      PLL index,
+      PLL index
     enum:
       - 0
       - 1

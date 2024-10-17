@@ -68,13 +68,7 @@ clock_control_hpm_get_status(const struct device *dev,
 
 static int hpm_clock_init(const struct device *dev)
 {
-	ARG_UNUSED(dev);	
-    clock_set_source_divider(clock_cpu0, clk_src_pll0_clk0, 1);
-    clock_set_source_divider(clock_cpu1, clk_src_pll0_clk0, 1);
-
-    clock_set_source_divider(clock_ahb, clk_src_pll1_clk1, 2); /*200m hz*/
-    clock_set_source_divider(clock_mchtmr0, clk_src_osc24m, 1);
-    clock_set_source_divider(clock_mchtmr1, clk_src_osc24m, 1);
+	ARG_UNUSED(dev);
 	return 0;
 }
 

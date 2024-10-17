@@ -126,6 +126,13 @@ static void soc_init_clock(void)
     /* Bump up DCDC voltage to 1200mv */
     pcfg_dcdc_set_voltage(HPM_PCFG, 1200);
     pcfg_dcdc_switch_to_dcm_mode(HPM_PCFG);
+
+    clock_set_source_divider(clock_cpu0, clk_src_pll0_clk0, 1);
+    clock_set_source_divider(clock_cpu1, clk_src_pll0_clk0, 1);
+
+    clock_set_source_divider(clock_ahb, clk_src_pll1_clk1, 2); /*200m hz*/
+    clock_set_source_divider(clock_mchtmr0, clk_src_osc24m, 1);
+    clock_set_source_divider(clock_mchtmr1, clk_src_osc24m, 1);
 }
 
 #ifdef CONFIG_NOCACHE_MEMORY

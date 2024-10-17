@@ -5,7 +5,7 @@
  *
  * Change Logs:
  * Date         Author          Notes
- * 2024-04-29   HPMicro         first edition
+ * 2024-10-15   HPMicro         first edition
  */
 
 #define CLOCK_CONTROLLER DT_NODELABEL(clk)

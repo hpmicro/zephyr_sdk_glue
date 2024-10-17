@@ -24,9 +24,11 @@ LOG_MODULE_REGISTER(adc_hpmicro_adc16);
 
 struct hpmicro_adc16_config {
 	ADC16_Type *base;
-	clock_name_t clock_name;
-	clk_src_t clock_src;
-	uint32_t clock_div;
+	clock_name_t adc_clock_name;
+	clk_src_t adc_clock_src;
+	clock_name_t src_clock_name;
+	clk_src_t src_clock_src;
+	uint32_t src_clock_div;
 	uint32_t sample_time;
 	void (*irq_config_func)(const struct device *dev);
 	const struct pinctrl_dev_config *pincfg;
@@ -249,8 +251,8 @@ static int hpmicro_adc16_init(const struct device *dev)
 	adc16_config_t adc_config;
 	int err;
 
-	clock_set_adc_source(config->clock_name, clk_adc_src_ana0);
-	clock_set_source_divider(clock_ana0, config->clock_src, config->clock_div);
+	clock_set_adc_source(config->adc_clock_name, config->adc_clock_src);
+	clock_set_source_divider(config->src_clock_name, config->src_clock_src, config->src_clock_div);
 
 	err = pinctrl_apply_state(config->pincfg, PINCTRL_STATE_DEFAULT);
 	if (err) {
@@ -303,9 +305,11 @@ static const struct adc_driver_api hpmicro_adc16_driver_api = {
 									\
 	static const struct hpmicro_adc16_config hpmicro_adc16_config_##n = {	\
 		.base = (ADC16_Type *)DT_INST_REG_ADDR(n),		\
-		.clock_name = DT_INST_PROP(n, clk_name),\
-		.clock_src = DT_INST_PROP(n, clk_source),\
-		.clock_div = DT_INST_PROP(n, clk_divider),\
+		.adc_clock_name = DT_INST_CLOCKS_CELL_BY_IDX(n, 0, name),\
+		.adc_clock_src = DT_INST_CLOCKS_CELL_BY_IDX(n, 0,  src),\
+		.src_clock_name = DT_INST_CLOCKS_CELL_BY_IDX(n, DT_INST_CLOCKS_HAS_IDX(n, 1), name),\
+		.src_clock_src = DT_INST_CLOCKS_CELL_BY_IDX(n, DT_INST_CLOCKS_HAS_IDX(n, 1), src),\
+		.src_clock_div = DT_INST_CLOCKS_CELL_BY_IDX(n, DT_INST_CLOCKS_HAS_IDX(n, 1), div),\
 		.sample_time = DT_INST_PROP(n, sample_time),	\
 		.irq_config_func = hpmicro_adc16_config_func_##n,		\
 		.pincfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n),		\

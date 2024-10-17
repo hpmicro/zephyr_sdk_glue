@@ -116,7 +116,7 @@
 			compatible = "hpmicro,hpm-pll-clock";
 			pll-frequency = <DT_FREQ_M(594)>;
 			pll-index = <4>;
-			
+
 			clk0 {
 				src-name = <CLK_SRC_PLL4_CLK0>;
 				div-i = <0>;
@@ -202,10 +202,6 @@
 			node-name = <CLOCK_AUD2>;
 			clocks = <&pll3 0 25>;
 			status = "disabled";
-		};
-
-		test: test {
-			clocks = <&clk_ahb CLOCK_UART0 0>;
 		};
 	};
 
@@ -366,7 +362,7 @@
 		pwm0: pwm@f0200000 {
 			compatible = "hpmicro,hpm-pwm";
 			reg = <0xf0200000 0x10000>;
-			clock-name = <CLOCK_MOT0>;
+			clocks = <&clk CLOCK_MOT0 CLOCK_AHB 1>;
 			status = "disabled";
 			#pwm-cells = <3>;
 		};
@@ -374,7 +370,7 @@
 		pwm1: pwm@f0210000 {
 			compatible = "hpmicro,hpm-pwm";
 			reg = <0xf0210000 0x10000>;
-			clock-name = <CLOCK_MOT1>;
+			clocks = <&clk CLOCK_MOT1 CLOCK_AHB 1>;
 			status = "disabled";
 			#pwm-cells = <3>;
 		};
@@ -382,7 +378,7 @@
 		pwm2: pwm@f0220000 {
 			compatible = "hpmicro,hpm-pwm";
 			reg = <0xf0220000 0x10000>;
-			clock-name = <CLOCK_MOT2>;
+			clocks = <&clk CLOCK_MOT2 CLOCK_AHB 1>;
 			status = "disabled";
 			#pwm-cells = <3>;
 		};
@@ -390,7 +386,7 @@
 		pwm3: pwm@f0230000 {
 			compatible = "hpmicro,hpm-pwm";
 			reg = <0xf0230000 0x10000>;
-			clock-name = <CLOCK_MOT3>;
+			clocks = <&clk CLOCK_MOT3 CLOCK_AHB 1>;
 			status = "disabled";
 			#pwm-cells = <3>;
 		};
@@ -525,9 +521,7 @@
 			reg = <0xf0010000 0x4000>;
 			interrupts = <19 1>;
 			interrupt-parent = <&plic>;
-			clk-name = <CLOCK_ADC0>;
-			clk-source = <3>;
-			clk-divider = <2>;
+			clocks = <&clk CLOCK_ADC0 CLK_ADC_SRC_ANA0 1>, <&clk CLOCK_ANA0 CLK_SRC_PLL1_CLK1 2>;
 			sample-time = <20>;
 			status = "disabled";
 			#io-channel-cells = <1>;
@@ -538,9 +532,7 @@
 			reg = <0xf0014000 0x4000>;
 			interrupts = <20 1>;
 			interrupt-parent = <&plic>;
-			clk-name = <CLOCK_ADC1>;
-			clk-source = <3>;
-			clk-divider = <2>;
+			clocks = <&clk CLOCK_ADC1 CLK_ADC_SRC_ANA1 1>, <&clk CLOCK_ANA1 CLK_SRC_PLL1_CLK1 2>;
 			sample-time = <20>;
 			status = "disabled";
 			#io-channel-cells = <1>;
@@ -551,9 +543,7 @@
 			reg = <0xf0018000 0x4000>;
 			interrupts = <21 1>;
 			interrupt-parent = <&plic>;
-			clk-name = <CLOCK_ADC2>;
-			clk-source = <3>;
-			clk-divider = <2>;
+			clocks = <&clk CLOCK_ADC2 CLK_ADC_SRC_ANA2 1>, <&clk CLOCK_ANA2 CLK_SRC_PLL1_CLK1 2>;
 			sample-time = <20>;
 			status = "disabled";
 			#io-channel-cells = <1>;
@@ -564,9 +554,7 @@
 			reg = <0xf001C000 0x4000>;
 			interrupts = <22 1>;
 			interrupt-parent = <&plic>;
-			clk-name = <CLOCK_ADC3>;
-			clk-source = <3>;
-			clk-divider = <2>;
+			clocks = <&clk CLOCK_ADC3 CLK_ADC_SRC_ANA2 1>, <&clk CLOCK_ANA2 CLK_SRC_PLL1_CLK1 2>;
 			sample-time = <20>;
 			status = "disabled";
 			#io-channel-cells = <1>;

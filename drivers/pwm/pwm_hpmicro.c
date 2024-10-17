@@ -179,7 +179,7 @@ static const struct pwm_driver_api pwm_hpmicro_driver_api = {
 									  \
 	static const struct pwm_hpmicro_config pwm_hpmicro_config_##n = {     \
 		.base = (PWM_Type *)DT_INST_REG_ADDR(n),	  \
-		.clock_name = DT_INST_PROP(n, clock_name),		\
+		.clock_name = DT_INST_CLOCKS_CELL(n, name),		\
 		.pincfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n),		  \
 		.period = DT_INST_PROP(n, period_init),			\
 		.dead_zone_in_half_cycle = DT_INST_PROP(n, dead_zone_in_half_cycle),	\

@@ -21,11 +21,29 @@ All changes since 0.1.0
   - west: adapt for zephyr v3.7.0
 
 ### Verified sample:
+- hpm6750evk2:
   - zephyr/samples/hello_world
   - zephyr/samples/basic/blinky
   - zephyr/samples/basic/blinky_pwm
   - zephyr/samples/basic/button
+  - zephyr/samples/drivers/eeprom
+  - zephyr/samples/modules/canopennode
+  - zephyr/tests/drivers/can/api
+  - zephyr/tests/drivers/can/timing
+  - zephyr/tests/drivers/can/shell
   - zephyr/tests/drivers/uart/uart_basic_api
+
+- hpm6800evk:
+  - zephyr/samples/hello_world
+  - zephyr/samples/basic/blinky
+  - zephyr/samples/basic/button
+  - zephyr/samples/drivers/eeprom
+  - zephyr/subsys/video/capture
+  - zephyr/samples/modules/canopennode
+  - zephyr/tests/drivers/can/api
+  - zephyr/tests/drivers/can/timing
+  - zephyr/tests/drivers/can/shell
+  - zephyr/tests/drivers/uart/uart_basic_api  
 
 ## [0.1.0]:
 

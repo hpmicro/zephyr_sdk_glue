@@ -10,7 +10,6 @@ if "%SPHINXBUILD%" == "" (
 
 set EN=source/en
 set ZH=source/zh
-set SWDEV=swdev
 set BUILDDIR=build
 
 %SPHINXBUILD% >NUL 2>NUL
@@ -30,7 +29,6 @@ if "%1" == "" goto help
 
 %SPHINXBUILD% -M %1 %EN% %BUILDDIR%/en %SPHINXOPTS% %O%
 %SPHINXBUILD% -M %1 %ZH% %BUILDDIR%/zh %SPHINXOPTS% %O%
-%SPHINXBUILD% -M %1 %SWDEV% %BUILDDIR%/swdev %SPHINXOPTS% %O%
 goto end
 
 :help

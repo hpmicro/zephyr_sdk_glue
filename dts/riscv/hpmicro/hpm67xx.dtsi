@@ -572,6 +572,26 @@
 				status = "disabled";
 		};
 
+        display {
+            #address-cells = <1>;
+            #size-cells = <1>;
+
+            lcdc0: lcdc@f1000000 {
+                compatible = "hpmicro,hpm-lcdc";
+                id = <0>;
+                reg = <0xf1000000 DT_SIZE_K(16)>;
+                interrupts = <99 1>;
+                interrupt-parent = <&plic>;
+                clocks = <&clk CLK_PLL4CLK0 CLK_SRC_OSC24M 1>, <&clk CLOCK_DISPLAY CLK_SRC_PLL4_CLK0 10>;
+                clock-names = "pll", "lcdc";
+                status = "disabled";
+            };
+
+            rgb0: rgb {
+                compatible = "hpmicro,hpm-rgb";
+            };
+        };
+
 		camera0: camera0@f1008000 {
 			compatible = "hpmicro,hpm-camera";
 			clocks = <&clk CLOCK_CAMERA0 CLK_SRC_OSC24M 1>;

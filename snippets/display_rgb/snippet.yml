@@ -9,3 +9,7 @@ boards:
     append:
       EXTRA_DTC_OVERLAY_FILE: boards/hpm6800evk.overlay
       EXTRA_CONF_FILE: boards/hpm6800evk.conf
+  hpm6750evk2/hpm6750:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm6750evk2.overlay
+      EXTRA_CONF_FILE: boards/hpm6750evk2.conf

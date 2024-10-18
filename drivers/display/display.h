@@ -148,7 +148,7 @@ struct hpm_display_data {
                 &hpm_display_api);                                                          \
     static void hpm_display_config_func_##inst(const struct device *dev)                    \
     {                                                                                       \
-        IRQ_CONNECT(DT_IRQ(LCDC_NODE_ID(inst), irq),                                        \
+        IRQ_CONNECT(DT_IRQN(LCDC_NODE_ID(inst)),                                            \
                     DT_IRQ(LCDC_NODE_ID(inst), priority),                                   \
                     hpm_display_isr,                                                        \
                     DEVICE_DT_INST_GET(inst),                                               \
@@ -180,7 +180,7 @@ struct hpm_display_data {
 #define HPM_PIXMUX_INFO(level, lcdc)                                                        \
     LOG_##level("pixelmux_base = 0x%x", (unsigned int)(lcdc)->pixelmux_base);
 #else
-    HPM_PIXMUX_INFO(level, lcdc)
+#define HPM_PIXMUX_INFO(level, lcdc)
 #endif
 
 #define HPM_DUMP_DISPLAY_LCDC(level, lcdc)                                                  \

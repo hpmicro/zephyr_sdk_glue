@@ -39,14 +39,18 @@ class Supply(WestCommand):
     
     def apply_patch(self, file, path = utils.HPM_SDK_BASE):
         os.chdir(path)
-        result = subprocess.run(['git', 'supply', file], capture_output=True, text=True)
+        result = subprocess.run(['git', 'apply', file], capture_output=True, text=True)
+        if (result.returncode != 0):
+            print(f"{file} patched in {path} failed, please check")
         return result.returncode == 0
     
     def am_patch(self, file, path = utils.HPM_SDK_BASE):
         os.chdir(path)
         result = subprocess.run(['git', 'am', file], capture_output=True, text=True)
+        if (result.returncode != 0):
+            print(f"{file} patched in {path} failed, please check")
         return result.returncode == 0
-    
+
     def process_directory(self, dir, path = utils.HPM_SDK_BASE):
         for root, dirs, files in os.walk(dir):
             for file in files:

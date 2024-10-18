@@ -1,17 +1,17 @@
-From 913cdedd697b72fe6ac626b1fa734ffaa8224ce8 Mon Sep 17 00:00:00 2001
+From 625169e1abd50135aa0ca662b2bf42007ce35d30 Mon Sep 17 00:00:00 2001
 From: Qiang Shang <qiang.shang@hpmicro.com>
-Date: Tue, 20 Aug 2024 14:32:55 +0800
-Subject: [PATCH] fix mcan driver attribute issue on zephyr
+Date: Fri, 18 Oct 2024 15:05:16 +0800
+Subject: [PATCH] patch-conflict-AHB_SRAM
 
 ---
- drivers/src/hpm_mcan_drv.c         | 2 +-
- soc/HPM6800/HPM6880/hpm_mcan_soc.h | 2 +-
+ hpm_sdk/drivers/src/hpm_mcan_drv.c         | 2 +-
+ hpm_sdk/soc/HPM6800/HPM6880/hpm_mcan_soc.h | 2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/src/hpm_mcan_drv.c b/drivers/src/hpm_mcan_drv.c
-index 1c3707bc9..563066d12 100644
---- a/drivers/src/hpm_mcan_drv.c
-+++ b/drivers/src/hpm_mcan_drv.c
+diff --git a/hpm_sdk/drivers/src/hpm_mcan_drv.c b/hpm_sdk/drivers/src/hpm_mcan_drv.c
+index 1c3707bc..563066d1 100644
+--- a/hpm_sdk/drivers/src/hpm_mcan_drv.c
++++ b/hpm_sdk/drivers/src/hpm_mcan_drv.c
 @@ -109,7 +109,7 @@ typedef struct mcan_bit_timing_table_struct {
   **********************************************************************************************************************/
  
@@ -21,10 +21,10 @@ index 1c3707bc9..563066d12 100644
  #endif
  
  static const mcan_bit_timing_table_t k_mcan_bit_timing_tbl[3] = {
-diff --git a/soc/HPM6800/HPM6880/hpm_mcan_soc.h b/soc/HPM6800/HPM6880/hpm_mcan_soc.h
-index 2ed784db3..e9437e994 100644
---- a/soc/HPM6800/HPM6880/hpm_mcan_soc.h
-+++ b/soc/HPM6800/HPM6880/hpm_mcan_soc.h
+diff --git a/hpm_sdk/soc/HPM6800/HPM6880/hpm_mcan_soc.h b/hpm_sdk/soc/HPM6800/HPM6880/hpm_mcan_soc.h
+index 2ed784db..e9437e99 100644
+--- a/hpm_sdk/soc/HPM6800/HPM6880/hpm_mcan_soc.h
++++ b/hpm_sdk/soc/HPM6800/HPM6880/hpm_mcan_soc.h
 @@ -51,7 +51,7 @@
  #define MCAN_TSU_TBSEL_MCAN6 (0x06)
  #define MCAN_TSU_TBSEL_MCAN7 (0x07)

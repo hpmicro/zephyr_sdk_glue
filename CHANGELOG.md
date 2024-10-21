@@ -32,13 +32,14 @@ All changes since 0.1.0
   - zephyr/tests/drivers/can/timing: can
   - zephyr/tests/drivers/can/shell: can
   - zephyr/tests/drivers/uart/uart_basic_api
+  - zephyr/samples/drivers/display: display_rgb
 
 - hpm6800evk:
   - zephyr/samples/hello_world
   - zephyr/samples/basic/blinky: blinky
   - zephyr/samples/basic/button
   - zephyr/samples/drivers/eeprom: i2c_eeprom
-  - zephyr/subsys/video/capture: video_dvp, video_mipi
+  - zephyr/samples/subsys/video/capture: video_dvp, video_mipi
   - zephyr/samples/modules/canopennode: canopennode
   - zephyr/tests/drivers/can/api: can
   - zephyr/tests/drivers/can/timing: can

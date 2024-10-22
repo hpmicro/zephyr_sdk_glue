@@ -56,7 +56,7 @@ class Supply(WestCommand):
             for file in files:
                 file_path = os.path.join(root, file)
                 if self.check_patch_applicable(file_path, path):
-                    self.am_patch(file_path, path)
+                    self.apply_patch(file_path, path)
                 else:
                     print(f"{file_path} patched in {path} failed")
     
@@ -127,7 +127,7 @@ class Supply(WestCommand):
         
         if file_path:
             if self.check_patch_applicable(file_path, repo_path):
-                self.am_patch(file_path, repo_path)
+                self.apply_patch(file_path, repo_path)
             else:
                 print(f"{file_path} patched in {repo_path} failed")
                 sys.exit(1)

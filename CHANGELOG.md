@@ -33,6 +33,7 @@ All changes since 0.1.0
   - zephyr/tests/drivers/can/shell: can
   - zephyr/tests/drivers/uart/uart_basic_api
   - zephyr/samples/drivers/display: display_rgb
+  - zephyr/samples/subsys/video/capture: video_dvp
 
 - hpm6800evk:
   - zephyr/samples/hello_world

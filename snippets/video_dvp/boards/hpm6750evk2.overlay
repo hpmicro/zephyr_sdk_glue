@@ -1,0 +1,69 @@
+/*
+ * Copyright 2024 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+    chosen {
+        zephyr,display = &panel_tm070rdh13;
+        zephyr,camera = &video0;
+    };
+};
+
+
+&lcdc0 {
+    status = "okay";
+};
+
+&rgb0 {
+    status = "okay";
+};
+
+&panel_tm070rdh13 {
+    status = "okay";
+    hactive = <640>;
+    pixel-format = <PANEL_PIXEL_FORMAT_RGB_565>;
+};
+
+/*
+ * backlight control
+ */
+&gpiob {
+    status = "okay";
+};
+
+&gpioz {
+    status = "okay";
+};
+
+&camera0 {
+	status = "okay";
+	interface = "dvp";
+	pinctrl-0 = <&pinmux_dvp0>;
+	pinctrl-names = "default";
+	pixclk_sampling_falling = <0>;
+	hsync_active_low = <1>;
+	vsync_active_low = <1>;
+};
+
+&video0 {
+	status = "okay";
+	video_count = <1>;
+	sensor = <&ov7725>;
+	camera = <&camera0>;
+};
+
+&i2c0 {
+	status = "okay";
+	pinctrl-0 = <&pinmux_i2c0>;
+	pinctrl-names = "default";
+
+	ov7725: ov7725@21 {
+		compatible = "ovti,ov7725";
+		reg = <0x21>;
+		status = "okay";
+
+		reset-gpios = <&gpioa 22 GPIO_ACTIVE_HIGH>;
+	};
+};
+

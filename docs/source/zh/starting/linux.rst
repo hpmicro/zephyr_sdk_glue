@@ -79,6 +79,12 @@ linux上的环境配置
 
         pip3 install --user -r ~/${workspace}/zephyr/scripts/requirements.txt
 
+#. 增加hpm_sdk相关补丁
+
+    .. code-block:: console
+
+        west supply
+
 安装zephyr的工具链包
 --------------------
     下载zephyr的编译工具 `ZEPHYR-SDK <https://github.com/zephyrproject-rtos/sdk-ng/tags/>`_

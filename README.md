@@ -22,8 +22,8 @@ on HPMicro soc, providing drivers, devicetree and kconfig.
 
 ## Documentation
 
-- Please refer to for [linux starting](docs/swdev/starting/linux.rst) more details about start building.
-- Please refer to for [windows starting](docs/swdev/starting/windows.rst) more details about start building.
+- Please refer to for [linux starting](docs/source/zh/starting/linux.rst) more details about start building.
+- Please refer to for [windows starting](docs/source/zh/starting/windows.rst) more details about start building.
 
 ## Build Command
 

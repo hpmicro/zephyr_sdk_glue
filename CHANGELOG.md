@@ -10,6 +10,10 @@ All changes since 0.1.0
   - soc: modify common common linker file
   - boards: clean hpm6750evk2 and hpm6800evk config tree
   - kconfig: update to kconfigv2 model
+  - drivers: add display drivers
+  - drivers: add sdio drivers
+  - drivers: add camera drivers
+  - drivers: add mcan drivers
 
 ### Fixed:
   - drivers: put sw_isr_table in RAM region
@@ -34,6 +38,10 @@ All changes since 0.1.0
   - zephyr/tests/drivers/uart/uart_basic_api
   - zephyr/samples/drivers/display: display_rgb
   - zephyr/samples/subsys/video/capture: video_dvp
+  - zephyr/tests/drivers/sdhc: sdhc
+  - zephyr/tests/drivers/disk/disk_access: sdhc
+  - zephyr/tests/drivers/disk/disk_performance: sdhc
+  - zephyr/tests/subsys/sd/sdmmc: sdhc
 
 - hpm6800evk:
   - zephyr/samples/hello_world
@@ -47,6 +55,10 @@ All changes since 0.1.0
   - zephyr/tests/drivers/can/shell: can
   - zephyr/tests/drivers/uart/uart_basic_api
   - zephyr/samples/drivers/display: display_rgb, display_mipi, display_lvds, display_dual_lvds
+  - zephyr/tests/drivers/sdhc: sdhc
+  - zephyr/tests/drivers/disk/disk_access: sdhc
+  - zephyr/tests/drivers/disk/disk_performance: sdhc
+  - zephyr/tests/subsys/sd/sdmmc: sdhc
 
 ## [0.1.0]:
 

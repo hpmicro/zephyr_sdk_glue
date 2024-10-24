@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2019 Vestas Wind Systems A/S
+ * Copyright (c) 2022 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 #ifndef ZEPHYR_INCLUDE_DT_BINDINGS_PINCTRL_HPMICRO_PWM_COMMON_H_
 #define ZEPHYR_INCLUDE_DT_BINDINGS_PINCTRL_HPMICRO_PWM_COMMON_H_

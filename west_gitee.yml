@@ -4,8 +4,8 @@
 #
 
 ########################################
-##  zephyr                    v3.4.0  ##
-##  hpm_sdk                   v1.5.0  ##
+##  zephyr                    v3.7.0  ##
+##  hpm_sdk                   v1.6.0  ##
 ########################################
 manifest:
   version: "1.0"
@@ -29,8 +29,9 @@ manifest:
         name-allowlist:
           - west-commands
     - name: sdk_env
+      remote: gitee
+      repo-path: sdk_env
       path: sdk_env
-      url: https://gitee.com/hpmicro/sdk_env.git
       revision: v1.6.0
       submodules: true
     - name: canopennode

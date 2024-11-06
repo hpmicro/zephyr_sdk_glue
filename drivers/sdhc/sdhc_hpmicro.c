@@ -996,6 +996,7 @@ static const struct sdhc_driver_api hpm_sdhc_driver_api = {
         .clock_name = (clock_name_t)DT_INST_PROP(n, clk_name), \
         .clock_src = (clock_source_t)DT_INST_PROP(n, clk_source), \
         .clock_div = DT_INST_PROP(n, clk_divider), \
+        .pwr_gpio = GPIO_DT_SPEC_INST_GET_OR(n, pwr_gpios, 0),    \
         .min_bus_freq = DT_INST_PROP(n, min_bus_freq),            \
         .max_bus_freq = DT_INST_PROP(n, max_bus_freq),            \
         .power_delay_ms = DT_INST_PROP(n, power_delay_ms),        \

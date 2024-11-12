@@ -24,8 +24,8 @@ manifest:
 
   projects:
     - name: zephyr
-      repo-path: hpm_zephyrproject
-      revision: v3.7.0_hpm_master
+      repo-path: zephyr
+      revision: v3.7.0_hpm_sdk_v1.6.0
       import:
         name-allowlist:
           - west-commands

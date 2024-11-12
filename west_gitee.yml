@@ -11,15 +11,13 @@ manifest:
   version: "1.0"
 
   remotes:
-    - name: oss
+    - name: test
       url-base: git@192.168.11.211:oss
-    - name: sw
-      url-base: git@192.168.11.211:sw
     - name: gitee
       url-base: https://gitee.com/hpmicro
 
   defaults:
-    remote: oss
+    remote: gitee
 
   projects:
     - name: zephyr
@@ -29,13 +27,11 @@ manifest:
         name-allowlist:
           - west-commands
     - name: sdk_env
-      remote: gitee
       repo-path: sdk_env
       path: sdk_env
       revision: v1.6.0
       submodules: true
     - name: canopennode
-      remote: gitee
       repo-path: canopennode
       path: modules/lib/canopennode
       revision: dec12fa3f0d790cafa8414a4c2930ea71ab72ffd

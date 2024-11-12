@@ -44,7 +44,7 @@ windows上的环境配置
 
         mkdir %workspace%
         cd %workspace%
-        west init -m git@192.168.11.211:oss/zephyr_sdk_glue.git --mr master
+        west init -m %MANIFEST_URL% --mr master
 
 #. 获取所需仓库的源代码,默认从github获取,需要切换到国内源,请输入第一条指令:
 

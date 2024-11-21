@@ -16,6 +16,12 @@ properties:
     type: int
     required: true
     description: pixel clock of display panel, UINT KHz
+  width:
+    type: int
+    required: true
+  height:
+    type: int
+    required: true
   hactive:
     type: int
     required: true

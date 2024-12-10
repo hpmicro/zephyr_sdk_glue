@@ -198,6 +198,16 @@
 		};
 	};
 
+	pinmux_gpioy: pinmux_gpioy {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 6), IOC_TYPE_IOC, 0, 0)>,
+			<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 6), IOC_TYPE_PIOC, 0, 3)>,
+			<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 7), IOC_TYPE_IOC, 0, 0)>,
+			<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 7), IOC_TYPE_PIOC, 0, 3)>;
+			bias-pull-up;
+		};
+	};
+
 	pinmux_dvp0: pinmux_dvp0 {
 		group0 {
 			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 20), IOC_TYPE_IOC, 0, 22)>,

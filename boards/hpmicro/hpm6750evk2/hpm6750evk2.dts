@@ -66,6 +66,8 @@
 		panel_tm070rdh13: panel_tm070rdh13 {
 			compatible = "hpmicro,hpm-display-rgb";
 			panel_name = "tm070rdh13";
+			width = <800>;
+			height = <480>;
 			pixel_clock_khz = <60000>;
 			hactive = <800>;
 			hfront_porch = <50>;
@@ -180,6 +182,12 @@
 		reset-gpios = <&gpioa 22 GPIO_ACTIVE_HIGH>;
 	};
 
+	touch_rgb: gt911@5d {
+        compatible = "goodix,gt911";
+		reg = <0x5d>;
+		irq-gpios = <&gpiob 8 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpiob 9 GPIO_ACTIVE_LOW>;
+	};
 
 	eeprom: eeprom@50 {
 		compatible = "atmel,at24";

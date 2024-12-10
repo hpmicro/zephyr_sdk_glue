@@ -7,6 +7,11 @@
     chosen {
         zephyr,display = &panel_tm070rdh13;
     };
+
+    lvgl_pointer {
+		compatible = "zephyr,lvgl-pointer-input";
+		input = <&touch_rgb>;
+	};
 };
 
 &lcdc0 {
@@ -29,5 +34,13 @@
 };
 
 &gpioz {
+    status = "okay";
+};
+
+&i2c0 {
+    status = "okay";
+};
+
+&touch_rgb {
     status = "okay";
 };

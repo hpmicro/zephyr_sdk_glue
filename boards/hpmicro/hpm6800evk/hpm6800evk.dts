@@ -279,6 +279,8 @@
 };
 
 &gpioy {
+	pinctrl-0 = <&pinmux_gpioy>;
+	pinctrl-names = "default";
 	status = "okay";
 };
 
@@ -355,6 +357,13 @@
 		status = "disabled";
 
 		reset-gpios = <&gpioa 22 GPIO_ACTIVE_HIGH>;
+	};
+
+	touch_rgb: gt911@5d {
+        compatible = "goodix,gt911";
+		reg = <0x5d>;
+		irq-gpios = <&gpioy 6 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpioy 7 GPIO_ACTIVE_LOW>;
 	};
 
 };

@@ -52,13 +52,13 @@ linux上的环境配置
         echo 'export PATH=~/.local/bin:"$PATH"' >> ~/.bashrc
         source ~/.bashrc
 
-#. 创建${workspace}目录,获取源代码（目前源代码托管在内部服务器,以下地址为内部地址,发布后请修改对应地址）
+#. 创建${workspace}目录,获取源代码
 
     .. code-block:: console
 
         mkdir ${workspace}
         cd ${workspace}
-        west init -m ${MANIFEST_URL} --mr master
+        west init -m https://github.com/hpmicro/zephyr_sdk_glue.git --mr main
 
 #. 获取所需仓库的源代码,默认从github获取,需要切换到国内源,请输入第一条指令:
 

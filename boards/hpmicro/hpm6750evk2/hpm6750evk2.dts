@@ -8,6 +8,7 @@
 #include <hpmicro/hpm6750.dtsi>
 #include "hpm6750evk2-pinctrl.dtsi"
 #include <zephyr/dt-bindings/display/panel.h>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
 
 / {
 	model = "HPMicro HPM6750EVK2";
@@ -56,9 +57,11 @@
 		compatible = "gpio-keys";
 		pbutn: pbutn {
 			gpios = <&gpioz 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			zephyr,code = <INPUT_KEY_0>;
 		};
 		wbutn: wbutn {
 			gpios = <&gpioz 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			zephyr,code = <INPUT_KEY_1>;
 		};
 	};
 
@@ -185,6 +188,8 @@
 	touch_rgb: gt911@5d {
         compatible = "goodix,gt911";
 		reg = <0x5d>;
+		status = "disabled";
+
 		irq-gpios = <&gpiob 8 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpiob 9 GPIO_ACTIVE_LOW>;
 	};
@@ -260,3 +265,16 @@
 	camera = <&camera0>;
 };
 
+&usb0 {
+	pinctrl-0 = <&pinmux_usb0>;
+	pinctrl-names = "default";
+};
+
+&usb1 {
+	pinctrl-0 = <&pinmux_usb1>;
+	pinctrl-names = "default";
+};
+
+zephyr_udc0: &usb0 {
+	status = "disabled";
+};

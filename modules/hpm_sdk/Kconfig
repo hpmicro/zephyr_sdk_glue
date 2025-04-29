@@ -100,4 +100,5 @@ config HAS_HPMSDK_LCB
 	bool
 config HAS_HPMSDK_MIPI_CSI_PHY
 	bool
-endif 
+
+endif

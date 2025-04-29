@@ -22,6 +22,7 @@ supported:
   - can
   - cam
   - sdxc
+  - usbd
 testing:
   ignore_tags:
     - bluetooth

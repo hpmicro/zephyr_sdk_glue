@@ -1,0 +1,13 @@
+# Copyright (c) 2025 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_UDC := hpmicro,hpm-udc
+
+config UDC_HPMICRO
+	bool "HPMicro USB Device controller driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_UDC_ENABLED
+	select HAS_HPMSDK_USB
+	select USB_DEVICE
+	help
+	  Enable support for hpmicro usb device driver.

@@ -40,5 +40,3 @@ add_subdirectory(${HPM_SDK_DIR}/drivers ${HPM_SDK_BINARY_DIR}/drivers)
 
 sdk_inc(.)
 endif()
-
-

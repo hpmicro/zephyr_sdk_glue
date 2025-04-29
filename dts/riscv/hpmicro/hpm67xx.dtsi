@@ -623,6 +623,25 @@
             status = "disabled";
         };
 
+        usb0: usb@f2020000 {
+                compatible = "hpmicro,hpm-udc";
+                clk-name = <CLOCK_USB0>;
+                reg = <0xf2020000 0x4000>;
+                interrupts = <106 1>;
+                interrupt-parent = <&plic>;
+                num-bidir-endpoints = <8>;
+                status = "disabled";
+        };
+
+        usb1: usb@f2024000 {
+                compatible = "hpmicro,hpm-udc";
+                clk-name = <CLOCK_USB1>;
+                reg = <0xf2024000 0x4000>;
+                interrupts = <107 1>;
+                interrupt-parent = <&plic>;
+                num-bidir-endpoints = <8>;
+                status = "disabled";
+        };
     };
 };
 

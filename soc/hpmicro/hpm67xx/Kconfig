@@ -20,7 +20,7 @@ config SOC_HPM6750
 	select RISCV_ISA_EXT_ZIFENCEI
 	select CPU_HAS_DCACHE
 	select CPU_HAS_ICACHE
-
+	select RISCV_PMP
 if SOC_SERIES_HPM67XX
 
 choice

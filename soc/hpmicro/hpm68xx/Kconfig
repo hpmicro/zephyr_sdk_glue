@@ -20,7 +20,7 @@ config SOC_HPM6830
 	select RISCV_ISA_EXT_ZIFENCEI
 	select CPU_HAS_DCACHE
 	select CPU_HAS_ICACHE
-	# select RISCV_PMP
+	select RISCV_PMP
 
 config SOC_HPM6850
 	bool
@@ -33,7 +33,7 @@ config SOC_HPM6850
 	select RISCV_ISA_EXT_ZIFENCEI
 	select CPU_HAS_DCACHE
 	select CPU_HAS_ICACHE
-	# select RISCV_PMP
+	select RISCV_PMP
 
 config SOC_HPM6880
 	bool
@@ -46,7 +46,7 @@ config SOC_HPM6880
 	select RISCV_ISA_EXT_ZIFENCEI
 	select CPU_HAS_DCACHE
 	select CPU_HAS_ICACHE
-	# select RISCV_PMP
+	select RISCV_PMP
 
 if SOC_SERIES_HPM68XX
 

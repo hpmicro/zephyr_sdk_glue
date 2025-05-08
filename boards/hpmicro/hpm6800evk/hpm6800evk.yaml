@@ -22,6 +22,7 @@ supported:
   - video
   - mcan
   - sdxc
+  - usbd
 testing:
   ignore_tags:
     - bluetooth

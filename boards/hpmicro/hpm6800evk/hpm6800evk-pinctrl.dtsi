@@ -249,4 +249,12 @@
 		};
 	};
 
+	pinmux_usb0: pinmux_usb0 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTF, 4), IOC_TYPE_IOC, 0, 24)>,
+					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTF, 3), IOC_TYPE_IOC, 0, 24)>,
+					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTF, 0), IOC_TYPE_IOC, 0, 24)>;
+		};
+	};
+
 };

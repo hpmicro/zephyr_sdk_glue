@@ -8,6 +8,7 @@
 #include <hpmicro/hpm6880.dtsi>
 #include "hpm6800evk-pinctrl.dtsi"
 #include <zephyr/dt-bindings/display/panel.h>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
 
 / {
 	model = "HPMicro HPM6800EVK";
@@ -50,9 +51,11 @@
 		compatible = "gpio-keys";
 		key1: key1 {
 			gpios = <&gpiof 6 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
+			zephyr,code = <INPUT_KEY_0>;
 		};
 		key2: key2 {
 			gpios = <&gpiof 7 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
+			zephyr,code = <INPUT_KEY_1>;
 		};
 	};
 
@@ -362,6 +365,8 @@
 	touch_rgb: gt911@5d {
         compatible = "goodix,gt911";
 		reg = <0x5d>;
+		status = "disabled";
+
 		irq-gpios = <&gpioy 6 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpioy 7 GPIO_ACTIVE_LOW>;
 	};
@@ -428,6 +433,11 @@
 	camera = <&camera0>;
 };
 
+&usb0 {
+	pinctrl-0 = <&pinmux_usb0>;
+	pinctrl-names = "default";
+};
 
-
-
+zephyr_udc0: &usb0 {
+	status = "disabled";
+};

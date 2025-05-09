@@ -18,6 +18,8 @@ manifest:
       url-base: git@192.168.11.211:oss
     - name: github
       url-base: https://github.com/hpmicro
+    - name: cherry-embedded
+      url-base: https://github.com/cherry-embedded/
 
   defaults:
     remote: github
@@ -39,10 +41,14 @@ manifest:
       path: modules/lib/canopennode
       revision: dec12fa3f0d790cafa8414a4c2930ea71ab72ffd
     - name: lvgl
-      revision: 2b498e6f36d6b82ae1da12c8b7742e318624ecf5
-      path: modules/lib/gui/lvgl
       repo-path: zephyr_lvgl
-
+      path: modules/lib/gui/lvgl
+      revision: 2b498e6f36d6b82ae1da12c8b7742e318624ecf5
+    - name: CherryUSB
+      remote: cherry-embedded
+      repo-path: CherryUSB
+      path: modules/lib/CherryUSB
+      revision: master
 
   # West-related configuration for the sdk_glue repository.
   self:

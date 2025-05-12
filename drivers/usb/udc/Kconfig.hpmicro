@@ -8,6 +8,5 @@ config UDC_HPMICRO
 	default y
 	depends on DT_HAS_HPMICRO_HPM_UDC_ENABLED
 	select HAS_HPMSDK_USB
-	select USB_DEVICE
 	help
 	  Enable support for hpmicro usb device driver.

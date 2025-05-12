@@ -23,6 +23,7 @@ supported:
   - cam
   - sdxc
   - usbd
+  - cherryusb
 testing:
   ignore_tags:
     - bluetooth

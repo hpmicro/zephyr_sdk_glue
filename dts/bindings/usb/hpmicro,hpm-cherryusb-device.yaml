@@ -1,0 +1,21 @@
+# Copyright 2025 hpmicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMICRO CHERRYUSB device controller
+
+compatible: "hpmicro,hpm-cherryusb-device"
+
+include: ["usb-ep.yaml", "pinctrl-device.yaml"]
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  clk-name:
+    type: int
+    required: true
+    description: USB clock name
+

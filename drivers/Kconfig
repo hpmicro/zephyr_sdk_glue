@@ -17,5 +17,6 @@ rsource "i2c/Kconfig.hpmicro"
 rsource "video/Kconfig.hpmicro"
 rsource "sdhc/Kconfig.hpmicro"
 rsource "usb/udc/Kconfig.hpmicro"
+rsource "usb/cherryusb/device/Kconfig.hpmicro"
 
 endmenu

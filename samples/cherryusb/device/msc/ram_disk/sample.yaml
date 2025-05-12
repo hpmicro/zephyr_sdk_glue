@@ -1,0 +1,7 @@
+sample:
+  name: CherryUSB Device Mass Storage
+tests:
+  sample.cherryusb.device.mass_ram_none:
+    depends_on: cherryusb
+    tags:
+      - cherryusb_device_msc

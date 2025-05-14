@@ -151,7 +151,6 @@
 		};
 
 		usb0: usb@f300c000 {
-			compatible = "hpmicro,hpm-udc";
 			clk-name = <CLOCK_USB0>;
 			reg = <0xf300c000 0x4000>;
 			interrupts = <51 1>;

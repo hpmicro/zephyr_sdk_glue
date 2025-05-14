@@ -439,5 +439,6 @@
 };
 
 zephyr_udc0: &usb0 {
+	compatible = "hpmicro,hpm-udc";
 	status = "disabled";
 };

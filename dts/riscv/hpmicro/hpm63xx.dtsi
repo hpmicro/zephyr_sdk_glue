@@ -184,7 +184,6 @@
 		};
 
 		usb0: usb@f2020000 {
-			compatible = "hpmicro,hpm-udc";
 			clk-name = <CLOCK_USB0>;
 			reg = <0xf2020000 0x4000>;
 			interrupts = <61 1>;

@@ -23,6 +23,7 @@ supported:
   - mcan
   - sdxc
   - usbd
+  - cherryusb
 testing:
   ignore_tags:
     - bluetooth

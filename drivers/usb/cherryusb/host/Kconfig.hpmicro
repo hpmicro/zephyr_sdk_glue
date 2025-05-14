@@ -1,0 +1,12 @@
+# Copyright (c) 2025 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_CHERYUSB_HOST := hpmicro,hpm-cherryusb-host
+
+config CHERRYUSB_HOST_HPMICRO
+	bool "HPMicro CherryUSB host controller driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_CHERRYUSB_HOST_ENABLED
+	select HAS_HPMSDK_USB
+	help
+	  Enable support for hpmicro cherryusb host driver.

@@ -1,0 +1,7 @@
+sample:
+  name: CherryUSB Device CDC ACM Virtual COM
+tests:
+  sample.cherryusb.device.cdc_acm_vcom:
+    depends_on: cherryusb
+    tags:
+      - cherryusb_device_cdc_acm

@@ -1,0 +1,7 @@
+sample:
+  name: CherryUSB Host CDC-ACM
+tests:
+  sample.cherryusb.host.cdc_acm:
+    depends_on: cherryusb
+    tags:
+      - cherryusb_host_cdc_acm

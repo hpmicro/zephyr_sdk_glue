@@ -442,13 +442,3 @@ zephyr_udc0: &usb0 {
 	compatible = "hpmicro,hpm-udc";
 	status = "disabled";
 };
-
-cherryusb_udc0: &usb0 {
-	compatible = "hpmicro,hpm-cherryusb-device";
-	status = "disabled";
-};
-
-cherryusb_uhc0: &usb0 {
-	compatible = "hpmicro,hpm-cherryusb-host";
-	status = "disabled";
-};

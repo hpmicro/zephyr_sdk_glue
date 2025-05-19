@@ -1,9 +1,9 @@
 # Copyright 2025 hpmicro
 # SPDX-License-Identifier: Apache-2.0
 
-description: HPMICRO CHERRYUSB device controller
+description: HPMicro CherryUSB Controller
 
-compatible: "hpmicro,hpm-cherryusb-device"
+compatible: "hpmicro,hpm-cherryusb"
 
 include: ["usb-ep.yaml", "pinctrl-device.yaml"]
 

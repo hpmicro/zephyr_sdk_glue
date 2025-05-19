@@ -1,0 +1,12 @@
+# Copyright (c) 2025 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_CHERYUSB := hpmicro,hpm-cherryusb
+
+config CHERRYUSB_HPMICRO
+	bool "HPMicro CherryUSB controller driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_CHERRYUSB_ENABLED
+	select HAS_HPMSDK_USB
+	help
+	  Enable support for hpmicro cherryusb driver.

@@ -4,8 +4,7 @@
  */
 
 
-cherryusb_uhc0: &usb0 {
-	compatible = "hpmicro,hpm-cherryusb-host";
+cherryusb_usb0: &usb0 {
+	compatible = "hpmicro,hpm-cherryusb";
 	status = "okay";
 };
-

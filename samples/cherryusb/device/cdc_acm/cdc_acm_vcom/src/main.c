@@ -12,11 +12,11 @@ extern void cdc_acm_init(uint8_t busid, uint32_t reg_base);
 
 int main(void)
 {
-    uint32_t udc0_base = DT_REG_ADDR(DT_NODELABEL(cherryusb_udc0));
+    uint32_t usb_base = DT_REG_ADDR(DT_NODELABEL(cherryusb_usb0));
 
     printf("cherry usb cdc_acm device sample.\n");
 
-    cdc_acm_init(0, udc0_base);
+    cdc_acm_init(0, usb_base);
 
     return 0;
 }

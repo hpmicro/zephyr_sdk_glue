@@ -17,6 +17,15 @@ CDC ACM Host
 
 - 将Host和Device的USB0端口相连接。
 
+编译指令
+-----------
+
+- 以hpm6750evk2为例，在sdk_glue目录下执行如下指令
+
+    .. code-block:: console
+
+        west build -p always -b hpm6750evk2 samples/cherryusb/host/cdc_acm/
+
 运行现象
 ------------
 

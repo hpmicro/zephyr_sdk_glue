@@ -17,6 +17,15 @@ Board Setting
 
 - Connect a USB port on PC to one of USB port on the development board with a USB Type-C cable
 
+Build Cmd
+-----------
+
+- Taking hpm6750evk2 as an example, execute the following command in the sdk_glue directory
+
+    .. code-block:: console
+
+        west build -p always -b hpm6750evk2 samples/cherryusb/device/cdc_acm/cdc_acm_vcom/
+
 Running the example
 -------------------
 

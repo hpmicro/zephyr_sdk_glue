@@ -11,11 +11,11 @@
 
 int main(void)
 {
-    uint32_t uhc0_base = DT_REG_ADDR(DT_NODELABEL(cherryusb_uhc0));
+    uint32_t usb_base = DT_REG_ADDR(DT_NODELABEL(cherryusb_usb0));
 
     printf("Start usb host task...\r\n");
 
-    usbh_initialize(0, uhc0_base);
+    usbh_initialize(0, usb_base);
 
     return 0;
 }

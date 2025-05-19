@@ -1,0 +1,1005 @@
+From 8dab7a3516ac2f41fd978486c1e5a5a7bcb22658 Mon Sep 17 00:00:00 2001
+From: Zhihong Chen <zhihong.chen@hpmicro.com>
+Date: Wed, 7 May 2025 16:04:42 +0800
+Subject: [PATCH] [update] usb: update usb reg, driver and component
+
+- update usb reg, driver and component
+
+Signed-off-by: Zhihong Chen <zhihong.chen@hpmicro.com>
+---
+ .../components/usb/device/hpm_usb_device.c    |  76 +++++++++---
+ .../components/usb/device/hpm_usb_device.h    |  38 +++---
+ hpm_sdk/drivers/inc/hpm_usb_drv.h             | 115 ++++++++++++++++--
+ hpm_sdk/drivers/src/hpm_usb_drv.c             |  80 +++++++-----
+ hpm_sdk/soc/HPM5300/ip/hpm_usb_regs.h         |  16 ++-
+ hpm_sdk/soc/HPM6200/ip/hpm_usb_regs.h         |  42 ++++++-
+ hpm_sdk/soc/HPM6300/ip/hpm_usb_regs.h         |  42 ++++++-
+ hpm_sdk/soc/HPM6700/ip/hpm_usb_regs.h         |  42 ++++++-
+ hpm_sdk/soc/HPM6800/ip/hpm_usb_regs.h         |  16 ++-
+ hpm_sdk/soc/HPM6E00/ip/hpm_usb_regs.h         |  16 ++-
+ 10 files changed, 383 insertions(+), 100 deletions(-)
+
+diff --git a/hpm_sdk/components/usb/device/hpm_usb_device.c b/hpm_sdk/components/usb/device/hpm_usb_device.c
+index 4c7fd3849..a8631fad3 100644
+--- a/hpm_sdk/components/usb/device/hpm_usb_device.c
++++ b/hpm_sdk/components/usb/device/hpm_usb_device.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2021 HPMicro
++ * Copyright (c) 2021-2025 HPMicro
+  *
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+@@ -13,10 +13,31 @@
+ #include "hpm_misc.h"
+ #include "hpm_common.h"
+ 
++#if defined(USB_DEVICE_DTD_POOL_SHARED) && USB_DEVICE_DTD_POOL_SHARED
++/* Alloc qtd */
++static dcd_qtd_t *usb_qtd_alloc(usb_device_handle_t *handle)
++{
++    dcd_qtd_t *p_qtd;
++    uint32_t lock;
++
++    lock = disable_global_irq(CSR_MSTATUS_MIE_MASK);
++    for (uint32_t i = 0; i < USB_SOC_DCD_MAX_QTD_COUNT; i++) {
++        p_qtd = &handle->dcd_data->qtd[i];
++        if (!p_qtd->in_use) {
++            p_qtd->in_use = true;
++            enable_global_irq(lock);
++            return p_qtd;
++        }
++    }
++    enable_global_irq(lock);
++    return NULL;
++}
++#endif
++
+ /* Initialize qtd */
+ static void usb_qtd_init(dcd_qtd_t *p_qtd, void *data_ptr, uint16_t total_bytes)
+ {
+-    memset(p_qtd, 0, sizeof(dcd_qtd_t));
++    p_qtd->token       = 0;
+ 
+     p_qtd->next        = USB_SOC_DCD_QTD_NEXT_INVALID;
+     p_qtd->active      = 1;
+@@ -69,12 +90,11 @@ bool usb_device_init(usb_device_handle_t *handle, uint32_t int_mask)
+         return false;
+     }
+ 
+-    memset(handle->dcd_data, 0, sizeof(dcd_data_t));
+-
+     /* Initialize controller in device mode */
+     usb_dcd_init(handle->regs);
+ 
+     /* Set endpoint list address */
++    memset(handle->dcd_data, 0, sizeof(dcd_data_t));
+     usb_dcd_set_edpt_list_addr(handle->regs, core_local_mem_to_sys_address(0,  (uint32_t)handle->dcd_data->qhd));
+ 
+     /* Clear status */
+@@ -91,15 +111,14 @@ bool usb_device_init(usb_device_handle_t *handle, uint32_t int_mask)
+ 
+ void usb_device_deinit(usb_device_handle_t *handle)
+ {
+-    /* Clear memroy */
+-    memset(handle->dcd_data, 0, sizeof(dcd_data_t));
+-
+-    usb_dcd_deinit(handle->regs);
+-
+     for (uint32_t i = 0; i < USB_SOC_DCD_MAX_ENDPOINT_COUNT; i++) {
+         usb_dcd_edpt_close(handle->regs, (i | (usb_dir_in  << 0x07)));
+         usb_dcd_edpt_close(handle->regs, (i | (usb_dir_out << 0x07)));
+     }
++
++    usb_dcd_deinit(handle->regs);
++
++    memset(handle->dcd_data, 0, sizeof(dcd_data_t));
+ }
+ 
+ uint32_t usb_device_status_flags(usb_device_handle_t *handle)
+@@ -206,6 +225,9 @@ bool usb_device_edpt_open(usb_device_handle_t *handle, usb_endpoint_config_t *co
+     p_qhd = &handle->dcd_data->qhd[ep_idx];
+     memset(p_qhd, 0, sizeof(dcd_qhd_t));
+ 
++    if (ep_idx == 0) {
++        p_qhd->int_on_setup = 1;    /* OUT only */
++    }
+     p_qhd->zero_length_termination = 1;
+     p_qhd->max_packet_size         = config->max_packet_size & 0x7FFu;
+     p_qhd->qtd_overlay.next        = USB_SOC_DCD_QTD_NEXT_INVALID;
+@@ -223,35 +245,52 @@ bool usb_device_edpt_xfer(usb_device_handle_t *handle, uint8_t ep_addr, uint8_t
+     uint8_t const epnum = ep_addr & 0x0f;
+     uint8_t const dir   = (ep_addr & 0x80) >> 7;
+     uint8_t const ep_idx = 2 * epnum + dir;
+-    uint8_t qtd_num;
+-    uint8_t i;
+     uint32_t xfer_len;
+     dcd_qhd_t *p_qhd;
+     dcd_qtd_t *p_qtd;
+     dcd_qtd_t *first_p_qtd = NULL;
+     dcd_qtd_t *prev_p_qtd = NULL;
+ 
++#if !defined(USB_DEVICE_DTD_POOL_SHARED) || !USB_DEVICE_DTD_POOL_SHARED
++    uint8_t qtd_num = (total_bytes + 0x3fff) / 0x4000;;
++    uint8_t i = 0;
++
++    if (qtd_num > USB_SOC_DCD_QTD_COUNT_EACH_ENDPOINT) {
++        while (1) {
++        }
++    }
++#endif
++
++    /* Must not exceed max endpoint number */
++    if (epnum >= USB_SOC_DCD_MAX_ENDPOINT_COUNT) {
++        return false;
++    }
++
+     if (epnum == 0) {
+         /* follows UM Setup packet handling using setup lockout mechanism
+-         * wait until ENDPTSETUPSTAT before priming data/status in response TODO add time out
++         * wait until ENDPTSETUPSTAT before priming data/status in response
+          */
+         while (usb_dcd_get_edpt_setup_status(handle->regs) & HPM_BITSMASK(1, 0)) {
+         }
+     }
+ 
+-    qtd_num = (total_bytes + 0x3fff) / 0x4000;
+-    if (qtd_num > USB_SOC_DCD_QTD_COUNT_EACH_ENDPOINT) {
+-        return false;
+-    }
+-
+     if (buffer != NULL) {
+         buffer = (uint8_t *)core_local_mem_to_sys_address(0, (uint32_t)buffer);
+     }
++
+     p_qhd = &handle->dcd_data->qhd[ep_idx];
+-    i = 0;
++    p_qhd->attached_buffer = (uint32_t)buffer;
+     do {
++#if defined(USB_DEVICE_DTD_POOL_SHARED) && USB_DEVICE_DTD_POOL_SHARED
++        p_qtd = usb_qtd_alloc(handle);
++        if (p_qtd == NULL) {
++            while (1) {
++            }
++        }
++#else
+         p_qtd = &handle->dcd_data->qtd[ep_idx * USB_SOC_DCD_QTD_COUNT_EACH_ENDPOINT + i];
+         i++;
++#endif
+ 
+         if (total_bytes > 0x4000) {
+             xfer_len = 0x4000;
+@@ -275,6 +314,7 @@ bool usb_device_edpt_xfer(usb_device_handle_t *handle, uint8_t ep_addr, uint8_t
+         prev_p_qtd = p_qtd;
+     } while (total_bytes > 0);
+ 
++    p_qhd->attached_qtd = first_p_qtd;
+     p_qhd->qtd_overlay.next = core_local_mem_to_sys_address(0, (uint32_t) first_p_qtd); /* link qtd to qhd */
+ 
+     usb_dcd_edpt_xfer(handle->regs, ep_idx);
+diff --git a/hpm_sdk/components/usb/device/hpm_usb_device.h b/hpm_sdk/components/usb/device/hpm_usb_device.h
+index 71142f6af..2a05d98f3 100644
+--- a/hpm_sdk/components/usb/device/hpm_usb_device.h
++++ b/hpm_sdk/components/usb/device/hpm_usb_device.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2021 HPMicro
++ * Copyright (c) 2021-2025 HPMicro
+  *
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+@@ -30,25 +30,31 @@ typedef struct {
+     volatile uint32_t next; /* Next link pointer This field contains the physical memory address of the next dTD to be processed */
+ 
+     /* Word 1: qTQ Token */
+-    volatile uint32_t                      : 3;
+-    volatile uint32_t xact_err             : 1;
+-    volatile uint32_t                      : 1;
+-    volatile uint32_t buffer_err           : 1;
+-    volatile uint32_t halted               : 1;
+-    volatile uint32_t active               : 1;
+-    volatile uint32_t                      : 2;
+-    volatile uint32_t iso_mult_override    : 2  ; /* This field can be used for transmit ISOs to override the MULT field in the dQH. This field must be zero for all packet types that are not transmit-ISO. */
+-    volatile uint32_t                      : 3;
+-    volatile uint32_t int_on_complete      : 1;
+-    volatile uint32_t total_bytes          : 15;
+-    volatile uint32_t                      : 0;
++    union {
++        volatile uint32_t token;
++        struct {
++            volatile uint32_t                      : 3;
++            volatile uint32_t xact_err             : 1;
++            volatile uint32_t                      : 1;
++            volatile uint32_t buffer_err           : 1;
++            volatile uint32_t halted               : 1;
++            volatile uint32_t active               : 1;
++            volatile uint32_t                      : 2;
++            volatile uint32_t iso_mult_override    : 2; /* This field can be used for transmit ISOs to override the MULT field in the dQH. This field must be zero for all packet types that are not transmit-ISO. */
++            volatile uint32_t                      : 3;
++            volatile uint32_t int_on_complete      : 1;
++            volatile uint32_t total_bytes          : 15;
++            volatile uint32_t                      : 1;
++        };
++    };
+ 
+     /* Word 2-6: Buffer Page Pointer List, Each element in the list is a 4K page aligned, physical memory address. The lower 12 bits in each pointer are reserved (except for the first one) as each memory pointer must reference the start of a 4K page */
+     volatile uint32_t buffer[USB_SOC_DCD_QHD_BUFFER_COUNT];
+ 
+     /*------------- DCD Area -------------*/
+     volatile uint16_t expected_bytes;
+-    volatile uint8_t reserved[2];
++    volatile bool     in_use;
++    volatile uint8_t  reserved;
+ } dcd_qtd_t;
+ 
+ /* Queue Head */
+@@ -77,7 +83,9 @@ typedef struct {
+      * thus there are 16 bytes padding free that we can make use of.
+      *--------------------------------------------------------------------
+      */
+-    volatile uint8_t reserved[16];
++    volatile uint32_t attached_buffer;
++    dcd_qtd_t * volatile attached_qtd;
++    volatile uint8_t reserved[8];
+ } dcd_qhd_t;
+ 
+ typedef struct {
+diff --git a/hpm_sdk/drivers/inc/hpm_usb_drv.h b/hpm_sdk/drivers/inc/hpm_usb_drv.h
+index 80573aaea..d0fb2ef27 100644
+--- a/hpm_sdk/drivers/inc/hpm_usb_drv.h
++++ b/hpm_sdk/drivers/inc/hpm_usb_drv.h
+@@ -26,8 +26,9 @@
+  *  Macro Constant Declarations
+  *---------------------------------------------------------------------
+  */
+-#define USB_PHY_INIT_DELAY_COUNT  (16U) /**< a delay count for USB phy initialization */
+-#define USB_HOST_FRAMELIST_SIZE   (8U)  /**< a frame list size in USB host mode */
++#define USB_PHY_INIT_DELAY_COUNT   (25U) /**< a delay count for USB phy initialization, about 2us in 600MHz */
++#define USB_PHY_DEINIT_DELAY_COUNT (5000U) /**< a delay count for USB phy de-initialization, about 400us in 600MHz */
++#define USB_HOST_FRAMELIST_SIZE    (8U)  /**< a frame list size in USB host mode */
+ 
+ /*---------------------------------------------------------------------
+  *  Macro Enum Declarations
+@@ -164,6 +165,17 @@ static inline void usb_enable_interrupts(USB_Type *ptr, uint32_t mask)
+     ptr->USBINTR |= mask;
+ }
+ 
++/**
++ * @brief Disable interrupts
++ *
++ * @param[in] ptr A USB peripheral base address
++ * @param[in] mask Mask value for interrupt events
++ */
++static inline void usb_disable_interrupts(USB_Type *ptr, uint32_t mask)
++{
++    ptr->USBINTR &= ~mask;
++}
++
+ /**
+  * @brief Get all USB status flags
+  *
+@@ -190,23 +202,63 @@ static inline void usb_clear_status_flags(USB_Type *ptr, uint32_t mask)
+ }
+ 
+ /**
+- * @brief Enable otg vbus wakeup
++ * @brief Enable otg dp/dm change wakeup
++ *
++ * @param[in] ptr A USB peripheral base address
++ */
++static inline void usb_otg_enable_dpdm_wakeup(USB_Type *ptr)
++{
++    ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_WKDPDMCHG_EN_MASK;
++}
++
++/**
++ * @brief Disbable otg dp/dm change  wakeup
++ *
++ * @param[in] ptr A USB peripheral base address
++ */
++static inline void usb_otg_disable_dpdm_wakeup(USB_Type *ptr)
++{
++    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_WKDPDMCHG_EN_MASK;
++}
++
++/**
++ * @brief Enable otg id change wakeup
++ *
++ * @param[in] ptr A USB peripheral base address
++ */
++static inline void usb_otg_enable_id_wakeup(USB_Type *ptr)
++{
++    ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_ID_WAKEUP_EN_MASK;
++}
++
++/**
++ * @brief Disbable otg id change  wakeup
++ *
++ * @param[in] ptr A USB peripheral base address
++ */
++static inline void usb_otg_disable_id_wakeup(USB_Type *ptr)
++{
++    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_ID_WAKEUP_EN_MASK;
++}
++
++/**
++ * @brief Enable otg vbus change wakeup
+  *
+  * @param[in] ptr A USB peripheral base address
+  */
+ static inline void usb_otg_enable_vbus_wakeup(USB_Type *ptr)
+ {
+-    ptr->OTG_CTRL0 |=  USB_OTG_CTRL0_OTG_VBUS_WAKEUP_EN_MASK;
++    ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_VBUS_WAKEUP_EN_MASK;
+ }
+ 
+ /**
+- * @brief Disbable otg vbus wakeup
++ * @brief Disbable otg vbus change wakeup
+  *
+  * @param[in] ptr A USB peripheral base address
+  */
+ static inline void usb_otg_disable_vbus_wakeup(USB_Type *ptr)
+ {
+-    ptr->OTG_CTRL0 &=  ~USB_OTG_CTRL0_OTG_VBUS_WAKEUP_EN_MASK;
++    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_VBUS_WAKEUP_EN_MASK;
+ }
+ 
+ /**
+@@ -310,11 +362,10 @@ static inline void usb_set_port_test_mode(USB_Type *ptr, usb_test_mode_t test_mo
+  * @brief USB set port suspend
+  *
+  * @param[in] ptr A USB peripheral base address
+- * @param[in] suspend true - suspend, false - not suspend
+  */
+-static inline void usb_set_port_suspend(USB_Type *ptr, bool suspend)
++static inline void usb_set_port_suspend(USB_Type *ptr)
+ {
+-    ptr->PORTSC1 = (ptr->PORTSC1 & ~USB_PORTSC1_SUSP_MASK) | USB_PORTSC1_SUSP_SET(suspend);
++    ptr->PORTSC1 |= USB_PORTSC1_SUSP_MASK;
+ }
+ 
+ /**
+@@ -325,6 +376,8 @@ static inline void usb_set_port_suspend(USB_Type *ptr, bool suspend)
+ static inline void usb_force_port_resume(USB_Type *ptr)
+ {
+     ptr->PORTSC1 |= USB_PORTSC1_FPR_MASK;
++    while ((ptr->PORTSC1 & USB_PORTSC1_FPR_MASK) != 0) {
++    }
+ }
+ 
+ /**
+@@ -383,6 +436,17 @@ static inline void usb_otgsc_disable_session_valid_chg_int(USB_Type *ptr)
+     ptr->OTGSC &= ~USB_OTGSC_ASVIE_MASK;
+ }
+ 
++/**
++ * @brief check otgsc session valid change interrupt is enable
++ *
++ * @param[in] ptr A USB peripheral base address
++ * @retval true interrupt is enable, false interrupt is disable
++ */
++static inline bool usb_otgsc_session_valid_chg_int_is_enable(USB_Type *ptr)
++{
++    return ((ptr->OTGSC & USB_OTGSC_ASVIE_MASK) != 0);
++}
++
+ /**
+  * @brief get otgsc session valid change flag
+  *
+@@ -415,12 +479,20 @@ static inline bool usb_otgsc_get_session_valid_flag(USB_Type *ptr)
+     return (USB_OTGSC_ASV_GET(ptr->OTGSC) != 0) ? true : false;
+ }
+ 
++/**
++ * @brief De-Initialize USB phy
++ *
++ * @param[in] ptr A USB peripheral base address
++ */
++void usb_phy_deinit(USB_Type *ptr);
++
+ /**
+  * @brief Initialize USB phy
+  *
+  * @param[in] ptr A USB peripheral base address
++ * @param[in] host true is host, false is device
+  */
+-void usb_phy_init(USB_Type *ptr);
++void usb_phy_init(USB_Type *ptr, bool host);
+ 
+ /**
+  * @brief USB phy get line status
+@@ -786,6 +858,29 @@ static inline void usb_hcd_stop(USB_Type *ptr)
+     ptr->USBCMD &= ~USB_USBCMD_RS_MASK;
+ }
+ 
++/**
++ * @brief Disable hcd controller Asynchronous Schedule and Periodic Schedule
++ *
++ * @param[in] ptr A USB peripheral base address
++ */
++static inline void usb_hcd_disable_ase_pse(USB_Type *ptr)
++{
++    ptr->USBCMD &= ~(USB_USBCMD_PSE_MASK | USB_USBCMD_ASE_MASK);
++    while (ptr->USBCMD & (USB_USBCMD_PSE_MASK | USB_USBCMD_ASE_MASK)) {
++        ;
++    }
++}
++
++/**
++ * @brief Enable hcd controller Asynchronous Schedule and Periodic Schedule
++ *
++ * @param[in] ptr A USB peripheral base address
++ */
++static inline void usb_hcd_enable_ase_pse(USB_Type *ptr)
++{
++    ptr->USBCMD |= (USB_USBCMD_PSE_MASK | USB_USBCMD_ASE_MASK);
++}
++
+ #if defined __cplusplus
+ }
+ #endif /* __cplusplus */
+diff --git a/hpm_sdk/drivers/src/hpm_usb_drv.c b/hpm_sdk/drivers/src/hpm_usb_drv.c
+index 5490c46c5..62ad4a0f3 100644
+--- a/hpm_sdk/drivers/src/hpm_usb_drv.c
++++ b/hpm_sdk/drivers/src/hpm_usb_drv.c
+@@ -28,59 +28,67 @@ enum {
+ };
+ 
+ /*---------------------------------------------------------------------
+- * Internal API
++ * Driver API
+  *---------------------------------------------------------------------
+  */
+ 
+ /* De-initialize USB phy */
+-static void usb_phy_deinit(USB_Type *ptr)
++void usb_phy_deinit(USB_Type *ptr)
+ {
+-    ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_UTMI_SUSPENDM_SW_MASK;     /* set otg_utmi_suspend_m for naneng usbphy */
++    uint32_t status;
+ 
+-    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_UTMI_RESET_SW_MASK;       /* clear otg_utmi_reset_sw for naneng usbphy */
++    ptr->PHY_CTRL1 &= ~USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK;       /* clear otg_suspendm */
+ 
+     ptr->PHY_CTRL1 &= ~USB_PHY_CTRL1_UTMI_CFG_RST_N_MASK;          /* clear cfg_rst_n */
+ 
+-    ptr->PHY_CTRL1 &= ~USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK;       /* clear otg_suspendm */
++    ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_UTMI_RESET_SW_MASK;        /* set otg_utmi_reset_sw for naneng usbphy */
++
++    for (volatile uint32_t i = 0; i < USB_PHY_INIT_DELAY_COUNT; i++) {
++        (void)ptr->PHY_CTRL1;                                      /* used for delay, at least 1us */
++    }
++
++    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_UTMI_SUSPENDM_SW_MASK;     /* clear otg_utmi_suspend_m for naneng usbphy */
++
++    do {
++        status = USB_OTG_CTRL0_OTG_UTMI_RESET_SW_GET(ptr->OTG_CTRL0); /* wait for reset status */
++    } while (status == 0);
++
++    for (volatile uint32_t i = 0; i < USB_PHY_DEINIT_DELAY_COUNT; i++) {
++        (void)ptr->PHY_CTRL1;                                       /* used for delay, at least 100us */
++    }
+ }
+ 
+-/*---------------------------------------------------------------------
+- * Driver API
+- *---------------------------------------------------------------------
+- */
+ /* Initialize USB phy */
+-void usb_phy_init(USB_Type *ptr)
++void usb_phy_init(USB_Type *ptr, bool host)
+ {
+     uint32_t status;
+ 
++    usb_phy_deinit(ptr);
+     usb_phy_enable_dp_dm_pulldown(ptr);
+-    ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_UTMI_RESET_SW_MASK;           /* set otg_utmi_reset_sw for naneng usbphy */
+-    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_UTMI_SUSPENDM_SW_MASK;       /* clr otg_utmi_suspend_m for naneng usbphy */
+-    ptr->PHY_CTRL1 &= ~USB_PHY_CTRL1_UTMI_CFG_RST_N_MASK;             /* clr cfg_rst_n */
+-
+-    do {
+-        status = USB_OTG_CTRL0_OTG_UTMI_RESET_SW_GET(ptr->OTG_CTRL0); /* wait for reset status */
+-    } while (status == 0);
+ 
+     ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_UTMI_SUSPENDM_SW_MASK;        /* set otg_utmi_suspend_m for naneng usbphy */
+ 
+     for (volatile uint32_t i = 0; i < USB_PHY_INIT_DELAY_COUNT; i++) {
+-        (void)ptr->PHY_CTRL1;                                         /* used for delay */
++        (void)ptr->PHY_CTRL1;                                         /* used for delay, at least 1us */
+     }
+ 
+-    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_WKDPDMCHG_EN_MASK;           /* Disable dp/dm wakeup */
+-
+     ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_UTMI_RESET_SW_MASK;          /* clear otg_utmi_reset_sw for naneng usbphy */
+ 
++    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_WKDPDMCHG_EN_MASK;           /* Disable dp/dm wakeup */
++
+     /* otg utmi clock detection */
+     ptr->PHY_STATUS |= USB_PHY_STATUS_UTMI_CLK_VALID_MASK;            /* write 1 to clear valid status */
+     do {
+         status = USB_PHY_STATUS_UTMI_CLK_VALID_GET(ptr->PHY_STATUS);  /* get utmi clock status */
+     } while (status == 0);
+ 
++    ptr->PHY_CTRL0 |= USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK;        /* set suspendm_enj */
++
+     ptr->PHY_CTRL1 |= USB_PHY_CTRL1_UTMI_CFG_RST_N_MASK;              /* set cfg_rst_n */
+ 
+-    ptr->PHY_CTRL1 |= USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK;           /* set otg_suspendm */
++    if (host) {
++        ptr->PHY_CTRL1 |= USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK;       /* set otg_suspendm, enable high speed device disconect detect */
++    }
+ }
+ 
+ void usb_dcd_bus_reset(USB_Type *ptr, uint16_t ep0_max_packet_size)
+@@ -114,7 +122,13 @@ void usb_dcd_bus_reset(USB_Type *ptr, uint16_t ep0_max_packet_size)
+ void usb_dcd_init(USB_Type *ptr)
+ {
+     /* Initialize USB phy */
+-    usb_phy_init(ptr);
++    usb_phy_init(ptr, false);
++
++    /* Reset interrupt enable register */
++    ptr->USBINTR = 0;
++
++    /* Stop */
++    ptr->USBCMD &= ~USB_USBCMD_RS_MASK;
+ 
+     /* Reset controller */
+     ptr->USBCMD |= USB_USBCMD_RST_MASK;
+@@ -131,16 +145,13 @@ void usb_dcd_init(USB_Type *ptr)
+     /* Set the endian */
+     ptr->USBMODE &= ~USB_USBMODE_ES_MASK;
+ 
+-    /* TODO Force fullspeed on non-highspeed port */
+-    /* ptr->PORTSC1 |= USB_PORTSC1_PFSC_MASK; */
+-
+     /* Set parallel interface signal */
+     ptr->PORTSC1 &= ~USB_PORTSC1_STS_MASK;
+ 
+     /* Set parallel transceiver width */
+     ptr->PORTSC1 &= ~USB_PORTSC1_PTW_MASK;
+ 
+-#ifdef CONFIG_USB_DEVICE_FS
++#if defined(CONFIG_USB_DEVICE_FS) || defined(CONFIG_USB_DEVICE_FORCE_FULL_SPEED)
+     /* Set usb forced to full speed mode */
+     ptr->PORTSC1 |= USB_PORTSC1_PFSC_MASK;
+ #endif
+@@ -154,6 +165,9 @@ void usb_dcd_init(USB_Type *ptr)
+ 
+ void usb_dcd_deinit(USB_Type *ptr)
+ {
++    /* Reset interrupt enable register */
++    ptr->USBINTR = 0;
++
+     /* Stop */
+     ptr->USBCMD &= ~USB_USBCMD_RS_MASK;
+ 
+@@ -162,17 +176,14 @@ void usb_dcd_deinit(USB_Type *ptr)
+     while (USB_USBCMD_RST_GET(ptr->USBCMD)) {
+     }
+ 
+-    /* De-initialize USB phy */
+-    usb_phy_deinit(ptr);
+-
+     /* Reset endpoint list address register */
+     ptr->ENDPTLISTADDR = 0;
+ 
+     /* Reset status register */
+     ptr->USBSTS = ptr->USBSTS;
+ 
+-    /* Reset interrupt enable register */
+-    ptr->USBINTR = 0;
++    /* De-initialize USB phy */
++    usb_phy_deinit(ptr);
+ }
+ 
+ /* Connect by enabling internal pull-up resistor on D+/D- */
+@@ -289,7 +300,7 @@ void usb_dcd_edpt_close(USB_Type *ptr, uint8_t ep_addr)
+ 
+ void usb_dcd_remote_wakeup(USB_Type *ptr)
+ {
+-    (void) ptr;
++    usb_force_port_resume(ptr);
+ }
+ 
+ bool usb_hcd_init(USB_Type *ptr, uint32_t int_mask, uint16_t framelist_size)
+@@ -306,7 +317,10 @@ bool usb_hcd_init(USB_Type *ptr, uint32_t int_mask, uint16_t framelist_size)
+         return false;
+     }
+ 
+-    usb_phy_init(ptr);
++    usb_phy_init(ptr, true);
++
++    /* Stop */
++    ptr->USBCMD &= ~USB_USBCMD_RS_MASK;
+ 
+     /* Reset controller */
+     ptr->USBCMD |= USB_USBCMD_RST_MASK;
+diff --git a/hpm_sdk/soc/HPM5300/ip/hpm_usb_regs.h b/hpm_sdk/soc/HPM5300/ip/hpm_usb_regs.h
+index ffaaefb40..0d2f328dd 100644
+--- a/hpm_sdk/soc/HPM5300/ip/hpm_usb_regs.h
++++ b/hpm_sdk/soc/HPM5300/ip/hpm_usb_regs.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2021-2024 HPMicro
++ * Copyright (c) 2021-2025 HPMicro
+  *
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+@@ -2135,6 +2135,16 @@ typedef struct {
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK)
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK) >> USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT)
+ 
++/*
++ * OP_MODE_SUSPENDM_ENJ (RW)
++ *
++ * set op_mode to 2'b01 in suspend, for naneng usbphy
++ */
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK (0x800U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT (11U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK) >> USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT)
++
+ /*
+  * ID_DIG_OVERRIDE_EN (RW)
+  *
+@@ -2175,7 +2185,9 @@ typedef struct {
+ /*
+  * UTMI_OTG_SUSPENDM (RW)
+  *
+- * OTG suspend, not utmi_suspendm
++ * OTG suspend, not utmi_suspendm.
++ * setting this bit also enable host high-speed disconnect detection logic(check DP/DM voltage at end of SOF, to determine whether 50Ohm are still there on DP/DM)
++ * should clear this bit before entering into suspend state(setting portsc.phcd), avoide unwanted glitch on vbus/sess_vld/sess_end
+  */
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK (0x2U)
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_SHIFT (1U)
+diff --git a/hpm_sdk/soc/HPM6200/ip/hpm_usb_regs.h b/hpm_sdk/soc/HPM6200/ip/hpm_usb_regs.h
+index ff2a137f8..0d2f328dd 100644
+--- a/hpm_sdk/soc/HPM6200/ip/hpm_usb_regs.h
++++ b/hpm_sdk/soc/HPM6200/ip/hpm_usb_regs.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2021-2024 HPMicro
++ * Copyright (c) 2021-2025 HPMicro
+  *
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+@@ -46,13 +46,12 @@ typedef struct {
+     __RW uint32_t ENDPTFLUSH;                  /* 0x1B4: Endpoint Flush Register */
+     __R  uint32_t ENDPTSTAT;                   /* 0x1B8: Endpoint Status Register */
+     __RW uint32_t ENDPTCOMPLETE;               /* 0x1BC: Endpoint Complete Register */
+-    __RW uint32_t ENDPTCTRL[8];                /* 0x1C0 - 0x1DC: Endpoint Control0 Register... Endpoint Control7 Register */
+-    __R  uint8_t  RESERVED7[32];               /* 0x1E0 - 0x1FF: Reserved */
++    __RW uint32_t ENDPTCTRL[16];               /* 0x1C0 - 0x1FC: Endpoint Control0 Register... Endpoint Control7 Register */
+     __RW uint32_t OTG_CTRL0;                   /* 0x200:  */
+-    __R  uint8_t  RESERVED8[12];               /* 0x204 - 0x20F: Reserved */
++    __R  uint8_t  RESERVED7[12];               /* 0x204 - 0x20F: Reserved */
+     __RW uint32_t PHY_CTRL0;                   /* 0x210:  */
+     __RW uint32_t PHY_CTRL1;                   /* 0x214:  */
+-    __R  uint8_t  RESERVED9[8];                /* 0x218 - 0x21F: Reserved */
++    __R  uint8_t  RESERVED8[8];                /* 0x218 - 0x21F: Reserved */
+     __RW uint32_t TOP_STATUS;                  /* 0x220:  */
+     __RW uint32_t PHY_STATUS;                  /* 0x224:  */
+ } USB_Type;
+@@ -301,6 +300,17 @@ typedef struct {
+ #define USB_USBCMD_SUTW_SET(x) (((uint32_t)(x) << USB_USBCMD_SUTW_SHIFT) & USB_USBCMD_SUTW_MASK)
+ #define USB_USBCMD_SUTW_GET(x) (((uint32_t)(x) & USB_USBCMD_SUTW_MASK) >> USB_USBCMD_SUTW_SHIFT)
+ 
++/*
++ * PRM (WO)
++ *
++ * Asynchronous Schedule start- Write only， host mode only。
++ * this bit is used to notify hostcontroller to start async schedule immediately.
++ */
++#define USB_USBCMD_PRM_MASK (0x1000U)
++#define USB_USBCMD_PRM_SHIFT (12U)
++#define USB_USBCMD_PRM_SET(x) (((uint32_t)(x) << USB_USBCMD_PRM_SHIFT) & USB_USBCMD_PRM_MASK)
++#define USB_USBCMD_PRM_GET(x) (((uint32_t)(x) & USB_USBCMD_PRM_MASK) >> USB_USBCMD_PRM_SHIFT)
++
+ /*
+  * ASPE (RW)
+  *
+@@ -2125,6 +2135,16 @@ typedef struct {
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK)
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK) >> USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT)
+ 
++/*
++ * OP_MODE_SUSPENDM_ENJ (RW)
++ *
++ * set op_mode to 2'b01 in suspend, for naneng usbphy
++ */
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK (0x800U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT (11U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK) >> USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT)
++
+ /*
+  * ID_DIG_OVERRIDE_EN (RW)
+  *
+@@ -2165,7 +2185,9 @@ typedef struct {
+ /*
+  * UTMI_OTG_SUSPENDM (RW)
+  *
+- * OTG suspend, not utmi_suspendm
++ * OTG suspend, not utmi_suspendm.
++ * setting this bit also enable host high-speed disconnect detection logic(check DP/DM voltage at end of SOF, to determine whether 50Ohm are still there on DP/DM)
++ * should clear this bit before entering into suspend state(setting portsc.phcd), avoide unwanted glitch on vbus/sess_vld/sess_end
+  */
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK (0x2U)
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_SHIFT (1U)
+@@ -2248,6 +2270,14 @@ typedef struct {
+ #define USB_ENDPTCTRL_ENDPTCTRL5 (5UL)
+ #define USB_ENDPTCTRL_ENDPTCTRL6 (6UL)
+ #define USB_ENDPTCTRL_ENDPTCTRL7 (7UL)
++#define USB_ENDPTCTRL_ENDPTCTRL8 (8UL)
++#define USB_ENDPTCTRL_ENDPTCTRL9 (9UL)
++#define USB_ENDPTCTRL_ENDPTCTRL10 (10UL)
++#define USB_ENDPTCTRL_ENDPTCTRL11 (11UL)
++#define USB_ENDPTCTRL_ENDPTCTRL12 (12UL)
++#define USB_ENDPTCTRL_ENDPTCTRL13 (13UL)
++#define USB_ENDPTCTRL_ENDPTCTRL14 (14UL)
++#define USB_ENDPTCTRL_ENDPTCTRL15 (15UL)
+ 
+ 
+ #endif /* HPM_USB_H */
+diff --git a/hpm_sdk/soc/HPM6300/ip/hpm_usb_regs.h b/hpm_sdk/soc/HPM6300/ip/hpm_usb_regs.h
+index ff2a137f8..0d2f328dd 100644
+--- a/hpm_sdk/soc/HPM6300/ip/hpm_usb_regs.h
++++ b/hpm_sdk/soc/HPM6300/ip/hpm_usb_regs.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2021-2024 HPMicro
++ * Copyright (c) 2021-2025 HPMicro
+  *
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+@@ -46,13 +46,12 @@ typedef struct {
+     __RW uint32_t ENDPTFLUSH;                  /* 0x1B4: Endpoint Flush Register */
+     __R  uint32_t ENDPTSTAT;                   /* 0x1B8: Endpoint Status Register */
+     __RW uint32_t ENDPTCOMPLETE;               /* 0x1BC: Endpoint Complete Register */
+-    __RW uint32_t ENDPTCTRL[8];                /* 0x1C0 - 0x1DC: Endpoint Control0 Register... Endpoint Control7 Register */
+-    __R  uint8_t  RESERVED7[32];               /* 0x1E0 - 0x1FF: Reserved */
++    __RW uint32_t ENDPTCTRL[16];               /* 0x1C0 - 0x1FC: Endpoint Control0 Register... Endpoint Control7 Register */
+     __RW uint32_t OTG_CTRL0;                   /* 0x200:  */
+-    __R  uint8_t  RESERVED8[12];               /* 0x204 - 0x20F: Reserved */
++    __R  uint8_t  RESERVED7[12];               /* 0x204 - 0x20F: Reserved */
+     __RW uint32_t PHY_CTRL0;                   /* 0x210:  */
+     __RW uint32_t PHY_CTRL1;                   /* 0x214:  */
+-    __R  uint8_t  RESERVED9[8];                /* 0x218 - 0x21F: Reserved */
++    __R  uint8_t  RESERVED8[8];                /* 0x218 - 0x21F: Reserved */
+     __RW uint32_t TOP_STATUS;                  /* 0x220:  */
+     __RW uint32_t PHY_STATUS;                  /* 0x224:  */
+ } USB_Type;
+@@ -301,6 +300,17 @@ typedef struct {
+ #define USB_USBCMD_SUTW_SET(x) (((uint32_t)(x) << USB_USBCMD_SUTW_SHIFT) & USB_USBCMD_SUTW_MASK)
+ #define USB_USBCMD_SUTW_GET(x) (((uint32_t)(x) & USB_USBCMD_SUTW_MASK) >> USB_USBCMD_SUTW_SHIFT)
+ 
++/*
++ * PRM (WO)
++ *
++ * Asynchronous Schedule start- Write only， host mode only。
++ * this bit is used to notify hostcontroller to start async schedule immediately.
++ */
++#define USB_USBCMD_PRM_MASK (0x1000U)
++#define USB_USBCMD_PRM_SHIFT (12U)
++#define USB_USBCMD_PRM_SET(x) (((uint32_t)(x) << USB_USBCMD_PRM_SHIFT) & USB_USBCMD_PRM_MASK)
++#define USB_USBCMD_PRM_GET(x) (((uint32_t)(x) & USB_USBCMD_PRM_MASK) >> USB_USBCMD_PRM_SHIFT)
++
+ /*
+  * ASPE (RW)
+  *
+@@ -2125,6 +2135,16 @@ typedef struct {
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK)
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK) >> USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT)
+ 
++/*
++ * OP_MODE_SUSPENDM_ENJ (RW)
++ *
++ * set op_mode to 2'b01 in suspend, for naneng usbphy
++ */
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK (0x800U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT (11U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK) >> USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT)
++
+ /*
+  * ID_DIG_OVERRIDE_EN (RW)
+  *
+@@ -2165,7 +2185,9 @@ typedef struct {
+ /*
+  * UTMI_OTG_SUSPENDM (RW)
+  *
+- * OTG suspend, not utmi_suspendm
++ * OTG suspend, not utmi_suspendm.
++ * setting this bit also enable host high-speed disconnect detection logic(check DP/DM voltage at end of SOF, to determine whether 50Ohm are still there on DP/DM)
++ * should clear this bit before entering into suspend state(setting portsc.phcd), avoide unwanted glitch on vbus/sess_vld/sess_end
+  */
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK (0x2U)
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_SHIFT (1U)
+@@ -2248,6 +2270,14 @@ typedef struct {
+ #define USB_ENDPTCTRL_ENDPTCTRL5 (5UL)
+ #define USB_ENDPTCTRL_ENDPTCTRL6 (6UL)
+ #define USB_ENDPTCTRL_ENDPTCTRL7 (7UL)
++#define USB_ENDPTCTRL_ENDPTCTRL8 (8UL)
++#define USB_ENDPTCTRL_ENDPTCTRL9 (9UL)
++#define USB_ENDPTCTRL_ENDPTCTRL10 (10UL)
++#define USB_ENDPTCTRL_ENDPTCTRL11 (11UL)
++#define USB_ENDPTCTRL_ENDPTCTRL12 (12UL)
++#define USB_ENDPTCTRL_ENDPTCTRL13 (13UL)
++#define USB_ENDPTCTRL_ENDPTCTRL14 (14UL)
++#define USB_ENDPTCTRL_ENDPTCTRL15 (15UL)
+ 
+ 
+ #endif /* HPM_USB_H */
+diff --git a/hpm_sdk/soc/HPM6700/ip/hpm_usb_regs.h b/hpm_sdk/soc/HPM6700/ip/hpm_usb_regs.h
+index ff2a137f8..0d2f328dd 100644
+--- a/hpm_sdk/soc/HPM6700/ip/hpm_usb_regs.h
++++ b/hpm_sdk/soc/HPM6700/ip/hpm_usb_regs.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2021-2024 HPMicro
++ * Copyright (c) 2021-2025 HPMicro
+  *
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+@@ -46,13 +46,12 @@ typedef struct {
+     __RW uint32_t ENDPTFLUSH;                  /* 0x1B4: Endpoint Flush Register */
+     __R  uint32_t ENDPTSTAT;                   /* 0x1B8: Endpoint Status Register */
+     __RW uint32_t ENDPTCOMPLETE;               /* 0x1BC: Endpoint Complete Register */
+-    __RW uint32_t ENDPTCTRL[8];                /* 0x1C0 - 0x1DC: Endpoint Control0 Register... Endpoint Control7 Register */
+-    __R  uint8_t  RESERVED7[32];               /* 0x1E0 - 0x1FF: Reserved */
++    __RW uint32_t ENDPTCTRL[16];               /* 0x1C0 - 0x1FC: Endpoint Control0 Register... Endpoint Control7 Register */
+     __RW uint32_t OTG_CTRL0;                   /* 0x200:  */
+-    __R  uint8_t  RESERVED8[12];               /* 0x204 - 0x20F: Reserved */
++    __R  uint8_t  RESERVED7[12];               /* 0x204 - 0x20F: Reserved */
+     __RW uint32_t PHY_CTRL0;                   /* 0x210:  */
+     __RW uint32_t PHY_CTRL1;                   /* 0x214:  */
+-    __R  uint8_t  RESERVED9[8];                /* 0x218 - 0x21F: Reserved */
++    __R  uint8_t  RESERVED8[8];                /* 0x218 - 0x21F: Reserved */
+     __RW uint32_t TOP_STATUS;                  /* 0x220:  */
+     __RW uint32_t PHY_STATUS;                  /* 0x224:  */
+ } USB_Type;
+@@ -301,6 +300,17 @@ typedef struct {
+ #define USB_USBCMD_SUTW_SET(x) (((uint32_t)(x) << USB_USBCMD_SUTW_SHIFT) & USB_USBCMD_SUTW_MASK)
+ #define USB_USBCMD_SUTW_GET(x) (((uint32_t)(x) & USB_USBCMD_SUTW_MASK) >> USB_USBCMD_SUTW_SHIFT)
+ 
++/*
++ * PRM (WO)
++ *
++ * Asynchronous Schedule start- Write only， host mode only。
++ * this bit is used to notify hostcontroller to start async schedule immediately.
++ */
++#define USB_USBCMD_PRM_MASK (0x1000U)
++#define USB_USBCMD_PRM_SHIFT (12U)
++#define USB_USBCMD_PRM_SET(x) (((uint32_t)(x) << USB_USBCMD_PRM_SHIFT) & USB_USBCMD_PRM_MASK)
++#define USB_USBCMD_PRM_GET(x) (((uint32_t)(x) & USB_USBCMD_PRM_MASK) >> USB_USBCMD_PRM_SHIFT)
++
+ /*
+  * ASPE (RW)
+  *
+@@ -2125,6 +2135,16 @@ typedef struct {
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK)
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK) >> USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT)
+ 
++/*
++ * OP_MODE_SUSPENDM_ENJ (RW)
++ *
++ * set op_mode to 2'b01 in suspend, for naneng usbphy
++ */
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK (0x800U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT (11U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK) >> USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT)
++
+ /*
+  * ID_DIG_OVERRIDE_EN (RW)
+  *
+@@ -2165,7 +2185,9 @@ typedef struct {
+ /*
+  * UTMI_OTG_SUSPENDM (RW)
+  *
+- * OTG suspend, not utmi_suspendm
++ * OTG suspend, not utmi_suspendm.
++ * setting this bit also enable host high-speed disconnect detection logic(check DP/DM voltage at end of SOF, to determine whether 50Ohm are still there on DP/DM)
++ * should clear this bit before entering into suspend state(setting portsc.phcd), avoide unwanted glitch on vbus/sess_vld/sess_end
+  */
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK (0x2U)
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_SHIFT (1U)
+@@ -2248,6 +2270,14 @@ typedef struct {
+ #define USB_ENDPTCTRL_ENDPTCTRL5 (5UL)
+ #define USB_ENDPTCTRL_ENDPTCTRL6 (6UL)
+ #define USB_ENDPTCTRL_ENDPTCTRL7 (7UL)
++#define USB_ENDPTCTRL_ENDPTCTRL8 (8UL)
++#define USB_ENDPTCTRL_ENDPTCTRL9 (9UL)
++#define USB_ENDPTCTRL_ENDPTCTRL10 (10UL)
++#define USB_ENDPTCTRL_ENDPTCTRL11 (11UL)
++#define USB_ENDPTCTRL_ENDPTCTRL12 (12UL)
++#define USB_ENDPTCTRL_ENDPTCTRL13 (13UL)
++#define USB_ENDPTCTRL_ENDPTCTRL14 (14UL)
++#define USB_ENDPTCTRL_ENDPTCTRL15 (15UL)
+ 
+ 
+ #endif /* HPM_USB_H */
+diff --git a/hpm_sdk/soc/HPM6800/ip/hpm_usb_regs.h b/hpm_sdk/soc/HPM6800/ip/hpm_usb_regs.h
+index ffaaefb40..0d2f328dd 100644
+--- a/hpm_sdk/soc/HPM6800/ip/hpm_usb_regs.h
++++ b/hpm_sdk/soc/HPM6800/ip/hpm_usb_regs.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2021-2024 HPMicro
++ * Copyright (c) 2021-2025 HPMicro
+  *
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+@@ -2135,6 +2135,16 @@ typedef struct {
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK)
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK) >> USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT)
+ 
++/*
++ * OP_MODE_SUSPENDM_ENJ (RW)
++ *
++ * set op_mode to 2'b01 in suspend, for naneng usbphy
++ */
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK (0x800U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT (11U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK) >> USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT)
++
+ /*
+  * ID_DIG_OVERRIDE_EN (RW)
+  *
+@@ -2175,7 +2185,9 @@ typedef struct {
+ /*
+  * UTMI_OTG_SUSPENDM (RW)
+  *
+- * OTG suspend, not utmi_suspendm
++ * OTG suspend, not utmi_suspendm.
++ * setting this bit also enable host high-speed disconnect detection logic(check DP/DM voltage at end of SOF, to determine whether 50Ohm are still there on DP/DM)
++ * should clear this bit before entering into suspend state(setting portsc.phcd), avoide unwanted glitch on vbus/sess_vld/sess_end
+  */
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK (0x2U)
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_SHIFT (1U)
+diff --git a/hpm_sdk/soc/HPM6E00/ip/hpm_usb_regs.h b/hpm_sdk/soc/HPM6E00/ip/hpm_usb_regs.h
+index ffaaefb40..0d2f328dd 100644
+--- a/hpm_sdk/soc/HPM6E00/ip/hpm_usb_regs.h
++++ b/hpm_sdk/soc/HPM6E00/ip/hpm_usb_regs.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2021-2024 HPMicro
++ * Copyright (c) 2021-2025 HPMicro
+  *
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+@@ -2135,6 +2135,16 @@ typedef struct {
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK)
+ #define USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_MASK) >> USB_PHY_CTRL0_VBUS_VALID_OVERRIDE_SHIFT)
+ 
++/*
++ * OP_MODE_SUSPENDM_ENJ (RW)
++ *
++ * set op_mode to 2'b01 in suspend, for naneng usbphy
++ */
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK (0x800U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT (11U)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SET(x) (((uint32_t)(x) << USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK)
++#define USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_GET(x) (((uint32_t)(x) & USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK) >> USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_SHIFT)
++
+ /*
+  * ID_DIG_OVERRIDE_EN (RW)
+  *
+@@ -2175,7 +2185,9 @@ typedef struct {
+ /*
+  * UTMI_OTG_SUSPENDM (RW)
+  *
+- * OTG suspend, not utmi_suspendm
++ * OTG suspend, not utmi_suspendm.
++ * setting this bit also enable host high-speed disconnect detection logic(check DP/DM voltage at end of SOF, to determine whether 50Ohm are still there on DP/DM)
++ * should clear this bit before entering into suspend state(setting portsc.phcd), avoide unwanted glitch on vbus/sess_vld/sess_end
+  */
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK (0x2U)
+ #define USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_SHIFT (1U)
+-- 
+2.45.2.windows.1
+

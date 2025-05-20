@@ -41,7 +41,7 @@ manifest:
       remote: cherry-embedded
       repo-path: CherryUSB
       path: modules/lib/CherryUSB
-      revision: master
+      revision: 7e5713ab890f01c7009fa73e0ddf101674551384
 
   # West-related configuration for the sdk_glue repository.
   self:

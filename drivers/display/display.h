@@ -139,7 +139,7 @@ struct hpm_display_data {
         DISPLAY_DATA_PRIVATE(inst)                                                          \
     };                                                                                      \
     DEVICE_DT_INST_DEFINE(inst,                                                             \
-                &hpm_display_init,                                                          \
+                hpm_display_init,                                                          \
                 NULL,                                                                       \
                 &hpm_display_data_##inst,                                                   \
                 &hpm_display_config_##inst,                                                 \

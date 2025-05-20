@@ -452,7 +452,7 @@ static int dma_hpm_dma_init(const struct device *dev)
 	struct dma_hpm_data dma_data_##n;			       \
 								       \
 	DEVICE_DT_INST_DEFINE(n,				       \
-			      &dma_hpm_dma_init, NULL,	       \
+			      dma_hpm_dma_init, NULL,	       \
 			      &dma_data_##n, &dma_config_##n,	       \
 			      PRE_KERNEL_1, CONFIG_DMA_INIT_PRIORITY,   \
 			      &dma_hpm_dma_api);		       \

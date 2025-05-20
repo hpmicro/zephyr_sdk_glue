@@ -322,7 +322,7 @@ static const struct adc_driver_api hpmicro_adc16_driver_api = {
 		ADC_CONTEXT_INIT_SYNC(hpmicro_adc16_data_##n, ctx),	\
 	};								\
 									\
-	DEVICE_DT_INST_DEFINE(n, &hpmicro_adc16_init,			\
+	DEVICE_DT_INST_DEFINE(n, hpmicro_adc16_init,			\
 			    NULL, &hpmicro_adc16_data_##n,			\
 			    &hpmicro_adc16_config_##n, POST_KERNEL,	\
 			    CONFIG_ADC_INIT_PRIORITY,			\

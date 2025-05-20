@@ -186,7 +186,7 @@ static const struct pwm_driver_api pwm_hpmicro_driver_api = {
 	};								  \
 									  \
 	DEVICE_DT_INST_DEFINE(n,					  \
-			    &pwm_hpmicro_init,				  \
+			    pwm_hpmicro_init,				  \
 			    NULL,					  \
 			    &pwm_hpmicro_data_##n,			  \
 			    &pwm_hpmicro_config_##n,			  \

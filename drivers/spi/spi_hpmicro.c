@@ -778,7 +778,7 @@ static const struct spi_driver_api spi_hpm_driver_api = {
 		SPI_DMA_CHANNELS(n)			\
 	};								\
 									\
-	DEVICE_DT_INST_DEFINE(n, &spi_hpm_init, NULL,			\
+	DEVICE_DT_INST_DEFINE(n, spi_hpm_init, NULL,			\
 			    &spi_hpm_data_##n,				\
 			    &spi_hpm_config_##n, POST_KERNEL,		\
 			    CONFIG_SPI_INIT_PRIORITY,			\

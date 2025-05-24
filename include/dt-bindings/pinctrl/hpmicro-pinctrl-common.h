@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2022-2025 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -10,14 +10,14 @@
 
 /**
  * @brief Pin numbers of gpio
- * 
+ *
  */
 #define HPMICRO_PIN_NUM_SHIFT      0U
 #define HPMICRO_PIN_NUM_MASK       0x3FFU
 
 /**
  * @brief io peripheral function
- * 
+ *
  */
 #define HPMICRO_PIN_ANALOG_MASK      1U
 #define HPMICRO_PIN_ANALOG_SHIFT     10U
@@ -42,7 +42,7 @@
 
 /**
  * @brief ioc controller mode
- * 
+ *
  */
 #define IOC_TYPE_IOC 0
 #define IOC_TYPE_BIOC 1
@@ -70,7 +70,7 @@
 
 /**
  * @brief Location of configuration items in the code
- * 
+ *
  */
 #define HPMICRO_OPEN_DRAIN			1U
 #define HPMICRO_OPEN_DRAIN_SHIFT	0U
@@ -104,5 +104,8 @@
 
 #define HPMICRO_SLEW_RATE			1U
 #define HPMICRO_SLEW_RATE_SHIFT		14U
+
+#define HPMICRO_KEEPER_DISABLE  1U
+#define HPMICRO_KEEPER_DISABLE_SHIFT   15U
 
 #endif	/* ZEPHYR_INCLUDE_DT_BINDINGS_PINCTRL_HPMICRO_PINCTRL_COMMON_H_ */

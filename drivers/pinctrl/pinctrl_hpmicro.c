@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2022-2025 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -47,10 +47,11 @@ static int hpmicro_pin_configure(IOC_Type *ioc_base, const uint32_t pin_mux, con
 	IOC_PAD_PAD_CTL_SMT_SET(pad_smt) |
 #elif defined(CONFIG_SOC_SERIES_HPM53XX) || defined(CONFIG_SOC_SERIES_HPM63XX) ||\
 	defined(CONFIG_SOC_SERIES_HPM68XX) || defined(CONFIG_SOC_SERIES_HPM62XX)
-	IOC_PAD_PAD_CTL_HYS_SET(pad_smt) | 
+	IOC_PAD_PAD_CTL_HYS_SET(pad_smt) |
 	IOC_PAD_PAD_CTL_SPD_SET(HPMICRO_PAD_CTL_SPD(pin_cfg)) |
 	IOC_PAD_PAD_CTL_PRS_SET(HPMICRO_PAD_CTL_PRS(pin_cfg)) |
 	IOC_PAD_PAD_CTL_SR_SET(HPMICRO_PAD_CTL_SR(pin_cfg)) |
+	IOC_PAD_PAD_CTL_KE_SET(!HPMICRO_PAD_CTL_KE(pin_cfg)) |
 #endif
 	IOC_PAD_PAD_CTL_OD_SET(pad_od) |
 	IOC_PAD_PAD_CTL_PS_SET(pad_ps) |

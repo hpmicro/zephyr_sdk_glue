@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2022-2025 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -49,7 +49,10 @@ typedef struct pinctrl_soc_pin pinctrl_soc_pin_t;
 	 ((HPMICRO_PULL_STRENGTH & DT_ENUM_IDX(node_id, pull_resistance_strength)) \
 	 << HPMICRO_PULL_STRENGTH_SHIFT) | \
 	 ((HPMICRO_SLEW_RATE & DT_ENUM_IDX(node_id, slew_rate)) \
-	 << HPMICRO_SLEW_RATE_SHIFT))
+	 << HPMICRO_SLEW_RATE_SHIFT) | \
+	 ((HPMICRO_KEEPER_DISABLE & DT_PROP(node_id, keeper_capability_disable)) \
+	 << HPMICRO_KEEPER_DISABLE_SHIFT))
+
 
 #define Z_PINCTRL_STATE_PIN_INIT(node_id, prop, idx)	\
 	{										\

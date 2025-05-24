@@ -1,4 +1,4 @@
-# Copyright 2022 HPMicro
+# Copyright 2022-2025 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 description: |
@@ -65,6 +65,7 @@ include:
           - bias-pull-down
           - bias-pull-up
           - input-schmitt-enable
+          - keeper-capability-disable
 
 child-binding:
   description: HPMicro pin controller pin group
@@ -126,3 +127,8 @@ child-binding:
         enum:
           - "slow"
           - "fast"
+
+      keeper-capability-disable:
+        required: false
+        type: boolean
+        description: disable keeper capability, KE enabled by default

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HPMicro
+ * Copyright 2022-2025 HPMicro
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -55,5 +55,8 @@ HPMICRO_PAD_CTL_PULL_UP(_cfg)
 
 #define HPMICRO_PAD_CTL_SR(_cfg)\
 	(((_cfg) >> HPMICRO_SLEW_RATE_SHIFT) & HPMICRO_SLEW_RATE)
+
+#define HPMICRO_PAD_CTL_KE(_cfg)\
+	(((_cfg) >> HPMICRO_KEEPER_DISABLE_SHIFT) & HPMICRO_KEEPER_DISABLE)
 
 #endif /* ZEPHYR_INCLUDE_DRIVERS_PINCTRL_PINCTRL_HPMICRO_COMMON_H_ */

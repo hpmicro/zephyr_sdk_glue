@@ -30,7 +30,7 @@ on HPMicro soc, providing drivers, devicetree and kconfig.
 - Use west tool:
 
 ```bash
-    west build -p always/auto -b ${board} -d ${build_path} -S ${snippet} ${project_path}
+    west build -p always/auto -b ${board} -d ${build_path} -S ${snippet} -T ${sample.case} ${project_path}
 ```
 
 - Use cmake command:
@@ -39,6 +39,4 @@ on HPMicro soc, providing drivers, devicetree and kconfig.
     cmake -GNinja -B ${build_path} -DBOARD=${board} -DSNIPPET=${snippet} ${project_path}
     ninja -C ${build_path}
 ```
-
-
 

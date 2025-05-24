@@ -1,7 +1,7 @@
 # Copyright 2022-2025 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
-identifier: hpm6750evk2s
+identifier: hpm6750evk2
 name: HPMicro HPM6750EVK2
 type: mcu
 arch: riscv32

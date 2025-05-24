@@ -1,4 +1,66 @@
 # Change Log
+## [0.5.0] - 2025.5.25
+
+All changes since 0.2.0
+
+### Fixed:
+  - [fix] defconfig: fix nocache memory size not aligned by power of 2
+
+### Added:
+  - [add] drivers: usb device: add udc driver
+  - [add] drivers: add cherryusb device driver
+  - [add] drivers: add cherryusb host driver
+  - [add] driver: add ethernet driver adaptaion layer
+  - [add] samples: add cherryusb device cdc acm vcom sample
+  - [add] samples: add cherryusb device sample: msc: ram disk
+  - [add] samples: add cherryusb host cdc acm sample
+
+### Verified sample: (-PATH @CASE :SNIPPETS)
+- hpm6750evk2:
+  - zephyr/samples/hello_world
+  - zephyr/samples/basic/blinky: blinky
+  - zephyr/samples/basic/blinky_pwm: blinky_pwm
+  - zephyr/samples/basic/button
+  - zephyr/samples/drivers/eeprom: i2c_eeprom
+  - zephyr/samples/modules/canopennode: canopennode
+  - zephyr/samples/drivers/display: display_rgb
+  - zephyr/samples/subsys/video/capture: video_dvp
+  - zephyr/samples/subsys/usb/cdc_acm@sample.usb_device_next.cdc-acm: cdc_acm
+  - zephyr/samples/subsys/usb/hid-keyboard@sample.usbd.hid-keyboard: hid-keyboard
+  - zephyr/samples/subsys/usb/hid-mouse@sample.usb_device_next.hid-mouse: hid-mouse
+  - zephyr/samples/subsys/usb/mass@sample.usb_device_next.mass_ram_none: mass
+  - zephyr/zephyr/samples/net/sockets/echo_server: ethernet
+  - zephyr/tests/drivers/can/api: can
+  - zephyr/tests/drivers/can/timing: can
+  - zephyr/tests/drivers/can/shell: can
+  - zephyr/tests/drivers/uart/uart_basic_api
+  - zephyr/tests/drivers/sdhc: sdhc
+  - zephyr/tests/drivers/disk/disk_access: sdhc
+  - zephyr/tests/drivers/disk/disk_performance: sdhc
+  - zephyr/tests/subsys/sd/sdmmc: sdhc
+
+- hpm6800evk:
+  - zephyr/samples/hello_world
+  - zephyr/samples/basic/blinky: blinky
+  - zephyr/samples/basic/button
+  - zephyr/samples/drivers/eeprom: i2c_eeprom
+  - zephyr/samples/subsys/video/capture: video_dvp, video_mipi
+  - zephyr/samples/modules/canopennode: canopennode
+  - zephyr/samples/drivers/display: display_rgb, display_mipi, display_lvds, display_dual_lvds
+  - zephyr/samples/subsys/usb/cdc_acm@sample.usb_device_next.cdc-acm: cdc_acm
+  - zephyr/samples/subsys/usb/hid-keyboard@sample.usbd.hid-keyboard: hid-keyboard
+  - zephyr/samples/subsys/usb/hid-mouse@sample.usb_device_next.hid-mouse: hid-mouse
+  - zephyr/samples/subsys/usb/mass@sample.usb_device_next.mass_ram_none: mass
+  - zephyr/zephyr/samples/net/sockets/echo_server: ethernet
+  - zephyr/tests/drivers/can/api: can
+  - zephyr/tests/drivers/can/timing: can
+  - zephyr/tests/drivers/can/shell: can
+  - zephyr/tests/drivers/uart/uart_basic_api
+  - zephyr/tests/drivers/sdhc: sdhc
+  - zephyr/tests/drivers/disk/disk_access: sdhc
+  - zephyr/tests/drivers/disk/disk_performance: sdhc
+  - zephyr/tests/subsys/sd/sdmmc: sdhc
+
 
 ## [0.2.0] - 2024.11.12:
 
@@ -23,42 +85,6 @@ All changes since 0.1.0
   - boards: add shields board support
   - snippets: add sample snippets support
   - west: adapt for zephyr v3.7.0
-
-### Verified sample:
-- hpm6750evk2:
-  - zephyr/samples/hello_world
-  - zephyr/samples/basic/blinky: blinky
-  - zephyr/samples/basic/blinky_pwm: blinky_pwm
-  - zephyr/samples/basic/button
-  - zephyr/samples/drivers/eeprom: i2c_eeprom
-  - zephyr/samples/modules/canopennode: canopennode
-  - zephyr/tests/drivers/can/api: can
-  - zephyr/tests/drivers/can/timing: can
-  - zephyr/tests/drivers/can/shell: can
-  - zephyr/tests/drivers/uart/uart_basic_api
-  - zephyr/samples/drivers/display: display_rgb
-  - zephyr/samples/subsys/video/capture: video_dvp
-  - zephyr/tests/drivers/sdhc: sdhc
-  - zephyr/tests/drivers/disk/disk_access: sdhc
-  - zephyr/tests/drivers/disk/disk_performance: sdhc
-  - zephyr/tests/subsys/sd/sdmmc: sdhc
-
-- hpm6800evk:
-  - zephyr/samples/hello_world
-  - zephyr/samples/basic/blinky: blinky
-  - zephyr/samples/basic/button
-  - zephyr/samples/drivers/eeprom: i2c_eeprom
-  - zephyr/samples/subsys/video/capture: video_dvp, video_mipi
-  - zephyr/samples/modules/canopennode: canopennode
-  - zephyr/tests/drivers/can/api: can
-  - zephyr/tests/drivers/can/timing: can
-  - zephyr/tests/drivers/can/shell: can
-  - zephyr/tests/drivers/uart/uart_basic_api
-  - zephyr/samples/drivers/display: display_rgb, display_mipi, display_lvds, display_dual_lvds
-  - zephyr/tests/drivers/sdhc: sdhc
-  - zephyr/tests/drivers/disk/disk_access: sdhc
-  - zephyr/tests/drivers/disk/disk_performance: sdhc
-  - zephyr/tests/subsys/sd/sdmmc: sdhc
 
 ## [0.1.0]:
 

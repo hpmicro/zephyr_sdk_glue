@@ -1,0 +1,15 @@
+diff --git a/hpm_sdk/drivers/inc/hpm_enet_drv.h b/hpm_sdk/drivers/inc/hpm_enet_drv.h
+index 61f1d14de..0cdd5f3a7 100644
+--- a/hpm_sdk/drivers/inc/hpm_enet_drv.h
++++ b/hpm_sdk/drivers/inc/hpm_enet_drv.h
+@@ -37,8 +37,8 @@
+ #define ENET_MAX_FRAME_SIZE       (1524U)  /**< ENET_HEADER + ENET_EXTRA + VLAN_TAG + MAX_ENET_PAYLOAD + ENET_CRC */
+ #define ENET_JUMBO_FRAME_PAYLOAD  (9000U)  /**< Jumbo frame payload size */
+ #define ENET_MAC                  (6)      /**< Ethernet MAC size */
+-#define ENET_ERROR                (0)      /**< ENET error */
+-#define ENET_SUCCESS              (1)      /**< ENET success */
++#define ENET_ERROR                (1)      /**< ENET error */
++#define ENET_SUCCESS              (0)      /**< ENET success */
+ 
+ #define ENET_ADJ_FREQ_BASE_ADDEND (0x80000000UL)  /**< PTP base adjustment addend */
+ #define ENET_ONE_SEC_IN_NANOSEC   (1000000000UL)  /**< one second in nanoseconds */

@@ -1,0 +1,173 @@
+# Copyright (c) 2025 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_ETH := hpmicro,hpm-eth
+
+config ETH_HPMICRO
+	bool "HPMICRO Ethernet driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_ETH_ENABLED
+	select HAS_HPMSDK_ENET
+	help
+		Enable the HPMICRO Ethernet driver.
+
+	menu "ETH device driver configurations"
+	depends on ETH_HPMICRO
+		# RX thread parameter setting
+		config ETH_HPM_RX_THREAD_PRIO
+		int "RX thread priority"
+		default 2
+
+		config ETH_HPM_RX_THREAD_STACK_SIZE
+		int "RX thread stack size"
+		default 8192
+		# end of RX thread parameter setting
+
+		# delay chain setting
+		config ETH_HPM_TX_DELAY
+			int "TX delay"
+			default 0
+			range 0 31
+			help
+			TX delay
+
+		config ETH_HPM_RX_DELAY
+			int "RX delay"
+			default 7
+			range 0 31
+			help
+			RX delay
+		# end of delay chain setting
+
+		# promiscuous mode setting
+		config ETH_HPM_PROMISCUOUS_MODE
+			bool "promiscuous mode"
+			default n
+		# end of promiscuous mode setting
+
+		# buffer Setting
+		config ETH_HPM_RX_BUFF_COUNT
+			int "RX buffer count"
+			default 20
+			help
+			RX buffer count
+
+		config ETH_HPM_TX_BUFF_COUNT
+			int "TX buffer count"
+			default 10
+			help
+			TX buffer count
+
+		config ETH_HPM_RX_BUFF_SIZE
+			int "RX buffer size"
+			default 1536
+			help
+			RX buffer size
+
+		config ETH_HPM_TX_BUFF_SIZE
+			int "TX buffer size"
+			default 1536
+			help
+			TX buffer size
+		# end of buffer Setting
+
+		# MAC setting
+        config ETH_HPM_MAC_ADDR0
+			hex "MAC_ADDR0"
+			range 0 ff
+			default 98
+
+        config ETH_HPM_MAC_ADDR1
+			hex "MAC_ADDR1"
+			range 0 ff
+			default 2C
+
+        config ETH_HPM_MAC_ADDR2
+			hex "MAC_ADDR2"
+			range 0 ff
+			default BC
+
+        config ETH_HPM_MAC_ADDR3
+			hex "MAC_ADDR3"
+			range 0 ff
+			default B1
+
+        config ETH_HPM_MAC_ADDR4
+			hex "MAC_ADDR4"
+			range 0 ff
+			default 9F
+
+        config ETH_HPM_MAC_ADDR5
+			hex "MAC_ADDR5"
+			range 0 ff
+			default 17
+		# end of MAC setting
+
+		# interface type selection
+		choice
+			prompt "Interface Type"
+			default ETH_HPM_RGMII
+
+			config ETH_HPM_RGMII
+			bool "RGMII"
+
+			config ETH_HPM_RMII
+			bool "RMII"
+		endchoice # end of interface type selection
+
+		# use selection of phy on board
+		config ETH_PHY
+			bool "Use Eethernet PHY On Board"
+			default y
+
+		config ETH_PHY_RTL8211
+			bool
+			default y
+			depends on ETH_PHY && ETH_HPM_RGMII
+
+		config ETH_PHY_RTL8201
+			bool
+			default y
+			depends on ETH_PHY && ETH_HPM_RMII
+
+		# end of use selection of phy on board
+
+		# refeclk setting
+		if ETH_HPM_RMII
+			choice
+				prompt "Ref Clock"
+				default ETH_RMII_REFCLK_INT
+
+				config ETH_RMII_REFCLK_INT
+				bool "Internal RefClk"
+
+				config ETH_RMII_REFCLK_EXT
+				bool "External RefClk"
+			endchoice
+
+			config ETH_RMII_REFCLK
+			int
+			default 1
+			depends on ETH_HPM_RMII && ETH_RMII_REFCLK_INT
+
+			config ETH_RMII_REFCLK
+			int
+			default 0
+			depends on ETH_HPM_RMII && ETH_RMII_REFCLK_EXT
+		endif # ETH_HPM_RMII
+
+        # end Of REFClk Setting
+
+	endmenu # ETH device driver options
+
+
+
+
+
+
+
+
+
+
+
+

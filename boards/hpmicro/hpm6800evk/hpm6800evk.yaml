@@ -1,4 +1,4 @@
-# Copyright 2024 HPMicro
+# Copyright 2024-2025 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 identifier: hpm6800evk
@@ -24,6 +24,7 @@ supported:
   - sdxc
   - usbd
   - cherryusb
+  - enet
 testing:
   ignore_tags:
     - bluetooth

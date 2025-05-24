@@ -1,0 +1,12 @@
+/*
+ * Copyright 2025 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&eth0 {
+    status = "okay";
+};
+
+&eth1 {
+    status = "disabled";
+};

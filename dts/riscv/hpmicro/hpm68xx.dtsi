@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HPMicro
+ * Copyright 2024-2025 HPMicro
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -106,7 +106,7 @@
 			clk0 {
 				src-name = <CLK_SRC_PLL3_CLK0>;
 				div-i = <0>;
-				div-p = <2>;				
+				div-p = <2>;
 			};
 		};
 
@@ -586,6 +586,15 @@
                 interrupt-parent = <&plic>;
                 num-bidir-endpoints = <16>;
                 status = "disabled";
+        };
+
+        eth0: eth@f1100000 {
+            compatible = "hpmicro,hpm-eth";
+            clocks = <&clk CLOCK_ETH0 CLK_SRC_PLL2_CLK1 4>;
+            reg = <0xf1100000 0x4000>;
+            interrupts = <92 1>;
+            interrupt-parent = <&plic>;
+            status = "disabled";
         };
     };
 };

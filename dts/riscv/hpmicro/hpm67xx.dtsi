@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 HPMicro
+ * Copyright 2023-2025 HPMicro
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -107,7 +107,7 @@
             clk0 {
                 src-name = <CLK_SRC_PLL3_CLK0>;
                 div-i = <0>;
-                div-p = <1>;                
+                div-p = <1>;
             };
         };
 
@@ -210,7 +210,7 @@
         #size-cells = <1>;
         compatible = "hpmicro,hpm6750";
         ranges;
-        
+
         clk: clock-controller@f4100000 {
             compatible = "hpmicro,hpm-clock";
             reg = <0xf4000000 DT_SIZE_K(256)
@@ -640,6 +640,24 @@
                 num-bidir-endpoints = <8>;
                 status = "disabled";
         };
+
+	eth0: eth@f2000000 {
+            compatible = "hpmicro,hpm-eth";
+            clocks = <&clk CLOCK_ETH0 CLK_SRC_PLL2_CLK1 2>;
+            reg = <0xf2000000 0x4000>;
+            interrupts = <108 1>;
+            interrupt-parent = <&plic>;
+            status = "disabled";
+        };
+
+        eth1: eth@f2004000 {
+            compatible = "hpmicro,hpm-eth";
+            clocks = <&clk CLOCK_ETH1 CLK_SRC_PLL2_CLK1 5>;
+            reg = <0xf2004000 0x4000>;
+            interrupts = <109 1>;
+            interrupt-parent = <&plic>;
+            status = "disabled";
+        };
     };
 };
 
@@ -679,7 +697,6 @@
         reg = <0x0 0x4000>;
         gpio-controller;
         #gpio-cells = <2>;
-        status = "disabled";
         hpmicro-gpio-port = <3>;
         interrupts = <4 1>;
         interrupt-parent = <&plic>;

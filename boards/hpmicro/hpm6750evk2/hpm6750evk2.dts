@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HPMicro
+ * Copyright 2024-2025 HPMicro
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -160,16 +160,22 @@
 	status = "okay";
 };
 
+&gpiof {
+	pinctrl-0 = <&pinmux_gpiof>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
 &gpioz {
 	pinctrl-0 = <&pinmux_gpioz>;
 	pinctrl-names = "default";
-	status = "okay";	
+	status = "okay";
 };
 
 &gpioy {
 	pinctrl-0 = <&pinmux_gpioy>;
 	pinctrl-names = "default";
-	status = "okay";	
+	status = "okay";
 };
 
 &i2c0 {
@@ -229,7 +235,7 @@
 		status = "okay";
 		erase-block-size = <4096>;
 		write-block-size = <1>;
-		
+
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
@@ -278,4 +284,18 @@
 zephyr_udc0: &usb0 {
 	compatible = "hpmicro,hpm-udc";
 	status = "disabled";
+};
+
+&eth0 {
+    pinctrl-0 = <&pinmux_eth_rgmii>;
+    pinctrl-names = "default";
+	reset-gpios = <&gpiof 0 GPIO_ACTIVE_LOW>;
+    status = "disabled";
+};
+
+&eth1 {
+    pinctrl-0 = <&pinmux_eth_rmii>;
+    pinctrl-names = "default";
+	reset-gpios = <&gpioe 26 GPIO_ACTIVE_LOW>;
+    status = "disabled";
 };

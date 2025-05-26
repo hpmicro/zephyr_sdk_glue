@@ -25,11 +25,11 @@ All changes since 0.2.0
   - zephyr/samples/modules/canopennode: canopennode
   - zephyr/samples/drivers/display: display_rgb
   - zephyr/samples/subsys/video/capture: video_dvp
-  - zephyr/samples/subsys/usb/cdc_acm@sample.usb_device_next.cdc-acm: cdc_acm
-  - zephyr/samples/subsys/usb/hid-keyboard@sample.usbd.hid-keyboard: hid-keyboard
-  - zephyr/samples/subsys/usb/hid-mouse@sample.usb_device_next.hid-mouse: hid-mouse
-  - zephyr/samples/subsys/usb/mass@sample.usb_device_next.mass_ram_none: mass
-  - zephyr/zephyr/samples/net/sockets/echo_server: ethernet
+  - zephyr/samples/subsys/usb/cdc_acm: cdc_acm
+  - zephyr/samples/subsys/usb/hid-keyboard: hid-keyboard
+  - zephyr/samples/subsys/usb/hid-mouse: hid-mouse
+  - zephyr/samples/subsys/usb/mass: mass
+  - zephyr/samples/net/sockets/echo_server: ethernet
   - zephyr/tests/drivers/can/api: can
   - zephyr/tests/drivers/can/timing: can
   - zephyr/tests/drivers/can/shell: can
@@ -38,6 +38,9 @@ All changes since 0.2.0
   - zephyr/tests/drivers/disk/disk_access: sdhc
   - zephyr/tests/drivers/disk/disk_performance: sdhc
   - zephyr/tests/subsys/sd/sdmmc: sdhc
+  - sdk_glue/samples/cherryusb/device/msc/ram_disk :
+  - sdk_glue/samples/cherryusb/device/cdc_acm/cdc_acm_vcom
+  - sdk_glue/samples/cherryusb/host/cdc_acm
 
 - hpm6800evk:
   - zephyr/samples/hello_world
@@ -47,11 +50,11 @@ All changes since 0.2.0
   - zephyr/samples/subsys/video/capture: video_dvp, video_mipi
   - zephyr/samples/modules/canopennode: canopennode
   - zephyr/samples/drivers/display: display_rgb, display_mipi, display_lvds, display_dual_lvds
-  - zephyr/samples/subsys/usb/cdc_acm@sample.usb_device_next.cdc-acm: cdc_acm
-  - zephyr/samples/subsys/usb/hid-keyboard@sample.usbd.hid-keyboard: hid-keyboard
-  - zephyr/samples/subsys/usb/hid-mouse@sample.usb_device_next.hid-mouse: hid-mouse
-  - zephyr/samples/subsys/usb/mass@sample.usb_device_next.mass_ram_none: mass
-  - zephyr/zephyr/samples/net/sockets/echo_server: ethernet
+  - zephyr/samples/subsys/usb/cdc_acm: cdc_acm
+  - zephyr/samples/subsys/usb/hid-keyboard: hid-keyboard
+  - zephyr/samples/subsys/usb/hid-mouse: hid-mouse
+  - zephyr/samples/subsys/usb/mass: mass
+  - zephyr/samples/net/sockets/echo_server: ethernet
   - zephyr/tests/drivers/can/api: can
   - zephyr/tests/drivers/can/timing: can
   - zephyr/tests/drivers/can/shell: can
@@ -60,7 +63,9 @@ All changes since 0.2.0
   - zephyr/tests/drivers/disk/disk_access: sdhc
   - zephyr/tests/drivers/disk/disk_performance: sdhc
   - zephyr/tests/subsys/sd/sdmmc: sdhc
-
+  - sdk_glue/samples/cherryusb/device/msc/ram_disk
+  - sdk_glue/samples/cherryusb/device/cdc_acm/cdc_acm_vcom
+  - sdk_glue/samples/cherryusb/host/cdc_acm
 
 ## [0.2.0] - 2024.11.12:
 

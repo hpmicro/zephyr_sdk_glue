@@ -33,7 +33,9 @@ static void cherryusb_hpm_isr(uint32_t base)
 	if (HPM_USB0_BASE == base) {
 		hpm_isr_usb0();
 	} else {
+#if DT_NODE_EXISTS(DT_NODELABEL(cherryusb_usb1))
 		hpm_isr_usb1();
+#endif
 	}
 }
 

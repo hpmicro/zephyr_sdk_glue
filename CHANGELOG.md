@@ -38,7 +38,7 @@ All changes since 0.2.0
   - zephyr/tests/drivers/disk/disk_access: sdhc
   - zephyr/tests/drivers/disk/disk_performance: sdhc
   - zephyr/tests/subsys/sd/sdmmc: sdhc
-  - sdk_glue/samples/cherryusb/device/msc/ram_disk :
+  - sdk_glue/samples/cherryusb/device/msc/ram_disk
   - sdk_glue/samples/cherryusb/device/cdc_acm/cdc_acm_vcom
   - sdk_glue/samples/cherryusb/host/cdc_acm
 

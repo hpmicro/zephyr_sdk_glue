@@ -11,9 +11,9 @@ Catalogue
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    starting/index.rst
+   samples/index_en
 
 
 Indices and tables

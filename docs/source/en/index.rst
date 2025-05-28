@@ -6,10 +6,14 @@
 Welcome to hpmicro sdk glue's documentation!
 ============================================
 
+Catalogue
+==================
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   starting/index.rst
 
 
 Indices and tables

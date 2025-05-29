@@ -24,6 +24,7 @@ sys.path.insert(0, str(HPM_ZSG_BASE / "docs" / "_ext"))
 extensions = [
     'sphinx_rtd_theme',
     "external_content",
+    'myst_parser',
 ]
 
 templates_path = ['_templates']
@@ -38,8 +39,13 @@ html_show_sphinx = False
 html_theme = 'sphinx_rtd_theme'
 # html_static_path = ['_static']
 
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
+
 external_content_contents = [
     (HPM_ZSG_BASE, "CHANGELOG.md"),
     (HPM_ZSG_BASE, "samples/**/*_zh.rst",),
-    (HPM_ZSG_BASE, "samples/**/doc"),
+    (HPM_ZSG_BASE / "docs/source/zh", "[!_]*"),
 ]

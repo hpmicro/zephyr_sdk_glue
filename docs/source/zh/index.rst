@@ -13,9 +13,10 @@
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    starting/index.rst
+   samples/index_zh.rst
+   CHANGELOG
 
 Indices and tables
 ==================

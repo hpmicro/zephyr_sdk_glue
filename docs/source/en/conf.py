@@ -8,6 +8,7 @@
 
 import os
 import os.path
+import sys
 import datetime
 from pathlib import Path
 
@@ -15,17 +16,22 @@ HPM_ZSG_BASE = Path(__file__).resolve().parents[3]
 project = 'HPMicro Supplemental Development Kit'
 copyright = '2024-%s, HPMicro' % datetime.date.today().year
 author = 'HPMicro Software Team'
-
+sys.path.insert(0, str(HPM_ZSG_BASE / "docs" / "_ext"))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = [
+    'sphinx_rtd_theme',
+    "external_content",
+    'myst_parser',
+]
 
 templates_path = ['_templates']
 exclude_patterns = []
 
 language = 'en'
+html_show_sphinx = False
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -33,9 +39,13 @@ language = 'en'
 html_theme = 'sphinx_rtd_theme'
 # html_static_path = ['_static']
 
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 external_content_contents = [
     (HPM_ZSG_BASE, "CHANGELOG.md"),
     (HPM_ZSG_BASE, "samples/**/*_en.rst",),
-    (HPM_ZSG_BASE, "samples/**/doc"),
+    (HPM_ZSG_BASE / "docs/source/en", "[!_]*"),
 ]

@@ -7,3 +7,12 @@ cmake-build*
 sec_core_img.c
 *.o
 
+docs/build/*
+docs/source/en/samples/*
+docs/source/en/snippets/*
+docs/source/en/CHANGELOG.md
+docs/source/zh/samples/*
+docs/source/zh/snippets/*
+docs/source/zh/CHANGELOG.md
+
+

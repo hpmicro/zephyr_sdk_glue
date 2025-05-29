@@ -16,6 +16,7 @@
 
    starting/index.rst
    samples/index_zh.rst
+   snippets/index_zh.rst
    CHANGELOG
 
 Indices and tables

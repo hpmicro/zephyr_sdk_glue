@@ -47,5 +47,6 @@ source_suffix = {
 external_content_contents = [
     (HPM_ZSG_BASE, "CHANGELOG.md"),
     (HPM_ZSG_BASE, "samples/**/*_en.rst",),
+    (HPM_ZSG_BASE, "snippets/**/*_en.rst",),
     (HPM_ZSG_BASE / "docs/source/en", "[!_]*"),
 ]

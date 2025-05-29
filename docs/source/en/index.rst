@@ -14,6 +14,7 @@ Catalogue
 
    starting/index.rst
    samples/index_en
+   snippets/index_en.rst
    CHANGELOG
 
 Indices and tables

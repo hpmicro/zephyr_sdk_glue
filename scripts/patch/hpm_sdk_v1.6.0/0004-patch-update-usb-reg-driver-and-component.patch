@@ -1,4 +1,4 @@
-From 7fd10bf44371ec7a7809d4fcce43f89b8aff3fbd Mon Sep 17 00:00:00 2001
+From ad07deb22f3c4a8a9e0af84635d2cc487a1bb703 Mon Sep 17 00:00:00 2001
 From: Zhihong Chen <zhihong.chen@hpmicro.com>
 Date: Wed, 7 May 2025 16:04:42 +0800
 Subject: [PATCH] [update] usb: update usb reg, driver and component
@@ -7,7 +7,7 @@ Subject: [PATCH] [update] usb: update usb reg, driver and component
 
 Signed-off-by: Zhihong Chen <zhihong.chen@hpmicro.com>
 ---
- .../components/usb/device/hpm_usb_device.c    |  81 +++++++++---
+ .../components/usb/device/hpm_usb_device.c    |  82 ++++++++++---
  .../components/usb/device/hpm_usb_device.h    |  38 +++---
  hpm_sdk/drivers/inc/hpm_usb_drv.h             | 115 ++++++++++++++++--
  hpm_sdk/drivers/src/hpm_usb_drv.c             |  80 +++++++-----
@@ -17,10 +17,10 @@ Signed-off-by: Zhihong Chen <zhihong.chen@hpmicro.com>
  hpm_sdk/soc/HPM6700/ip/hpm_usb_regs.h         |  42 ++++++-
  hpm_sdk/soc/HPM6800/ip/hpm_usb_regs.h         |  16 ++-
  hpm_sdk/soc/HPM6E00/ip/hpm_usb_regs.h         |  16 ++-
- 10 files changed, 387 insertions(+), 101 deletions(-)
+ 10 files changed, 388 insertions(+), 101 deletions(-)
 
 diff --git a/hpm_sdk/components/usb/device/hpm_usb_device.c b/hpm_sdk/components/usb/device/hpm_usb_device.c
-index 4c7fd3849..28400e497 100644
+index 4c7fd3849..fcb61e3ae 100644
 --- a/hpm_sdk/components/usb/device/hpm_usb_device.c
 +++ b/hpm_sdk/components/usb/device/hpm_usb_device.c
 @@ -1,5 +1,5 @@
@@ -65,18 +65,19 @@ index 4c7fd3849..28400e497 100644
  
      p_qtd->next        = USB_SOC_DCD_QTD_NEXT_INVALID;
      p_qtd->active      = 1;
-@@ -24,8 +47,9 @@ static void usb_qtd_init(dcd_qtd_t *p_qtd, void *data_ptr, uint16_t total_bytes)
+@@ -24,8 +47,10 @@ static void usb_qtd_init(dcd_qtd_t *p_qtd, void *data_ptr, uint16_t total_bytes)
  
      if (data_ptr != NULL) {
          p_qtd->buffer[0]   = (uint32_t)data_ptr;
 +        tmp = ((uint32_t)data_ptr) & 0xFFFFF000UL;
          for (uint8_t i = 1; i < USB_SOC_DCD_QHD_BUFFER_COUNT; i++) {
 -            p_qtd->buffer[i] |= ((p_qtd->buffer[i-1]) & 0xFFFFF000UL) + 4096U;
-+            p_qtd->buffer[i] = tmp + 0x1000UL;
++            tmp += 0x1000UL;
++            p_qtd->buffer[i] = tmp;
          }
      }
  }
-@@ -69,12 +93,11 @@ bool usb_device_init(usb_device_handle_t *handle, uint32_t int_mask)
+@@ -69,12 +94,11 @@ bool usb_device_init(usb_device_handle_t *handle, uint32_t int_mask)
          return false;
      }
  
@@ -90,7 +91,7 @@ index 4c7fd3849..28400e497 100644
      usb_dcd_set_edpt_list_addr(handle->regs, core_local_mem_to_sys_address(0,  (uint32_t)handle->dcd_data->qhd));
  
      /* Clear status */
-@@ -91,15 +114,14 @@ bool usb_device_init(usb_device_handle_t *handle, uint32_t int_mask)
+@@ -91,15 +115,14 @@ bool usb_device_init(usb_device_handle_t *handle, uint32_t int_mask)
  
  void usb_device_deinit(usb_device_handle_t *handle)
  {
@@ -110,7 +111,7 @@ index 4c7fd3849..28400e497 100644
  }
  
  uint32_t usb_device_status_flags(usb_device_handle_t *handle)
-@@ -206,6 +228,9 @@ bool usb_device_edpt_open(usb_device_handle_t *handle, usb_endpoint_config_t *co
+@@ -206,6 +229,9 @@ bool usb_device_edpt_open(usb_device_handle_t *handle, usb_endpoint_config_t *co
      p_qhd = &handle->dcd_data->qhd[ep_idx];
      memset(p_qhd, 0, sizeof(dcd_qhd_t));
  
@@ -120,7 +121,7 @@ index 4c7fd3849..28400e497 100644
      p_qhd->zero_length_termination = 1;
      p_qhd->max_packet_size         = config->max_packet_size & 0x7FFu;
      p_qhd->qtd_overlay.next        = USB_SOC_DCD_QTD_NEXT_INVALID;
-@@ -223,35 +248,52 @@ bool usb_device_edpt_xfer(usb_device_handle_t *handle, uint8_t ep_addr, uint8_t
+@@ -223,35 +249,52 @@ bool usb_device_edpt_xfer(usb_device_handle_t *handle, uint8_t ep_addr, uint8_t
      uint8_t const epnum = ep_addr & 0x0f;
      uint8_t const dir   = (ep_addr & 0x80) >> 7;
      uint8_t const ep_idx = 2 * epnum + dir;
@@ -182,7 +183,7 @@ index 4c7fd3849..28400e497 100644
  
          if (total_bytes > 0x4000) {
              xfer_len = 0x4000;
-@@ -275,6 +317,7 @@ bool usb_device_edpt_xfer(usb_device_handle_t *handle, uint8_t ep_addr, uint8_t
+@@ -275,6 +318,7 @@ bool usb_device_edpt_xfer(usb_device_handle_t *handle, uint8_t ep_addr, uint8_t
          prev_p_qtd = p_qtd;
      } while (total_bytes > 0);
  

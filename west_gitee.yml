@@ -31,6 +31,7 @@ manifest:
       import:
         name-allowlist:
           - west-commands
+          - fatfs
     - name: sdk_env
       repo-path: sdk_env
       path: sdk_env

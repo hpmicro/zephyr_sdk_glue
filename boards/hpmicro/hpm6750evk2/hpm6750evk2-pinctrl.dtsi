@@ -182,7 +182,7 @@
 		};
 	};
 
-      	pinmux_eth_rgmii: pinmux_enet0 {
+	pinmux_eth_rgmii: pinmux_enet0 {
 		group0 {
 			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 22), IOC_TYPE_IOC, 0, 19)>,
 					 <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 23), IOC_TYPE_IOC, 0, 19)>,

@@ -1,14 +1,17 @@
 # Zephyr SDK Glue Overview
-- This repository is the adhesive for HPM_SDK and Zephyr, which supports building a zephyr project
-on HPMicro soc, providing drivers, devicetree and kconfig.
-- It is also a west manifest repository, containing the manifest (west.yml).
-- License under Apache-2.0.
+Zephyr SDK Glue is a manifest repository developed by HPMicro based on Zephyr project. This repository contains all source program files adapted by HPMicro for its own MCUs in Zephyr project. Together with HPMicro's official software development kit (SDK), it forms the HPMicro chip development suite for Zephyr project.
+
+The integration approach of Zephyr SDK Glue differs from conventional Zephyr project integration in the following aspects:
+- Independent Manifest File: Unlike traditional Zephyr project that retrieve required source code from the Zephyr repository, **Glue** uses its own manifest file. When building the workspace, all required source code must be fetched starting from the Glue repository.
+- Direct Dependence on HPM_SDK: Glue does not require the Zephyr HAL repository and is developed directly based on the HPM_SDK repository.
+- Version Binding: This repository is bound to Zephyr v3.7.0 (LTS) and undergoes related iterations on this version basis.
+
+License under Apache-2.0.
 
 ## Directory Structure
 
 | Name | Description |
 |--------|--------|
-| application | Complete project |
 | boards | Boards and shields support files |
 | cmake | Cmake extensions |
 | docs | Documentation |
@@ -16,6 +19,7 @@ on HPMicro soc, providing drivers, devicetree and kconfig.
 | dts | Devicetree files |
 | include | Header files |
 | modules | Additional modules |
+| samples | samples |
 | snippets | HPMicro resources selection |
 | soc | SoC specific source |
 | zephyr | Zephyr build definition |

@@ -2,15 +2,14 @@
 
 hid_keyboard
 =============
+`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/subsys/usb/hid-keyboard/README.html>`_
 
-Sample Path
+Path
 ---------------
 
 .. code-block::
 
-    {workspace}/zephyr/samples/subsys/usb/hid-keyboard
-
-- please refer to the `README.rst` document for details.
+    zephyr/samples/subsys/usb/hid-keyboard
 
 Build Cmd
 ------------

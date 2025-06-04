@@ -2,6 +2,7 @@
 
 Canopen
 ========================
+`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/modules/canopennode/README.html>`_
 
 Overview
 ----------
@@ -11,6 +12,22 @@ The canopen demo provide following features:
 - NMT
 - SDO
 - Emergency
+
+Path
+---------------
+
+.. code-block::
+
+    zephyr/samples/modules/canopennode
+
+Build Cmd
+-----------
+
+As hpm6750evk2 for example:
+
+.. code-block:: console
+
+    west build -p always -b hpm6750evk2 -S canopennode samples/modules/canopennode
 
 Borad settings:
 ----------------

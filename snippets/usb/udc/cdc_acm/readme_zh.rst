@@ -2,17 +2,16 @@
 
 cdc_acm
 ==========
+`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/subsys/usb/cdc_acm/README.html>`_
 
 路径
 ---------------
 
 .. code-block::
 
-    {workspace}/zephyr/samples/subsys/usb/cdc_acm
+    zephyr/samples/subsys/usb/cdc_acm
 
-- 有关详细信息，请参阅 `README.rst` 文档
-
-命令行示例
+命令行
 -----------
 
 As hpm6750evk2 for example:

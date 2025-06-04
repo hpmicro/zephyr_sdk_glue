@@ -2,15 +2,14 @@
 
 cdc_acm
 ==========
+`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/subsys/usb/cdc_acm/README.html>`_
 
-Sample Path
+Path
 ---------------
 
 .. code-block::
 
-    {workspace}/zephyr/samples/subsys/usb/cdc_acm
-
-- please refer to the `README.rst` document for details.
+    zephyr/samples/subsys/usb/cdc_acm
 
 Build Cmd
 -----------

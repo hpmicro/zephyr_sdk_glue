@@ -2,20 +2,19 @@
 
 hid_keyboard
 =============
+`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/subsys/usb/hid-keyboard/README.html>`_
 
 路径
 ------
 
 .. code-block::
 
-    {workspace}/zephyr/samples/subsys/usb/hid-keyboard
+    zephyr/samples/subsys/usb/hid-keyboard
 
-- 有关详细信息，请参阅 `README.rst` 文档
-
-命令行示例
+命令行
 ------------
 
-以hpm6750evk为例:
+以hpm6750evk2为例:
 
 .. code-block:: console
 
@@ -24,4 +23,4 @@ hid_keyboard
 已知问题
 ----------
 
-- 由于hpm6750/hpm6800 gpio不支持 `GPIO_INT_EDGE_BOTH` 中断，因此不支持gpio按键功能
+- 由于hpm6750/hpm6800 gpio不支持 `GPIO_INT_EDGE_BOTH` 中断,因此不支持gpio按键功能

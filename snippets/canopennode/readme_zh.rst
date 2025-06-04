@@ -2,6 +2,7 @@
 
 Canopen
 ========================
+`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/modules/canopennode/README.html>`_
 
 概述
 ----
@@ -12,6 +13,22 @@ canopen demo提供以下功能:
 - NMT
 - SDO
 - Emergency
+
+路径
+---------------
+
+.. code-block::
+
+    zephyr/samples/modules/canopennode
+
+命令行
+-------
+
+以hpm6750evk为例:
+
+.. code-block:: console
+
+    west build -p always -b hpm6750evk2 -S canopennode samples/modules/canopennode
 
 硬件设置
 --------

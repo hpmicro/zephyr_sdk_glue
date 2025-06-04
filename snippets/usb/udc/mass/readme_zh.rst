@@ -2,21 +2,19 @@
 
 mass
 =============
+`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/subsys/usb/mass/README.html>`_
 
 路径
 ------
 
 .. code-block::
 
-    {workspace}/zephyr/samples/subsys/usb/mass
+    zephyr/samples/subsys/usb/mass
 
-
-- 有关详细信息，请参阅 `README.rst` 文档
-
-命令行示例
+命令行
 ------------
 
-以hpm6750evk为例:
+以hpm6750evk2为例:
 
 .. code-block:: console
 

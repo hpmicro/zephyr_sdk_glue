@@ -2,16 +2,14 @@
 
 mass
 ==========
+`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/subsys/usb/mass/README.html>`_
 
 Sample Path
 ---------------
 
 .. code-block::
 
-    {workspace}/zephyr/samples/subsys/usb/mass
-
-
-- please refer to the `README.rst` document for details.
+    zephyr/samples/subsys/usb/mass
 
 Build Cmd
 ------------

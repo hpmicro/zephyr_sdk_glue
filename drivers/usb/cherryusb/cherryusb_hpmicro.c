@@ -18,6 +18,7 @@
 
 #include "hpm_soc.h"
 #include "hpm_clock_drv.h"
+#include "hpm_usb_drv.h"
 #include "usb_glue_hpm.h"
 
 struct cherryusb_hpm_config {
@@ -46,6 +47,10 @@ static int cherryusb_hpm_driver_preinit(const struct device *dev)
 	clock_add_to_group((clock_name_t)(config->clock_name), 0);
 
 	pinctrl_apply_state(config->pincfg, PINCTRL_STATE_DEFAULT);
+
+	usb_hcd_set_power_ctrl_polarity((USB_Type *)config->reg_base, true);
+
+	k_sleep(K_MSEC(100));
 
 	return 0;
 }

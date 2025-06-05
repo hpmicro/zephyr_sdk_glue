@@ -31,6 +31,6 @@ Running the example
 
 - Download the program and run. The computer can automatically recognize and install the USB to serial port driver and enumerate a device with a com port.
 
-- Open the "Serial Port Debugging Assistant" software, check DTR, select the enumerated com port, and click to open the serial port
+- Open the "Serial Port Debugging Assistant" software, select the enumerated com port, and click to open the serial port
 
 - Then enter characters in the "Serial Port Debugging Assistant", click Send, and the characters sent will be echoed in the "Serial Port Debugging Assistant".

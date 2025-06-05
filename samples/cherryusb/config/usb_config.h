@@ -8,6 +8,7 @@
 #define CHERRYUSB_CONFIG_H
 
 #include "hpm_soc_feature.h"
+#include "hpm_l1c_drv.h"
 
 /* ================ USB common Configuration ================ */
 
@@ -26,8 +27,12 @@
 /* Enable print with color */
 #define CONFIG_USB_PRINTF_COLOR_ENABLE
 
-/* data align size when use dma */
-#ifndef CONFIG_USB_ALIGN_SIZE
+#define CONFIG_USB_DCACHE_ENABLE
+
+/* data align size when use dma or use dcache */
+#ifdef CONFIG_USB_DCACHE_ENABLE
+#define CONFIG_USB_ALIGN_SIZE HPM_L1C_CACHELINE_SIZE
+#else
 #define CONFIG_USB_ALIGN_SIZE 4
 #endif
 
@@ -108,6 +113,28 @@
 #define CONFIG_USBDEV_MSC_STACKSIZE 2048
 #endif
 
+#ifndef CONFIG_USBDEV_MTP_MAX_BUFSIZE
+#define CONFIG_USBDEV_MTP_MAX_BUFSIZE 2048
+#endif
+
+#ifndef CONFIG_USBDEV_MTP_MAX_OBJECTS
+#define CONFIG_USBDEV_MTP_MAX_OBJECTS 256
+#endif
+
+#ifndef CONFIG_USBDEV_MTP_MAX_PATHNAME
+#define CONFIG_USBDEV_MTP_MAX_PATHNAME 256
+#endif
+
+#define CONFIG_USBDEV_MTP_THREAD
+
+#ifndef CONFIG_USBDEV_MTP_PRIO
+#define CONFIG_USBDEV_MTP_PRIO 4
+#endif
+
+#ifndef CONFIG_USBDEV_MTP_STACKSIZE
+#define CONFIG_USBDEV_MTP_STACKSIZE 4096
+#endif
+
 #ifndef CONFIG_USBDEV_RNDIS_RESP_BUFFER_SIZE
 #define CONFIG_USBDEV_RNDIS_RESP_BUFFER_SIZE 156
 #endif
@@ -126,6 +153,7 @@
 #endif
 
 #define CONFIG_USBDEV_RNDIS_USING_LWIP
+#define CONFIG_USBDEV_CDC_ECM_USING_LWIP
 
 /* ================ USB HOST Stack Configuration ================== */
 

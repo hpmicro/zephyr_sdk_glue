@@ -31,7 +31,6 @@ manifest:
       import:
         name-allowlist:
           - west-commands
-          - fatfs
     - name: sdk_env
       repo-path: sdk_env
       path: sdk_env
@@ -46,6 +45,10 @@ manifest:
       repo-path: CherryUSB
       path: modules/lib/CherryUSB
       revision: 537ccfd945382491b97b75ca380949b8cbff39cd
+    - name: fatfs
+      repo-path: fatfs
+      path: modules/fs/fatfs
+      revision: 427159bf95ea49b7680facffaa29ad506b42709b
 
   # West-related configuration for the sdk_glue repository.
   self:

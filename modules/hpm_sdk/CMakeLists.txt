@@ -23,6 +23,8 @@ set(HPM_SDK_NDSGCC_LIB_ITF hpm_sdk_ndsgcc_lib_itf)
 add_library(${HPM_SDK_NDSGCC_LIB_ITF} INTERFACE)
 set(HPM_SDK_ZCC_LIB_ITF hpm_sdk_zcc_lib_itf)
 add_library(${HPM_SDK_ZCC_LIB_ITF} INTERFACE)
+set(HPM_SDK_GCC_STARTUP_LIB hpm_sdk_gcc_startup_lib)
+add_library(${HPM_SDK_GCC_STARTUP_LIB} INTERFACE)
 set(USE_CUSTOM_STARTUP 1)
 set(USE_CUSTOM_LINKER 1)
 

@@ -11,6 +11,8 @@ set(HPM_SDK_DIR ${HPM_SDK_ABSOLUTE} CACHE PATH "hpmicro sdk root directory")
 
 include(${HPM_ZEPHYR_DIR}/cmake/version.cmake)
 include(${HPM_SDK_DIR}/cmake/cmake-ext.cmake)
+include(${HPM_SDK_DIR}/cmake/ide/segger.cmake)
+include(${HPM_SDK_DIR}/cmake/ide/iar.cmake)
 
 set(generated_version_path "${CMAKE_BINARY_DIR}")
 

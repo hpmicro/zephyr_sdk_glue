@@ -14,7 +14,8 @@ endif()
 if(${BOARD} STREQUAL "hpm6800evk")
     board_runner_args(openocd "--config=${OPENOCD_CONFIG_DIR}/probes/ft2232.cfg"
                                     "--config=${OPENOCD_CONFIG_DIR}/soc/hpm6880.cfg"
-                                "--config=${OPENOCD_CONFIG_DIR}/boards/hpm6800evk.cfg")
+                                "--config=${OPENOCD_CONFIG_DIR}/boards/hpm6800evk.cfg"
+                                "--openocd-search=${OPENOCD_CONFIG_DIR}")
     board_runner_args(openocd --target-handle=_CHIPNAME.cpu0)
 else()
     message(FATAL_ERROR "${BOARD} is not supported now")

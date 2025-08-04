@@ -5,7 +5,7 @@
 
 ########################################
 ##  zephyr                    v3.7.0  ##
-##  hpm_sdk                   v1.6.0  ##
+##  hpm_sdk                   v1.10.0 ##
 ########################################
 manifest:
   version: "1.0"
@@ -29,7 +29,7 @@ manifest:
     - name: sdk_env
       repo-path: sdk_env
       path: sdk_env
-      revision: v1.6.0
+      revision: v1.10.0
       submodules: true
     - name: canopennode
       repo-path: canopennode

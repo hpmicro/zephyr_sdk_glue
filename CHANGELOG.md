@@ -1,4 +1,13 @@
 # Change Log
+
+## 2025.8.4
+
+- update all soc clock name and value
+- update patch for sdk_env v1.10.0
+- change SOC file structure
+- update openocd runner scripts
+- update sdk_env to v1.10.0
+
 ## [0.5.0] - 2025.5.25
 
 All changes since 0.2.0

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 HPMicro
+ * Copyright (c) 2024-2025 HPMicro
  *SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,7 +10,7 @@
  *
  *<---------------------- AUTO_GENERATE ---------------------->
  *    This file was auto-generated, do not edit anything.
- *    generated on 2024-09-13 14:28:09 
+ *    generated on 2025-08-04 16:09:58 
  */
 
 #define CLK_SRC_OSC24M  0
@@ -96,7 +96,7 @@
 #define CLOCK_MOT2  20251911
 #define CLOCK_MOT3  20317448
 #define CLOCK_CRC0  20055305
-#define CLOCK_ACMP  18285834
+#define CLOCK_ACMP0  18285834
 #define CLOCK_SYNT  20382987
 #define CLOCK_SDM0  18613517
 #define CLOCK_MBX1  19989774
@@ -121,6 +121,7 @@
 #define CLK_PLL1CLK1  2558469
 #define CLK_PLL2CLK0  2689542
 #define CLK_PLL2CLK1  2755079
+#define CLOCK_ACMP  CLOCK_ACMP0
 
 
 #endif  /* ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_HPM6280_CLOCKS_H */

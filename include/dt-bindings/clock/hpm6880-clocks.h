@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 HPMicro
+ * Copyright (c) 2024-2025 HPMicro
  *SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,7 +10,7 @@
  *
  *<---------------------- AUTO_GENERATE ---------------------->
  *    This file was auto-generated, do not edit anything.
- *    generated on 2024-09-13 14:28:09 
+ *    generated on 2025-08-04 16:09:58 
  */
 
 #define CLK_SRC_OSC24M  0
@@ -24,13 +24,14 @@
 #define CLK_SRC_OSC32K  8
 #define CLK_ADC_SRC_ANA0  16
 #define CLK_ADC_SRC_ANA1  16
-#define CLK_ADC_SRC_AHB0  17
+#define CLK_ADC_SRC_AXI0  17
 #define CLK_I2S_SRC_AUD0  32
 #define CLK_I2S_SRC_AUD1  32
 #define CLK_I2S_SRC_AUD2  32
 #define CLK_I2S_SRC_AUD3  32
+#define CLK_I2S_SRC_AUDN  32
 #define CLK_I2S_SRC_AUDX  33
-#define CLK_WDG_SRC_AHB0  48
+#define CLK_WDG_SRC_AXI0  48
 #define CLK_WDG_SRC_OSC32K  49
 #define CLK_PWDG_SRC_OSC24M  64
 #define CLK_PWDG_SRC_OSC32K  65
@@ -87,17 +88,18 @@
 #define CLOCK_GPTMR6  20316206
 #define CLOCK_GPTMR7  20381743
 #define CLOCK_XPI0  21495856
+#define CLOCK_LMM0  17041920
 #define CLOCK_XRAM  17301553
 #define CLOCK_DDR0  17237763
 #define CLOCK_ETH0  21692472
-#define CLOCK_PTP0  4294901817
+#define CLOCK_PTP0  21692473
 #define CLOCK_SDXC0  21823546
 #define CLOCK_SDXC1  21889083
 #define CLOCK_NTM0  21954620
 #define CLOCK_REF0  22020157
 #define CLOCK_REF1  22085694
-#define CLOCK_CAM0  22151231
-#define CLOCK_CAM1  22216768
+#define CLOCK_CAMERA0  22151231
+#define CLOCK_CAMERA1  22216768
 #define CLOCK_LCD0  22413377
 #define CLOCK_LCD1  22478914
 #define CLOCK_CSI0  22675523
@@ -108,7 +110,7 @@
 #define CLOCK_GWC1  22612223
 #define CLOCK_LVB  22939903
 #define CLOCK_LCB  23005439
-#define CLOCK_FFA  21563135
+#define CLOCK_FFA0  21563135
 #define CLOCK_TSNS  21628415
 #define CLOCK_PTPC  17893119
 #define CLOCK_WATCHDOG0  19661568
@@ -152,6 +154,9 @@
 #define CLK_PLL2CLK1  2623749
 #define CLK_PLL3CLK0  2754822
 #define CLK_PLL4CLK0  2885895
+#define CLOCK_CAM0  CLOCK_CAMERA0
+#define CLOCK_CAM1  CLOCK_CAMERA1
+#define CLOCK_FFA  CLOCK_FFA0
 
 
 #endif  /* ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_HPM6880_CLOCKS_H */

@@ -242,20 +242,34 @@ class dts_header:
             if line and not line.startswith("//") and not line.startswith("/*"):
                 parts = line.split("=")
                 name = parts[0].strip().upper()
-                src = parts[1].strip().replace("MAKE_CLOCK_NAME(", "").replace(")", "").split(",")
-                res = src[0].strip()
-                node = src[2].strip()
-                group = int(define_dict[src[1].strip()])
-                if res in enum_dict:
-                    res = int(enum_dict[res])
-                else:
-                    res = int(define_dict[res])
-                
-                if node in enum_dict:
-                    node  = int(enum_dict[node])
-                else:
-                    node = int(node)
-                sort_number = res << 16 | group << 8 | node
+                if len(parts) > 1:
+                    value = parts[1].strip()
+                    if "MAKE_CLOCK_NAME(" in value:
+                        src = parts[1].strip().replace("MAKE_CLOCK_NAME(", "").replace(")", "").split(",")
+                        res = src[0].strip()
+                        node = src[2].strip()
+                        group = int(define_dict[src[1].strip()])
+                        if res in enum_dict:
+                            res = int(enum_dict[res])
+                        else:
+                            res = int(define_dict[res])
+
+                        if node in enum_dict:
+                            node  = int(enum_dict[node])
+                        else:
+                            node = int(node)
+                        sort_number = res << 16 | group << 8 | node
+                    else:
+                        value = value.rstrip(',')
+                        if value in enum_dict:
+                            sort_number = int(enum_dict[value])
+                        elif value.isdigit():
+                            sort_number = int(value)
+                        else:
+                            if value in define_dict:
+                                sort_number = int(define_dict[value])
+                            else:
+                                sort_number = value.upper()
                 item = "#define " + name + "  " + str(sort_number) + "\n"
                 result = result + item
         return result

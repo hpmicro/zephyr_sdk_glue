@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 HPMicro
+ * Copyright (c) 2024-2025 HPMicro
  *SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,7 +10,7 @@
  *
  *<---------------------- AUTO_GENERATE ---------------------->
  *    This file was auto-generated, do not edit anything.
- *    generated on 2024-09-13 14:28:09 
+ *    generated on 2025-08-04 16:09:58 
  */
 
 #define CLK_SRC_OSC24M  0
@@ -29,7 +29,9 @@
 #define CLK_DAC_SRC_ANA3  112
 #define CLK_DAC_SRC_AHB0  113
 #define CLK_I2S_SRC_AUD0  32
-#define CLK_I2S_SRC_AUD1  33
+#define CLK_I2S_SRC_AUD1  32
+#define CLK_I2S_SRC_AUDN  32
+#define CLK_I2S_SRC_AUDX  33
 #define CLK_WDG_SRC_AHB0  48
 #define CLK_WDG_SRC_OSC32K  49
 #define CLK_PWDG_SRC_OSC24M  176
@@ -71,7 +73,6 @@
 #define CLOCK_AXIS  16844541
 #define CLOCK_AHBP  16778750
 #define CLOCK_PTPC  19595290
-#define CLOCK_PTP0  4294836258
 #define CLOCK_REF0  20709411
 #define CLOCK_REF1  20774948
 #define CLOCK_WATCHDOG0  17957632
@@ -80,6 +81,7 @@
 #define CLOCK_PTMR  4294902785
 #define CLOCK_PWDG  4294904576
 #define CLOCK_ETH0  20447265
+#define CLOCK_PTP0  20447266
 #define CLOCK_SDP  17434112
 #define CLOCK_XDMA  17696257
 #define CLOCK_ROM  17040898
@@ -92,7 +94,7 @@
 #define CLOCK_RNG  17499397
 #define CLOCK_MOT0  20317446
 #define CLOCK_MOT1  20382983
-#define CLOCK_ACMP  19924234
+#define CLOCK_ACMP0  19924234
 #define CLOCK_PDM  20120064
 #define CLOCK_DAO  20185601
 #define CLOCK_SYNT  20251917
@@ -119,6 +121,7 @@
 #define CLK_PLL1CLK1  2558469
 #define CLK_PLL2CLK0  2689542
 #define CLK_PLL2CLK1  2755079
+#define CLOCK_ACMP  CLOCK_ACMP0
 
 
 #endif  /* ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_HPM6360_CLOCKS_H */

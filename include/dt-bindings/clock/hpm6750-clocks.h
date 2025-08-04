@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 HPMicro
+ * Copyright (c) 2024-2025 HPMicro
  *SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,7 +10,7 @@
  *
  *<---------------------- AUTO_GENERATE ---------------------->
  *    This file was auto-generated, do not edit anything.
- *    generated on 2024-09-13 14:28:09 
+ *    generated on 2025-08-04 16:09:58 
  */
 
 #define CLK_SRC_OSC24M  0
@@ -102,8 +102,8 @@
 #define CLOCK_PWDG  4294904832
 #define CLOCK_ETH0  22282297
 #define CLOCK_ETH1  22347834
-#define CLOCK_PTP0  4294901819
-#define CLOCK_PTP1  4294901820
+#define CLOCK_PTP0  22282299
+#define CLOCK_PTP1  22347836
 #define CLOCK_SDP  17696256
 #define CLOCK_XDMA  17958401
 #define CLOCK_ROM  17106434
@@ -123,7 +123,7 @@
 #define CLOCK_MOT1  21759239
 #define CLOCK_MOT2  21824776
 #define CLOCK_MOT3  21890313
-#define CLOCK_ACMP  21169418
+#define CLOCK_ACMP0  21169418
 #define CLOCK_PDM  21496320
 #define CLOCK_DAO  21561857
 #define CLOCK_SYNT  21628172
@@ -151,6 +151,7 @@
 #define CLK_PLL2CLK1  2624261
 #define CLK_PLL3CLK0  2755334
 #define CLK_PLL4CLK0  2886407
+#define CLOCK_ACMP  CLOCK_ACMP0
 
 
 #endif  /* ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_HPM6750_CLOCKS_H */

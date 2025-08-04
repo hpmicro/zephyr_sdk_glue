@@ -1,0 +1,28 @@
+From c180422c4c94c5578517d75966e347ed04094022 Mon Sep 17 00:00:00 2001
+From: Yingda WU <yingda.wu@hpmicro.com>
+Date: Mon, 4 Aug 2025 14:58:40 +0800
+Subject: [PATCH] patch: conflict enet status define between sdk and zephyr
+
+Signed-off-by: Yingda WU <yingda.wu@hpmicro.com>
+---
+ hpm_sdk/drivers/inc/hpm_enet_drv.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/hpm_sdk/drivers/inc/hpm_enet_drv.h b/hpm_sdk/drivers/inc/hpm_enet_drv.h
+index 0da4af535..f5bda4ca1 100644
+--- a/hpm_sdk/drivers/inc/hpm_enet_drv.h
++++ b/hpm_sdk/drivers/inc/hpm_enet_drv.h
+@@ -36,8 +36,8 @@
+ #define ENET_MAX_FRAME_SIZE       (1526U)  /**< ENET_HEADER + 2*ENET_VLAN_TAG + ENET_MAX_PAYLOAD + ENET_CRC */
+ #define ENET_JUMBO_FRAME_PAYLOAD  (9000U)  /**< Jumbo frame payload size */
+ #define ENET_MAC                  (6)      /**< Ethernet MAC size */
+-#define ENET_ERROR                (0)      /**< ENET error */
+-#define ENET_SUCCESS              (1)      /**< ENET success */
++#define ENET_ERROR                (1)      /**< ENET error */
++#define ENET_SUCCESS              (0)      /**< ENET success */
+ 
+ #define ENET_ADJ_FREQ_BASE_ADDEND (0x80000000UL)  /**< PTP base adjustment addend */
+ #define ENET_ONE_SEC_IN_NANOSEC   (1000000000UL)  /**< one second in nanoseconds */
+-- 
+2.25.1
+

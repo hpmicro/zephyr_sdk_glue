@@ -1,0 +1,28 @@
+From 11705330c07026f94999f247bef4567bac29b882 Mon Sep 17 00:00:00 2001
+From: Yingda WU <yingda.wu@hpmicro.com>
+Date: Mon, 4 Aug 2025 14:49:04 +0800
+Subject: [PATCH] patch: conflict "display_pixel_format" between sdk and zephyr
+
+- change sdk "display_pixel_format" to "hpm_display_pixel_format"
+
+Signed-off-by: Yingda WU <yingda.wu@hpmicro.com>
+---
+ hpm_sdk/drivers/inc/hpm_display_common.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hpm_sdk/drivers/inc/hpm_display_common.h b/hpm_sdk/drivers/inc/hpm_display_common.h
+index 0e576e25c..2503bf11c 100644
+--- a/hpm_sdk/drivers/inc/hpm_display_common.h
++++ b/hpm_sdk/drivers/inc/hpm_display_common.h
+@@ -42,7 +42,7 @@ typedef enum display_alphablend_mode {
+ /**
+  * @brief display pixel format
+  */
+-typedef enum display_pixel_format {
++typedef enum hpm_display_pixel_format {
+     display_pixel_format_argb8888,
+     display_pixel_format_rgb565,
+     display_pixel_format_rgb555,
+-- 
+2.25.1
+

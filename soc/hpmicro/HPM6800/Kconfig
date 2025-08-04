@@ -9,32 +9,6 @@ config SOC_SERIES_HPM6800
 	help
 	  Enable support for HPMicro HPM68 series SoC
 
-config SOC_HPM6830
-	bool
-	select ATOMIC_OPERATIONS_BUILTIN
-	select INCLUDE_RESET_VECTOR
-	select RISCV_ISA_EXT_M
-	select RISCV_ISA_EXT_A
-    select RISCV_ISA_EXT_C
-	select RISCV_ISA_EXT_ZICSR
-	select RISCV_ISA_EXT_ZIFENCEI
-	select CPU_HAS_DCACHE
-	select CPU_HAS_ICACHE
-	select RISCV_PMP
-
-config SOC_HPM6850
-	bool
-	select ATOMIC_OPERATIONS_BUILTIN
-	select INCLUDE_RESET_VECTOR
-	select RISCV_ISA_EXT_M
-	select RISCV_ISA_EXT_A
-    select RISCV_ISA_EXT_C
-	select RISCV_ISA_EXT_ZICSR
-	select RISCV_ISA_EXT_ZIFENCEI
-	select CPU_HAS_DCACHE
-	select CPU_HAS_ICACHE
-	select RISCV_PMP
-
 config SOC_HPM6880
 	bool
 	select ATOMIC_OPERATIONS_BUILTIN

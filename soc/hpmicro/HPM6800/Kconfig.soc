@@ -11,19 +11,9 @@ config SOC_SERIES_HPM6800
 config SOC_SERIES
 	default "HPM6800" if SOC_SERIES_HPM6800
 
-config SOC_HPM6830
-	bool
-	select SOC_SERIES_HPM6800
-
-config SOC_HPM6850
-	bool
-	select SOC_SERIES_HPM6800
-
 config SOC_HPM6880
 	bool
 	select SOC_SERIES_HPM6800
 
 config SOC
-	default "HPM6830" if SOC_HPM6830
-	default "HPM6850" if SOC_HPM6850
 	default "HPM6880" if SOC_HPM6880

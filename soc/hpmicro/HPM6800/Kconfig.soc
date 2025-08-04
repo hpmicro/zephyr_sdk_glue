@@ -1,6 +1,6 @@
 # Copyright (c) 2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
-config SOC_SERIES_HPM68XX
+config SOC_SERIES_HPM6800
 	bool
 	select SOC_FAMILY_HPM
 	select HAS_HPMSDK_PLLCTLV2
@@ -9,21 +9,21 @@ config SOC_SERIES_HPM68XX
 	  Enable support for HPMicro HPM68 series SoC
 
 config SOC_SERIES
-	default "hpm68xx" if SOC_SERIES_HPM68XX
+	default "HPM6800" if SOC_SERIES_HPM6800
 
 config SOC_HPM6830
 	bool
-	select SOC_SERIES_HPM68XX
+	select SOC_SERIES_HPM6800
 
 config SOC_HPM6850
 	bool
-	select SOC_SERIES_HPM68XX
+	select SOC_SERIES_HPM6800
 
 config SOC_HPM6880
 	bool
-	select SOC_SERIES_HPM68XX
+	select SOC_SERIES_HPM6800
 
 config SOC
-	default "hpm6830" if SOC_HPM6830
-	default "hpm6850" if SOC_HPM6850
-	default "hpm6880" if SOC_HPM6880
+	default "HPM6830" if SOC_HPM6830
+	default "HPM6850" if SOC_HPM6850
+	default "HPM6880" if SOC_HPM6880

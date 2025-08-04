@@ -33,7 +33,7 @@ config VIDEO_HPMICRO_INIT_PRIORITY
 	help
 	  Initialization priority for the VIDEO on an HPMicro device.
 
-if SOC_SERIES_HPM68XX
+if SOC_SERIES_HPM6800
 
 config CAMERA_PIXELMUX_HPMICRO
 	bool

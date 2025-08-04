@@ -1,19 +1,19 @@
 # Copyright (c) 2023-2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
-config SOC_SERIES_HPM67XX
+config SOC_SERIES_HPM6700
 	bool
 	select SOC_FAMILY_HPM
 	select HAS_HPMSDK_PLLCTL
 	select HAS_HPMSDK_PCFG
 	help
-	  Enable support for HPMicro HPM68 series SoC
+	  Enable support for HPMicro HPM67 series SoC
 
 config SOC_SERIES
-	default "hpm67xx" if SOC_SERIES_HPM67XX
+	default "HPM6700" if SOC_SERIES_HPM6700
 
 config SOC_HPM6750
 	bool
-	select SOC_SERIES_HPM67XX
+	select SOC_SERIES_HPM6700
 
 config SOC
-	default "hpm6750" if SOC_HPM6750
+	default "HPM6750" if SOC_HPM6750

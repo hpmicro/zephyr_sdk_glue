@@ -1,10 +1,10 @@
 # Copyright (c) 2024 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
-if SOC_SERIES_HPM68XX
+if SOC_SERIES_HPM6800
 
 config SOC_SERIES
-	default "hpm68xx"
+	default "HPM6800"
 
 config SYS_CLOCK_HW_CYCLES_PER_SEC
 	default 24000000
@@ -40,6 +40,6 @@ config MAX_IRQ_PER_AGGREGATOR
 config NUM_IRQS
 	default 140
 
-source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/hpmicro/hpm68xx/Kconfig.defconfig.hpm68*"
+source "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/hpmicro/HPM6800/Kconfig.defconfig.HPM68*"
 
-endif # SOC_SERIES_HPM68XX
+endif # SOC_SERIES_HPM6800

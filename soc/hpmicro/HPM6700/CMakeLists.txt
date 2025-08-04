@@ -1,4 +1,4 @@
-# Copyright (c) 2024 HPMicro
+# Copyright (c) 2023 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 zephyr_include_directories(.)
@@ -11,6 +11,6 @@ if(CONFIG_SOC_ANDES_V5_HWDSP)
   zephyr_cc_option(-mext-dsp)
 endif()
 
-if(CONFIG_SOC_SERIES_HPM68XX)
+if(CONFIG_SOC_SERIES_HPM6700)
   set(SOC_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld CACHE INTERNAL "")
 endif()

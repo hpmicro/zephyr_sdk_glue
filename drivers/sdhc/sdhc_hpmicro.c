@@ -537,8 +537,7 @@ static hpm_stat_t hpm_sdhc_error_recovery(const struct device *dev)
     recovery_cmd->cmd_type = sdxc_cmd_type_abort_cmd;
     recovery_cmd->resp_type = (sdxc_dev_resp_type_t) sdmmc_resp_r1b;
 
-    sdxc_error_recovery(base);
-    return hpm_sdhc_send_command(dev, recovery_cmd);
+    return sdxc_error_recovery(base, recovery_cmd);
 }
 
 /*

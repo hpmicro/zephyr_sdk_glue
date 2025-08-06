@@ -37,13 +37,22 @@ static volatile bool timeout_event_occurred;
 #define HPM_MCAN_NUM_TX_BUF_ELEMENTS (32U)
 #define HPM_MCAN_NUM_RX_BUF_ELEMENTS (16U)
 
+#if defined(MCAN_SOC_MSG_BUF_IN_AHB_RAM) && (MCAN_SOC_MSG_BUF_IN_AHB_RAM == 1)
+ATTR_PLACE_AT("AHB_SRAM") uint32_t board_app_mcan_msg_buf[MCAN_MSG_BUF_SIZE_IN_WORDS];
+static mcan_msg_buf_attr_t s_can_info[] = {
+    {
+        .ram_base = (uint32_t) &board_app_mcan_msg_buf,
+        .ram_size = sizeof(board_app_mcan_msg_buf),
+    },
+};
+#endif
+
 /* Default baudrate: 1Mbps @80MHz CAN clock */
 #define DEFAULT_HPM_MCAN_CONFIG {         \
     .use_lowlevel_timing_setting = false, \
     .can_timing = {2, 29, 10, 2},       \
     .mode = mcan_mode_normal,  \
 }
-
 
 struct hpm_mcan_config {
     /* zephyr can config*/
@@ -315,6 +324,7 @@ static int hpm_mcan_init(const struct device *dev)
     struct hpm_mcan_data *data = dev->data;
     mcan_config_t *config = &data->config;
     MCAN_Type *can = cfg->base;
+    hpm_stat_t status;
 
     k_mutex_init(&data->inst_mutex);
     k_mutex_init(&data->tx_mutex);
@@ -334,6 +344,13 @@ static int hpm_mcan_init(const struct device *dev)
         LOG_ERR("CAN pinctrl setup failed (%d)", ret);
         return ret;
     }
+
+#if defined(MCAN_SOC_MSG_BUF_IN_AHB_RAM) && (MCAN_SOC_MSG_BUF_IN_AHB_RAM == 1)
+    status = mcan_set_msg_buf_attr(can, &s_can_info[0]);
+    if (status != status_success) {
+        printf("Error was detected during setting message buffer attribute, please check the arguments\n");
+    }
+#endif
 
     mcan_get_default_config(can, config);
 
@@ -358,7 +375,7 @@ static int hpm_mcan_init(const struct device *dev)
     mcan_get_default_ram_config(can, &config->ram_config, true);
 
     uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
-    hpm_stat_t status = mcan_init(can, config, can_clk_freq);
+    status = mcan_init(can, config, can_clk_freq);
     if (status != status_success) {
         ret = -EAGAIN;
     } else {

@@ -39,7 +39,7 @@ manifest:
       remote: cherry-embedded
       repo-path: CherryUSB
       path: modules/lib/CherryUSB
-      revision: 537ccfd945382491b97b75ca380949b8cbff39cd
+      revision: f3b5025b646727412864d06aff59c6d0fa4a4079
     - name: fatfs
       repo-path: fatfs
       path: modules/fs/fatfs

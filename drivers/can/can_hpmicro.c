@@ -320,11 +320,6 @@ static int hpm_can_set_mode(const struct device *dev, can_mode_t mode)
 
 #ifdef CONFIG_CAN_FD_MODE
     if ((mode & CAN_MODE_FD)!=0) {
-        config->use_lowlevel_timing_setting = true;
-        config->canfd_timing.num_seg1 = 12;
-        config->canfd_timing.num_seg2  = 4;
-        config->canfd_timing.num_sjw = 4;
-        config->canfd_timing.prescaler = 1;
         config->enable_canfd = 1;
     }
 #endif /* CONFIG_CAN_FD_MODE */
@@ -345,21 +340,19 @@ static int hpm_can_set_timing(const struct device *dev, const struct can_timing 
     const struct hpm_can_config *cfg = dev->config;
     struct hpm_can_data *data = dev->data;
     CAN_Type *can = cfg->base;
+    uint32_t bitrate =0;
 
     if (data->started) {
         return -EBUSY;
     }
 
     can_config_t *config = &data->config;
-    config->use_lowlevel_timing_setting = false;
-    can_bit_timing_param_t *timing_param = &config->can_timing;
-    timing_param->prescaler = timing->prescaler;
-    /* num_seg1 in CAST_CAN = Tsync_seq + Tprop_seg + Tphase_seg1  */
-    timing_param->num_seg1 = 1 + timing->prop_seg + timing->phase_seg1;
-    timing_param->num_seg2 = timing->phase_seg2;
-    timing_param->num_sjw = timing->sjw;
-
     uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
+
+    bitrate = can_clk_freq / (timing->prescaler * (1 + timing->prop_seg + timing->phase_seg1 + timing->phase_seg2));
+
+    config ->baudrate = bitrate;
+
     hpm_stat_t status = can_init(can, config, can_clk_freq);
     if (status != status_success) {
         ret = -EAGAIN;
@@ -677,23 +670,19 @@ static int hpm_can_set_timing_data(const struct device *dev, const struct can_ti
 
     const struct hpm_can_config *cfg = dev->config;
     struct hpm_can_data *data = dev->data;
-    can_config_t *config = &data->config;
     CAN_Type *can = cfg->base;
+    uint32_t bitrate =0;
 
     if (data->started) {
         return -EBUSY;
     }
 
-    config->use_lowlevel_timing_setting = true;
-    can_bit_timing_param_t *timing_param = &config->canfd_timing;
-    timing_param->prescaler = timing->prescaler;
-    /* num_seg1 in CAST_CAN = Tsync_seq + Tprop_seg + Tphase_seg1  */
-    timing_param->num_seg1 = 1 + timing->prop_seg + timing->phase_seg1;
-    timing_param->num_seg2 = timing->phase_seg2;
-    timing_param->num_sjw = timing->sjw;
-    config->enable_canfd = 1;
-
+    can_config_t *config = &data->config;
     uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
+
+    bitrate = can_clk_freq / (timing->prescaler * (1 + timing->prop_seg + timing->phase_seg1 + timing->phase_seg2));
+
+    config ->baudrate_fd = bitrate;
     hpm_stat_t status = can_init(can, config, can_clk_freq);
 
     if (status != status_success) {
@@ -712,10 +701,6 @@ static int hpm_can_start(const struct device *dev)
     if (data->started) {
         return -EALREADY;
     }
-
-#if CONFIG_CANOPEN
-    can_config->baudrate = 500000;
-#endif
 
     uint32_t can_clk_freq = clock_get_frequency(config->clock_name);
     (void)can_init(config->base, can_config, can_clk_freq);
@@ -773,37 +758,37 @@ static const struct can_driver_api hpm_can_driver_api = {
     .get_max_filters = hpm_can_get_max_filters,
 
     .timing_min = {
-        .sjw = 1,
-        .prop_seg = 1,
-        .phase_seg1 = 1,
+        .sjw = 2,
+        .prop_seg = 2,
+        .phase_seg1 = 3,
         .phase_seg2 = 2,
-        .prescaler = 1,
+        .prescaler = 10,
     },
     .timing_max = {
-        .sjw = 16,
+        .sjw = 4,
         .prop_seg = 8,
-        .phase_seg1 = 56,
-        .phase_seg2 = 32,
-        .prescaler = 256,
+        .phase_seg1 = 8,
+        .phase_seg2 = 4,
+        .prescaler = 512,
     },
 
 #if CONFIG_CAN_FD_MODE
     .set_timing_data = hpm_can_set_timing_data,
 
     .timing_data_min = {
-        .sjw = 1,
-        .prop_seg = 1,
-        .phase_seg1 = 1,
+        .sjw = 2,
+        .prop_seg = 0,
+        .phase_seg1 = 7,
         .phase_seg2 = 2,
         .prescaler = 1,
 
     },
     .timing_data_max = {
-        .sjw = 4,
-        .prop_seg = 8,
-        .phase_seg1 = 7,
-        .phase_seg2 = 5,
-        .prescaler = 256,
+        .sjw = 16,
+        .prop_seg = 0,
+        .phase_seg1 = 32,
+        .phase_seg2 = 16,
+        .prescaler = 32,
     }
 #endif
 };

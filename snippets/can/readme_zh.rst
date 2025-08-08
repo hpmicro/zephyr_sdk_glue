@@ -10,7 +10,7 @@ Can
 
     zephyr/tests/drivers/can/api
     zephyr/tests/drivers/can/timing
-    zephyr/tests/drivers/can/shell
+    zephyr/tests/drivers/can/shell (need enable can-fd)
 
 命令行
 --------
@@ -21,4 +21,4 @@ Can
 
     west build -p always -b hpm6750evk2 -S can tests/drivers/can/api
     west build -p always -b hpm6750evk2 -S can tests/drivers/can/timing
-    west build -p always -b hpm6750evk2 -S can tests/drivers/can/shell
+    west build -p always -b hpm6750evk2 -S can tests/drivers/can/shell (need enable can-fd)

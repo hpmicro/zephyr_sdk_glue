@@ -195,7 +195,7 @@ static inline uint32_t hpmicro_get_video_pixel_format(uint32_t pixelformat)
 	case VIDEO_PIX_FMT_RGB565:
 		return CAM_COLOR_FORMAT_RGB565;
 	case VIDEO_PIX_FMT_YUYV:
-		return CAM_COLOR_FORMAT_YCBCR422;
+		return CAM_COLOR_FORMAT_YCBCR422_YUV422;
 	default:
 		return 0;
 	}

@@ -1,6 +1,6 @@
 .. _can:
 
-Can
+Can (enable can-fd as default)
 =======
 
 路径
@@ -10,7 +10,7 @@ Can
 
     zephyr/tests/drivers/can/api
     zephyr/tests/drivers/can/timing
-    zephyr/tests/drivers/can/shell (need enable can-fd)
+    zephyr/tests/drivers/can/shell
 
 命令行
 --------
@@ -21,4 +21,4 @@ Can
 
     west build -p always -b hpm6750evk2 -S can tests/drivers/can/api
     west build -p always -b hpm6750evk2 -S can tests/drivers/can/timing
-    west build -p always -b hpm6750evk2 -S can tests/drivers/can/shell (need enable can-fd)
+    west build -p always -b hpm6750evk2 -S can tests/drivers/can/shell

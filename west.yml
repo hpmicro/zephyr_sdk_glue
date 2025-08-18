@@ -14,6 +14,8 @@ manifest:
   version: "1.0"
 
   remotes:
+    - name: test
+      url-base: git@192.168.11.211:oss
     - name: github
       url-base: https://github.com/hpmicro
     - name: cherry-embedded
@@ -24,8 +26,11 @@ manifest:
 
   projects:
     - name: zephyr
-      repo-path: zephyr
-      revision: zsg_v0.5.0
+      remote: test
+      repo-path: hpm_zephyrproject
+      revision: v0.6.0-zsg-rc1
+      # repo-path: zephyr
+      # revision: zsg_v0.5.0
       import:
         name-allowlist:
           - west-commands

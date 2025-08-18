@@ -1,29 +1,15 @@
 # Change Log
 
-## 2025.8.4
+## [0.6.0] - 2025.8.4
 
+All changes since 0.5.0
+
+### Changed:
 - update all soc clock name and value
 - update patch for sdk_env v1.10.0
 - change SOC file structure
 - update openocd runner scripts
 - update sdk_env to v1.10.0
-
-## [0.5.0] - 2025.5.25
-
-All changes since 0.2.0
-
-### Fixed:
-  - [fix] defconfig: fix nocache memory size not aligned by power of 2
-
-### Added:
-  - [add] drivers: usb device: add udc driver
-  - [add] drivers: add cherryusb device driver
-  - [add] drivers: add cherryusb host driver
-  - [add] driver: add ethernet driver adaptaion layer
-  - [add] samples: add cherryusb device cdc acm vcom sample
-  - [add] samples: add cherryusb device sample: msc: ram disk
-  - [add] samples: add cherryusb host cdc acm sample
-  - [add] samples: cherryusb: add msc disk sample 
 
 ### Verified sample: (-PATH @CASE :SNIPPETS)
 - hpm6750evk2:
@@ -78,6 +64,23 @@ All changes since 0.2.0
   - sdk_glue/samples/cherryusb/device/cdc_acm/cdc_acm_vcom
   - sdk_glue/samples/cherryusb/host/cdc_acm
   - sdk_glue/samples/cherryusb/host/msc_disk
+
+## [0.5.0] - 2025.5.25
+
+All changes since 0.2.0
+
+### Fixed:
+  - [fix] defconfig: fix nocache memory size not aligned by power of 2
+
+### Added:
+  - [add] drivers: usb device: add udc driver
+  - [add] drivers: add cherryusb device driver
+  - [add] drivers: add cherryusb host driver
+  - [add] driver: add ethernet driver adaptaion layer
+  - [add] samples: add cherryusb device cdc acm vcom sample
+  - [add] samples: add cherryusb device sample: msc: ram disk
+  - [add] samples: add cherryusb host cdc acm sample
+  - [add] samples: cherryusb: add msc disk sample 
 
 ## [0.2.0] - 2024.11.12:
 

@@ -45,8 +45,8 @@ When the example runs successfully, the board shows the following prints:
     [00:00:00.001,000] <inf> app: CANopen stack initialized
 
     canbox settings:
-    if driver is can, baudrate choose 500k and data baudrate choose 2M;
-    if driver is mcan, baudrate choose 1M and data baudrate choose 5M;
+    if driver is can, baudrate choose 1M and data baudrate choose 5M;
+    if driver is mcan, baudrate choose 500k and data baudrate choose 2M;
     canbox will show receive messages:
     1	0x70A	1	7F	0.000000(time)	接收	标准帧	数据帧	CAN	CAN1	0x53800101(device_num)
 

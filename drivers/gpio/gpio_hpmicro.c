@@ -22,6 +22,7 @@ struct gpio_hpm_config {
 	struct gpio_driver_config common;
 	GPIO_Type *gpio_base;
 	uint32_t  port_base;
+	uint32_t  port_num;
 #ifdef CONFIG_PINCTRL
 	const struct pinctrl_dev_config *pincfg;
 #endif /* CONFIG_PINCTRL */
@@ -245,6 +246,7 @@ static const struct gpio_driver_api gpio_hpm_driver_api = {
 	} while (0)
 
 #define GPIO_PORT_BASE_ADDR(n) DT_INST_PROP(n, hpmicro_gpio_port)
+#define GPIO_PORT_NUM(n) DT_INST_PROP(n, hpmicro_gpio_port)
 
 #ifdef CONFIG_PINCTRL
 #define PINCTRL_INIT(n) .pincfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n),
@@ -263,6 +265,7 @@ static const struct gpio_driver_api gpio_hpm_driver_api = {
 		},							\
 		.gpio_base = (GPIO_Type *)DT_INST_REG_ADDR(n),		\
 		.port_base = GPIO_PORT_BASE_ADDR(n),	\
+		.port_num = GPIO_PORT_NUM(n),	\
 		PINCTRL_INIT(n)		\
 	};								\
 									\

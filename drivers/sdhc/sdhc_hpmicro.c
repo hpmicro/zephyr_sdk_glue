@@ -35,6 +35,16 @@ LOG_MODULE_REGISTER(hpmicro_hpm_sdhc, CONFIG_SDHC_LOG_LEVEL);
 #define PINCTRL_STATE_FAST (PINCTRL_STATE_PRIV_START + 2U)
 #define PINCTRL_STATE_NOPULL (PINCTRL_STATE_PRIV_START + 3U)
 
+struct gpio_hpm_config {
+	struct gpio_driver_config common;
+	GPIO_Type *gpio_base;
+	uint32_t  port_base;
+	uint32_t  port_num;
+#ifdef CONFIG_PINCTRL
+	const struct pinctrl_dev_config *pincfg;
+#endif /* CONFIG_PINCTRL */
+};
+
 /* max buffer = 256*512 + 128 adma desc; and satisfy 2^x non-cache buffer size*/
 #define DUMMY_BUF_LEN 0x40000 - 128
 #define CONFIG_HPM_SDHC_DMA_BUFFER_SIZE 128
@@ -48,6 +58,8 @@ struct hpm_sdhc_config {
     uint32_t clock_div;
     const struct gpio_dt_spec pwr_gpio;
     const struct gpio_dt_spec detect_gpio;
+    struct gpio_dt_spec vsel_gpio;
+    const uint8_t vsel_gpios_polarity;
     uint32_t power_delay_ms;
     uint32_t max_bus_freq;
     uint32_t min_bus_freq;
@@ -57,7 +69,7 @@ struct hpm_sdhc_config {
     bool pwr_3v0_support;
     bool pwr_1v8_support;
     bool detect_gpio_support;
-    bool embedded_4_bit_support;
+bool embedded_4_bit_support;
     const struct pinctrl_dev_config *pincfg;
     void (*irq_config_func)(const struct device *dev);
 };
@@ -248,10 +260,15 @@ static int hpm_sdhc_set_io(const struct device *dev, struct sdhc_io *ios)
             if (delay_cnt < 1) {
                 return -EIO;
             }
+
+            struct gpio_hpm_config *config = cfg->vsel_gpio.port->config;
+            uint32_t port_num = config->port_num;
+
+            gpio_set_pin_output_with_initial(HPM_GPIO0, port_num, cfg->vsel_gpio.pin, !cfg->vsel_gpios_polarity);
             /* 3. Switch signaling to 1.8v */
             sdxc_select_voltage(base, sdxc_bus_voltage_sd_1v8);
             /* 4. delay 5ms */
-            k_msleep(5);
+            k_msleep(50);
             /* 5. Provide SD clock the card again */
             sdxc_enable_inverse_clock(base, true);
             sdxc_enable_sd_clock(base, true);
@@ -1039,6 +1056,8 @@ static const struct sdhc_driver_api hpm_sdhc_driver_api = {
         .clock_div = DT_INST_PROP(n, clk_divider), \
         .pwr_gpio = GPIO_DT_SPEC_INST_GET_OR(n, pwr_gpios, 0),    \
         .detect_gpio = GPIO_DT_SPEC_INST_GET_OR(n, cd_gpios, 0),    \
+        .vsel_gpio = GPIO_DT_SPEC_INST_GET_OR(n, vsel_gpios, 0),    \
+        .vsel_gpios_polarity = GPIO_DT_SPEC_INST_GET_OR(n, vsel_gpios_polarity, 0),    \
         .pwr_3v3_support = DT_INST_PROP(n, pwr_3v3_support),        \
         .pwr_3v0_support = DT_INST_PROP(n, pwr_3v0_support),        \
         .pwr_1v8_support = DT_INST_PROP(n, pwr_1v8_support),        \

@@ -45,6 +45,17 @@ properties:
       property value should ensure the flags properly describe the signal
       that is presented to the driver.
 
+  vsel-gpios:
+    type: phandle-array
+    description: |
+      Voltage select pin
+      This pin used to set pin when select pin.
+
+  vsel-gpios-polarity:
+    type: boolean
+    description: |
+      VOLTAGE_SWITCH_PIN_POL
+
   embedded-4-bit-support:
     type: boolean
     description: |

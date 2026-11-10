@@ -6,6 +6,7 @@
  */
 #include "display.h"
 #include "hpm_clock_drv.h"
+#include <drivers/clock_control/hpmicro_clock_control.h>
 #ifdef CONFIG_HPM_DISPLAY_PIXELMUX
 #include <hpm_pixelmux_drv.h>
 #endif
@@ -37,8 +38,13 @@ static int hpm_display_lcdc_clk_init(const struct device *dev)
     freq_khz = clock_get_frequency(lcdc->pll_clock_name) / 1000;
     div      = (freq_khz + timing->pixel_clock_khz / 2) / timing->pixel_clock_khz;
 
-    clock_add_to_group(lcdc->lcdc_clock_name, 0);
-    clock_set_source_divider(lcdc->lcdc_clock_name, lcdc->lcdc_clock_src, div);
+    const struct hpm_clock_dt_spec lcdc_clock = {
+        .name = (clock_name_t)lcdc->lcdc_clock_name,
+        .src = (clk_src_t)lcdc->lcdc_clock_src,
+        .div = div,
+    };
+
+    clock_configure_enable(&lcdc_clock);
     data->pixel_clk_khz = clock_get_frequency(lcdc->lcdc_clock_name) / 1000;
 
     LOG_INF("pll clk        : %u KHz", freq_khz);

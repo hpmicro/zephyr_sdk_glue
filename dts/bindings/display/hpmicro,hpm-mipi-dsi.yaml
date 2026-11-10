@@ -1,4 +1,4 @@
-# Copyright 2024 HPMicro
+# Copyright 2024, 2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 description: HPMicro HPM MIPI-DSI
@@ -16,3 +16,11 @@ properties:
     type: int
     required: true
     description: mipi dsi instance number
+  mipi_dsi_phy:
+    type: phandle
+    required: true
+    description: mipi dsi phy node
+  pixelmux:
+    type: phandle
+    required: true
+    description: pixelmux node

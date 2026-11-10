@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 HPMicro
+ * Copyright (c) 2022-2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -24,10 +24,12 @@
 #include <zephyr/irq.h>
 
 #include "hpm_common.h"
+#include <hpm_l1c_drv.h>
 #include "hpm_sdxc_drv.h"
 #include <drivers/sdhc/sdhc_hpmicro_sdmmc.h>
 #include "hpm_clock_drv.h"
 #include "hpm_gpio_drv.h"
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 LOG_MODULE_REGISTER(hpmicro_hpm_sdhc, CONFIG_SDHC_LOG_LEVEL);
 
@@ -47,9 +49,10 @@ struct gpio_hpm_config {
 };
 
 /* max buffer = 256*512 + 128 adma desc; and satisfy 2^x non-cache buffer size*/
-#define DUMMY_BUF_LEN 0x40000 - 128
+#define DUMMY_BUF_LEN (0x40000 - 128)
 #define CONFIG_HPM_SDHC_DMA_BUFFER_SIZE 128
-__attribute__((__section__(".nocache"))) static uint32_t dummy_buffer[DUMMY_BUF_LEN/4];
+__attribute__((__section__(".nocache")))
+static uint32_t dummy_buffer[DUMMY_BUF_LEN / 4] __aligned(HPM_L1C_CACHELINE_SIZE);
 extern uint32_t hpm_board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq, bool need_inverse);
 
 struct hpm_sdhc_config {
@@ -163,9 +166,9 @@ static void hpm_sdhc_init_host_props(const struct device *dev)
     props->host_caps.sdr104_support = caps.capabilities2.sdr104_support;
     props->host_caps.sdr50_support = caps.capabilities2.sdr50_support;
     props->host_caps.bus_8_bit_support = caps.capabilities1.embedded_8_bit_support;
-    props->host_caps.bus_4_bit_support = cfg->embedded_4_bit_support;
-    props->host_caps.hs200_support = cfg->mmc_hs200_1_8v;
-    props->host_caps.hs400_support = cfg->mmc_hs400_1_8v;
+    props->bus_4_bit_support = cfg->embedded_4_bit_support;
+    props->hs200_support = cfg->mmc_hs200_1_8v;
+    props->hs400_support = cfg->mmc_hs400_1_8v;
 }
 
 /*
@@ -316,6 +319,14 @@ static int hpm_sdhc_set_io(const struct device *dev, struct sdhc_io *ios)
         host_io->power_mode = ios->power_mode;
     }
 
+    /* After power-on the card needs at least 74 SDCLK cycles before it can
+     * accept commands. Let the hardware clock the card and wait for the
+     * CARD_ACTIVE flag, mirroring sdmmchost_wait_card_active() in the
+     * reference hpm_sdmmc host stack. */
+    if (ios->power_mode == SDHC_POWER_ON) {
+        sdxc_wait_card_active(base);
+    }
+
     /* Set I/O timing */
     if (host_io->timing != ios->timing) {
         switch (ios->timing) {
@@ -365,6 +376,29 @@ static int hpm_sdhc_card_busy(const struct device *dev)
 }
 
 /*
+ * Wait until the SDXC controller is idle (CMD and DAT lines are not
+ * inhibited), mirroring sdmmchost_wait_idle() in the reference hpm_sdmmc
+ * host stack. This prevents issuing a new command while the controller is
+ * still monitoring the busy signal of a previous R1b command (e.g. CMD38
+ * erase whose busy period outlasts the command timeout).
+ */
+static hpm_stat_t hpm_sdhc_wait_bus_idle(const struct device *dev)
+{
+    const struct hpm_sdhc_config *cfg = dev->config;
+    SDXC_Type *base = cfg->base;
+    uint32_t wait_cnt = 1000U;
+
+    while (!sdxc_is_bus_idle(base) && (wait_cnt > 0U)) {
+        wait_cnt--;
+        k_sleep(K_MSEC(1));
+    }
+    if (wait_cnt == 0U) {
+        return status_timeout;
+    }
+    return status_success;
+}
+
+/*
  * Execute card tuning
  */
 static int hpm_sdhc_execute_tuning(const struct device *dev)
@@ -372,7 +406,6 @@ static int hpm_sdhc_execute_tuning(const struct device *dev)
     struct hpm_sdhc_data *dev_data = dev->data;
     const struct hpm_sdhc_config *cfg = dev->config;
     SDXC_Type *base = cfg->base;
-    hpm_stat_t status = status_invalid_argument;
     uint8_t tuning_cmd;
 
     /* Prepare the Auto tuning environment */
@@ -386,14 +419,77 @@ static int hpm_sdhc_execute_tuning(const struct device *dev)
     } else {    
         tuning_cmd = 21U;    
     }
-    status = sdxc_perform_auto_tuning(base, tuning_cmd);
+    if(sdxc_perform_auto_tuning(base, tuning_cmd) != status_success) {
+        return -EIO;
+    } else {
+        return 0;
+    }
+}
 
-    return status;
+/* Data/CMD-phase error bits delivered via the interrupt + semaphore.
+ * CARD_* bits are handled separately by the ISR callbacks. */
+#define HPM_SDHC_XFER_ERR_MASK \
+    (SDXC_INT_STAT_ERR_INTERRUPT_MASK | SDXC_STS_CMD_ERR | SDXC_STS_DATA_ERR)
+
+static hpm_stat_t hpm_sdhc_parse_status_from_mask(uint32_t st)
+{
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_CMD_TOUT_ERR_MASK)) {
+        return status_sdxc_cmd_timeout_error;
+    }
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_CMD_CRC_ERR_MASK)) {
+        return status_sdxc_cmd_crc_error;
+    }
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_CMD_END_BIT_ERR_MASK)) {
+        return status_sdxc_cmd_end_bit_error;
+    }
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_CMD_IDX_ERR_MASK)) {
+        return status_sdxc_cmd_index_error;
+    }
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_DATA_TOUT_ERR_MASK)) {
+        return status_sdxc_data_timeout_error;
+    }
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_DATA_CRC_ERR_MASK)) {
+        return status_sdxc_data_crc_error;
+    }
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_DATA_END_BIT_ERR_MASK)) {
+        return status_sdxc_data_end_bit_error;
+    }
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_ADMA_ERR_MASK)) {
+        return status_sdxc_adma_error;
+    }
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_TUNING_ERR_MASK)) {
+        return status_sdxc_tuning_error;
+    }
+    if (IS_HPM_BITMASK_SET(st, SDXC_INT_STAT_RESP_ERR_MASK)) {
+        return status_sdxc_response_error;
+    }
+    return status_sdxc_error;
+}
+
+/* Wait for the transfer-complete / error interrupt via the semaphore.
+ * Returns status_success when done_mask is set, an SDXC error status when an
+ * error bit was recorded, status_timeout on timeout, status_fail otherwise. */
+static hpm_stat_t hpm_sdhc_wait_done(const struct device *dev, uint32_t done_mask,
+                                     int32_t timeout_ms)
+{
+    struct hpm_sdhc_data *data = dev->data;
+
+    if (k_sem_take(&data->transfer_sem, K_MSEC(timeout_ms)) != 0) {
+        return status_timeout;
+    }
+    if (data->transfer_status & done_mask) {
+        return status_success;
+    }
+    if (data->transfer_status & HPM_SDHC_XFER_ERR_MASK) {
+        return hpm_sdhc_parse_status_from_mask(data->transfer_status);
+    }
+    return status_fail;
 }
 
 static hpm_stat_t hpm_sdhc_send_command(const struct device *dev, sdxc_command_t *cmd)
 {
     const struct hpm_sdhc_config *cfg = dev->config;
+    struct hpm_sdhc_data *dev_data = dev->data;
     SDXC_Type *base = cfg->base;
     hpm_stat_t status;
     int ret;
@@ -404,6 +500,17 @@ static hpm_stat_t hpm_sdhc_send_command(const struct device *dev, sdxc_command_t
         return status_fail;
     }
 
+    status = hpm_sdhc_wait_bus_idle(dev);
+    if (status != status_success) {
+        return status;
+    }
+
+    /* Clean leftover completion/error state from any previous transfer so the
+     * per-transfer interrupt signal only reflects this command. */
+    sdxc_clear_interrupt_status(base, SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK);
+    dev_data->transfer_status = 0;
+    k_sem_take(&dev_data->transfer_sem, K_NO_WAIT);
+
     status = sdxc_send_command(base, cmd);
     if (status != status_success) {
         return status;
@@ -412,25 +519,22 @@ static hpm_stat_t hpm_sdhc_send_command(const struct device *dev, sdxc_command_t
     int64_t delay_cnt = 1000000;
     uint32_t int_stat;
     bool has_done_or_error = false;
+    status = status_success;
     do {
         int_stat = sdxc_get_interrupt_status(base);
         if (!IS_HPM_BITMASK_SET(int_stat, SDXC_INT_STAT_CMD_COMPLETE_MASK)) {
             delay_cnt--;
-
         } else {
             has_done_or_error = true;
         }
-
         status = sdxc_parse_interrupt_status(base);
         if (status != status_success) {
             has_done_or_error = true;
         }
-
     } while ((!has_done_or_error) && (delay_cnt > 0));
 
     if ((delay_cnt <= 0) && (!has_done_or_error)) {
-        status = status_timeout;
-        return status;
+        return status_timeout;
     }
     if (status != status_success) {
         return status;
@@ -440,32 +544,34 @@ static hpm_stat_t hpm_sdhc_send_command(const struct device *dev, sdxc_command_t
 
     if (cmd->resp_type == (sdxc_dev_resp_type_t) sdmmc_resp_r1b) {
         uint32_t delay_ms = (cmd->cmd_timeout_ms == 0) ? 100 : cmd->cmd_timeout_ms;
-        delay_cnt = 10 * 1000 * delay_ms;
-        has_done_or_error = false;
-        do {
-            int_stat = sdxc_get_interrupt_status(base);
-            if (!IS_HPM_BITMASK_SET(int_stat, SDXC_INT_STAT_XFER_COMPLETE_MASK)) {
-                delay_cnt--;
-            } else {
-                has_done_or_error = true;
-            }
-            status = sdxc_parse_interrupt_status(base);
-            if (status != status_success) {
-                has_done_or_error = true;
-            }
-        } while ((!has_done_or_error) && (delay_cnt > 0));
-
-        if ((delay_cnt <= 0) && (!has_done_or_error)) {
-            status = status_timeout;
+        if (delay_ms > 10000U) {
+            delay_ms = 10000U; /* clamp for K_MSEC */
         }
-
-        sdxc_clear_interrupt_status(base, SDXC_INT_STAT_XFER_COMPLETE_MASK);
+        /* R1b busy: enable the interrupt just for this wait, then disable.
+         * Note: don't clear XFER_COMPLETE here - if the transfer already
+         * finished during the CMD phase the pending bit must stay so the ISR
+         * fires immediately after the signal is enabled.
+         * Timeout is tolerated, as in the reference hpm_sdmmc host stack
+         * (sdmmchost_send_command): the SDXC may not assert XFER_COMPLETE
+         * for a pure R1b command, and the erase/write busy period can exceed
+         * CONFIG_SD_CMD_TIMEOUT. The SD stack polls the card via CMD13
+         * (sdmmc_wait_ready) afterwards, so a timeout here is not fatal. */
+        dev_data->transfer_status = 0;
+        k_sem_take(&dev_data->transfer_sem, K_NO_WAIT);
+        sdxc_enable_interrupt_signal(base, SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK, true);
+        status = hpm_sdhc_wait_done(dev, SDXC_INT_STAT_XFER_COMPLETE_MASK, delay_ms);
+        sdxc_enable_interrupt_signal(base, SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK, false);
+        sdxc_clear_interrupt_status(base, SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK);
+        if (status == status_timeout) {
+            status = status_success;
+        }
     }
 
     return status;
 }
 
-static hpm_stat_t hpm_sdhc_send_content(const struct device *dev, sdxc_xfer_t *content)
+static hpm_stat_t hpm_sdhc_send_content(const struct device *dev, sdxc_xfer_t *content,
+                                        int32_t timeout_ms)
 {
     const struct hpm_sdhc_config *cfg = dev->config;
     SDXC_Type *base = cfg->base;
@@ -477,6 +583,11 @@ static hpm_stat_t hpm_sdhc_send_content(const struct device *dev, sdxc_xfer_t *c
     if (!ret) {
         LOG_DBG("No card detected!");
         return status_fail;
+    }
+
+    status = hpm_sdhc_wait_bus_idle(dev);
+    if (status != status_success) {
+        return status;
     }
 
     sdxc_adma_config_t dma_config = { 0 };
@@ -491,15 +602,22 @@ static hpm_stat_t hpm_sdhc_send_content(const struct device *dev, sdxc_xfer_t *c
         uint32_t block_cnt = content->data->block_cnt;
         uint32_t block_size = content->data->block_size;
         uint32_t read_write_size = block_cnt * block_size;
-        uint32_t timeout_ms = (uint32_t) (1.0f * read_write_size / tx_rx_bytes_per_sec) * 1000 + 500;
-        sdxc_set_data_timeout(base, timeout_ms, NULL);
+        uint32_t xfer_timeout_ms = (uint32_t) (1.0f * read_write_size / tx_rx_bytes_per_sec) * 1000 + 500;
+        sdxc_set_data_timeout(base, xfer_timeout_ms, NULL);
     }
+
+    /* Clean leftover completion/error state from any previous transfer so the
+     * per-transfer interrupt signal only reflects this transfer. */
+    sdxc_clear_interrupt_status(base, SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK);
+    dev_data->transfer_status = 0;
+    k_sem_take(&dev_data->transfer_sem, K_NO_WAIT);
 
     status = sdxc_transfer_nonblocking(base, &dma_config, content);
 
     int32_t delay_cnt = 1000000U;
     uint32_t int_stat;
     bool has_done_or_error = false;
+    status = status_success;
     do {
         int_stat = sdxc_get_interrupt_status(base);
         if (!IS_HPM_BITMASK_SET(int_stat, SDXC_INT_STAT_CMD_COMPLETE_MASK)) {
@@ -507,7 +625,6 @@ static hpm_stat_t hpm_sdhc_send_content(const struct device *dev, sdxc_xfer_t *c
         } else {
             has_done_or_error = true;
         }
-
         status = sdxc_parse_interrupt_status(base);
         if (status != status_success) {
             has_done_or_error = true;
@@ -515,8 +632,7 @@ static hpm_stat_t hpm_sdhc_send_content(const struct device *dev, sdxc_xfer_t *c
     } while ((!has_done_or_error) && (delay_cnt > 0));
 
     if ((delay_cnt <= 0) && (!has_done_or_error)) {
-        status = status_timeout;
-        return status;
+        return status_timeout;
     }
     if (status != status_success) {
         return status;
@@ -526,27 +642,17 @@ static hpm_stat_t hpm_sdhc_send_content(const struct device *dev, sdxc_xfer_t *c
     sdxc_clear_interrupt_status(base, SDXC_INT_STAT_CMD_COMPLETE_MASK);
 
     if ((content->data != NULL) || (content->command->resp_type == (sdxc_dev_resp_type_t) sdmmc_resp_r1b)) {
-        delay_cnt = 10000000UL; /* Delay more than 1 second based on the Bus Frequency */
-        uint32_t xfer_done_or_error_mask = SDXC_INT_STAT_XFER_COMPLETE_MASK | SDXC_STS_ERROR;
-        has_done_or_error = false;
-        do {
-            int_stat = sdxc_get_interrupt_status(base);
-            if (!IS_HPM_BITMASK_SET(int_stat, xfer_done_or_error_mask)) {
-                delay_cnt--;
-            } else {
-                has_done_or_error = true;
-            }
-            status = sdxc_parse_interrupt_status(base);
-            if (status != status_success) {
-                has_done_or_error = true;
-            }
-        } while ((delay_cnt > 0) && (!has_done_or_error));
-
-        if (delay_cnt <= 0) {
-            status = status_sdxc_data_timeout_error;
-        }
-
-        sdxc_clear_interrupt_status(base, SDXC_INT_STAT_XFER_COMPLETE_MASK);
+        /* Data / R1b-busy phase: enable the interrupt just for this wait
+         * (yields CPU instead of busy-polling), then disable it.
+         * Note: don't clear XFER_COMPLETE here - if the transfer already
+         * finished during the CMD phase the pending bit must stay so the ISR
+         * fires immediately after the signal is enabled. */
+        dev_data->transfer_status = 0;
+        k_sem_take(&dev_data->transfer_sem, K_NO_WAIT);
+        sdxc_enable_interrupt_signal(base, SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK, true);
+        status = hpm_sdhc_wait_done(dev, SDXC_INT_STAT_XFER_COMPLETE_MASK, timeout_ms);
+        sdxc_enable_interrupt_signal(base, SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK, false);
+        sdxc_clear_interrupt_status(base, SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK);
     }
 
     return status;
@@ -556,12 +662,14 @@ static hpm_stat_t hpm_sdhc_error_recovery(const struct device *dev)
 {
     const struct hpm_sdhc_config *cfg = dev->config;
     SDXC_Type *base = cfg->base;
-    sdxc_command_t *recovery_cmd = {0};
-    recovery_cmd->cmd_index = sdmmc_cmd_stop_transmission;
-    recovery_cmd->cmd_type = sdxc_cmd_type_abort_cmd;
-    recovery_cmd->resp_type = (sdxc_dev_resp_type_t) sdmmc_resp_r1b;
+    sdxc_command_t recovery_cmd = {0};
+    recovery_cmd.cmd_index = sdmmc_cmd_stop_transmission;
+    recovery_cmd.cmd_type = sdxc_cmd_type_abort_cmd;
+    recovery_cmd.resp_type = (sdxc_dev_resp_type_t) sdmmc_resp_r1b;
 
-    return sdxc_error_recovery(base, recovery_cmd);
+    sdxc_reset(base, sdxc_reset_cmd_line, 0xFFFFU);
+    sdxc_reset(base, sdxc_reset_data_line, 0xFFFFU);
+    return sdxc_error_recovery(base, &recovery_cmd);
 }
 
 /*
@@ -575,8 +683,10 @@ static hpm_stat_t hpm_sdhc_transfer(const struct device *dev, struct sdhc_comman
     sdxc_xfer_t *host_content = &dev_data->xfer_data.xfer;
     int retries = (int)cmd->retries;
     hpm_stat_t status;
-    bool need_cp =0;
-    uint32_t cp_write_size =0;
+    bool need_cp = false;
+    bool is_write = false;
+    bool use_direct_dma = false;
+    uint32_t transfer_size = 0U;
 
     if (k_mutex_lock(&dev_data->access_mutex, K_MSEC(cmd->timeout_ms)) != 0) {
         return -EBUSY;
@@ -584,11 +694,11 @@ static hpm_stat_t hpm_sdhc_transfer(const struct device *dev, struct sdhc_comman
 
 #if defined(CONFIG_HPMICRO_BOARD_SUPPORT_EMMC)
     if (cmd->opcode == SD_SEND_IF_COND && data == NULL) {
+        k_mutex_unlock(&dev_data->access_mutex);
         return 0;
     }
 #endif
 
-    memset(&dummy_buffer, 0, DUMMY_BUF_LEN);
     memset(host_cmd, 0, sizeof(*host_cmd));
 
     host_cmd->cmd_index = cmd->opcode;
@@ -605,12 +715,17 @@ static hpm_stat_t hpm_sdhc_transfer(const struct device *dev, struct sdhc_comman
         memset(host_data, 0, sizeof(*host_data));
         host_data->block_size = data->block_size;
         host_data->block_cnt = data->blocks;
+        transfer_size = data->block_size * data->blocks;
+
+        if ((data->data == NULL) || (transfer_size == 0U)) {
+            k_mutex_unlock(&dev_data->access_mutex);
+            return -EINVAL;
+        }
+
         switch (cmd->opcode) {
             case SD_WRITE_SINGLE_BLOCK:
                 host_data->enable_auto_cmd12 = false;
-                cp_write_size = host_data->block_size * host_data->block_cnt;
-                memcpy(&dummy_buffer, data->data, cp_write_size);
-                host_data->tx_data = (const uint32_t *) &dummy_buffer;
+                is_write = true;
                 break;
             case SD_WRITE_MULTIPLE_BLOCK:
                 if (dev_data->host_io.timing == SDHC_TIMING_SDR104) {
@@ -618,13 +733,9 @@ static hpm_stat_t hpm_sdhc_transfer(const struct device *dev, struct sdhc_comman
                 } else {
                     host_data->enable_auto_cmd12 = true;
                 }
-                cp_write_size = host_data->block_size * host_data->block_cnt;
-                memcpy(&dummy_buffer, data->data, cp_write_size);
-                host_data->tx_data = (const uint32_t *) &dummy_buffer;
+                is_write = true;
                 break;
             case SD_READ_SINGLE_BLOCK:
-                host_data->rx_data = (uint32_t *) &dummy_buffer;
-                need_cp =1;
                 break;
             case SD_READ_MULTIPLE_BLOCK:
                 if (dev_data->host_io.timing == SDHC_TIMING_SDR104) {
@@ -632,52 +743,85 @@ static hpm_stat_t hpm_sdhc_transfer(const struct device *dev, struct sdhc_comman
                 } else {
                     host_data->enable_auto_cmd12 = true;
                 }
-                host_data->rx_data = (uint32_t *) &dummy_buffer;
-                need_cp =1;
                 break;
             case SD_SWITCH:
             case SD_APP_SEND_SCR:
             case MMC_SEND_EXT_CSD:
             case MMC_CHECK_BUS_TEST:
             case SD_APP_SEND_NUM_WRITTEN_BLK:
-                host_data->rx_data = (uint32_t *) &dummy_buffer;
-                need_cp =1;
                 break;
             case SDIO_RW_EXTENDED:
-                if (host_cmd->cmd_argument & BIT(SDIO_CMD_ARG_RW_SHIFT)) {
-                    cp_write_size = host_data->block_size * host_data->block_cnt;
-                    memcpy(&dummy_buffer, data->data, cp_write_size);
-                    host_data->tx_data = (uint32_t *) &dummy_buffer;
-                } else {
-                    host_data->rx_data = (uint32_t *) &dummy_buffer;
-                    need_cp =1;
-                }
+                is_write = (host_cmd->cmd_argument & BIT(SDIO_CMD_ARG_RW_SHIFT)) != 0U;
                 break;
             default:
+                k_mutex_unlock(&dev_data->access_mutex);
                 return -ENOTSUP;
+        }
+
+        /* Use the caller's buffer directly when both address and length are
+         * cache-line aligned.  Otherwise use the non-cacheable bounce buffer
+         * so the SDXC DMA never touches a partial cache line. */
+        use_direct_dma = (((uintptr_t)data->data & (HPM_L1C_CACHELINE_SIZE - 1U)) == 0U) &&
+                         ((transfer_size & (HPM_L1C_CACHELINE_SIZE - 1U)) == 0U);
+
+        if (use_direct_dma) {
+            if (is_write) {
+                l1c_dc_flush((uint32_t)(uintptr_t)data->data, transfer_size);
+                host_data->tx_data = (const uint32_t *)data->data;
+            } else {
+                l1c_dc_invalidate((uint32_t)(uintptr_t)data->data, transfer_size);
+                host_data->rx_data = (uint32_t *)data->data;
+            }
+        } else if (is_write) {
+            if (transfer_size > sizeof(dummy_buffer)) {
+                k_mutex_unlock(&dev_data->access_mutex);
+                return -ENOBUFS;
+            }
+            memcpy(dummy_buffer, data->data, transfer_size);
+            host_data->tx_data = (const uint32_t *)dummy_buffer;
+        } else {
+            if (transfer_size > sizeof(dummy_buffer)) {
+                k_mutex_unlock(&dev_data->access_mutex);
+                return -ENOBUFS;
+            }
+            host_data->rx_data = (uint32_t *)dummy_buffer;
+            need_cp = true;
         }
         host_content->data = (sdxc_data_t *) host_data;
     } else {
         host_content->data = NULL;
     }
     host_content->command = (sdxc_command_t *) host_cmd;
+
+    /* Data-phase completion timeout comes from the upper layer via
+     * sdhc_data.timeout_ms (CONFIG_SD_DATA_TIMEOUT). Fall back to the
+     * command timeout for a pure R1b command without a data buffer. */
+    int32_t data_timeout_ms;
+    if ((data != NULL) && (data->timeout_ms > 0)) {
+        data_timeout_ms = data->timeout_ms;
+    } else if (cmd->timeout_ms > 0) {
+        data_timeout_ms = cmd->timeout_ms;
+    } else {
+        data_timeout_ms = 1000;
+    }
+
     do {
-        status = hpm_sdhc_send_content(dev, host_content);
+        status = hpm_sdhc_send_content(dev, host_content, data_timeout_ms);
         if (status == status_success) {
-            if (data && need_cp == 1) {
+            if (data && need_cp) {
                 uint32_t cp_size = host_content->data->block_size * host_content->data->block_cnt;
-                memcpy(data->data, &dummy_buffer, cp_size);
+                memcpy(data->data, dummy_buffer, cp_size);
             }
             memcpy(cmd->response, host_content->command->response, sizeof(cmd->response));
             break;
-        } else if ((status >= status_sdxc_busy) && (status <= status_sdxc_tuning_failed)) {
-            hpm_stat_t error_recovery_status = hpm_sdhc_error_recovery(dev);
-            if (error_recovery_status != status_success) {
-                return error_recovery_status;
-            }
-            retries --;
         }
-    } while (retries);
+        hpm_stat_t error_recovery_status = hpm_sdhc_error_recovery(dev);
+        if (error_recovery_status != status_success) {
+            k_mutex_unlock(&dev_data->access_mutex);
+            return error_recovery_status;
+        }
+        retries--;
+    } while (retries > 0);
     k_mutex_unlock(&dev_data->access_mutex);
     return status;
 }
@@ -707,14 +851,14 @@ static int hpm_sdhc_cmd_send(const struct device *dev, struct sdhc_command *cmd,
         if (status == status_success) {
             memcpy(cmd->response, host_cmd.response, sizeof(cmd->response));
             break;
-        } else if ((status >= status_sdxc_busy) && (status <= status_sdxc_tuning_failed)) {
-            hpm_stat_t error_recovery_status = hpm_sdhc_error_recovery(dev);
-            if (error_recovery_status != status_success) {
-                return error_recovery_status;
-            }
-            retries --;
         }
-    } while (retries);
+        hpm_stat_t error_recovery_status = hpm_sdhc_error_recovery(dev);
+        if (error_recovery_status != status_success) {
+            k_mutex_unlock(&dev_data->access_mutex);
+            return error_recovery_status;
+        }
+        retries--;
+    } while (retries > 0);
     k_mutex_unlock(&dev_data->access_mutex);
     return status;
 }
@@ -763,7 +907,7 @@ static int hpm_sdhc_get_card_present(const struct device *dev)
 {
     struct hpm_sdhc_data *data = dev->data;
 
-#if !defined(CONFIG_HPMICRO_BOARD_SUPPORT_EMMC)
+#if defined(CONFIG_HPMICRO_BOARD_SUPPORT_SD_DETECT)
     const struct hpm_sdhc_config *cfg = dev->config;
     if (cfg->detect_gpio.port) {
         data->card_present = gpio_pin_get_dt(&cfg->detect_gpio) > 0;
@@ -802,10 +946,6 @@ static int hpm_sdhc_enable_interrupt(const struct device *dev,
     /* Record SDIO callback parameters */
     data->sdhc_cb = callback;
     data->sdhc_cb_user_data = user_data;
-
-    /* Disable all interrupts, then enable what the user requested */
-    sdxc_enable_interrupt_status(cfg->base, SDXC_STS_ALL_FLAGS, false);
-    sdxc_enable_interrupt_signal(cfg->base, SDXC_STS_ALL_FLAGS, false);
 
     if (sources & SDHC_INT_SDIO) {
         /* Enable SDIO card interrupt */
@@ -896,17 +1036,32 @@ __attribute__((section(".isr")))static int hpm_sdhc_isr(const struct device *dev
     uint32_t interrupt_status = 0;
 
     interrupt_status = sdxc_get_interrupt_status(cfg->base);
+
+    /* Data-phase completion / errors: record, clear and wake the waiter.
+     * CMD_COMPLETE stays polled by the caller, so it is not touched here. */
+    if (interrupt_status & (SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK)) {
+        data->transfer_status = interrupt_status;
+        sdxc_clear_interrupt_status(cfg->base, SDXC_INT_STAT_XFER_COMPLETE_MASK | HPM_SDHC_XFER_ERR_MASK);
+        k_sem_give(&data->transfer_sem);
+    }
     if (IS_HPM_BITMASK_SET(interrupt_status, SDXC_INT_STAT_CARD_INSERTION_MASK)) {
         if (data->sdhc_cb) {
             data->sdhc_cb(dev, SDHC_INT_INSERTED, data->sdhc_cb_user_data);
+            sdxc_clear_interrupt_status(cfg->base, SDXC_INT_STAT_CARD_INSERTION_MASK);
         }
     }
     if (IS_HPM_BITMASK_SET(interrupt_status, SDXC_INT_STAT_CARD_REMOVAL_MASK)) {
         if (data->sdhc_cb) {
             data->sdhc_cb(dev, SDHC_INT_REMOVED, data->sdhc_cb_user_data);
+            sdxc_clear_interrupt_status(cfg->base, SDXC_INT_STAT_CARD_REMOVAL_MASK);
         }
     }
-    sdxc_clear_interrupt_status(cfg->base, interrupt_status);
+    if (IS_HPM_BITMASK_SET(interrupt_status, SDXC_INT_STAT_CARD_INTERRUPT_MASK)) {
+        if (data->sdhc_cb) {
+            data->sdhc_cb(dev, SDHC_INT_SDIO, data->sdhc_cb_user_data);
+            sdxc_clear_interrupt_status(cfg->base, SDXC_INT_STAT_CARD_INTERRUPT_MASK);
+        }
+    }
 
     return 0;
 }
@@ -920,6 +1075,11 @@ static int hpm_sdhc_init(const struct device *dev)
     struct hpm_sdhc_data *data = dev->data;
     SDXC_Type *base = cfg->base;
     int ret;
+    const struct hpm_clock_dt_spec clock = {
+        .name = cfg->clock_name,
+        .src = (clk_src_t)cfg->clock_src,
+        .div = cfg->clock_div,
+    };
 
     ret = pinctrl_apply_state(cfg->pincfg, PINCTRL_STATE_DEFAULT);
     if (ret) {
@@ -935,6 +1095,7 @@ static int hpm_sdhc_init(const struct device *dev)
 #endif
     cfg->irq_config_func(dev);
 
+    clock_configure_enable(&clock);
     hpm_board_sd_configure_clock(base, SDMMC_CLOCK_400KHZ, true);
 
     sdxc_config_t sdxc_config;
@@ -1019,9 +1180,9 @@ static const struct sdhc_driver_api hpm_sdhc_driver_api = {
                                                                         \
     static const struct hpm_sdhc_config hpm_sdhc_config_##n = {            \
         .base = (SDXC_Type *) DT_INST_REG_ADDR(n),            \
-        .clock_name = (clock_name_t)DT_INST_PROP(n, clk_name), \
-        .clock_src = (clock_source_t)DT_INST_PROP(n, clk_source), \
-        .clock_div = DT_INST_PROP(n, clk_divider), \
+        .clock_name = DT_INST_CLOCKS_CELL(n, name),	\
+        .clock_src = DT_INST_CLOCKS_CELL(n, src),	\
+        .clock_div = DT_INST_CLOCKS_CELL(n, div),	\
         .pwr_gpio = GPIO_DT_SPEC_INST_GET_OR(n, pwr_gpios, 0),    \
         .min_bus_freq = DT_INST_PROP(n, min_bus_freq),            \
         .max_bus_freq = DT_INST_PROP(n, max_bus_freq),            \
@@ -1061,9 +1222,9 @@ static const struct sdhc_driver_api hpm_sdhc_driver_api = {
                                                                         \
     static const struct hpm_sdhc_config hpm_sdhc_config_##n = {            \
         .base = (SDXC_Type *) DT_INST_REG_ADDR(n),            \
-        .clock_name = (clock_name_t)DT_INST_PROP(n, clk_name), \
-        .clock_src = (clock_source_t)DT_INST_PROP(n, clk_source), \
-        .clock_div = DT_INST_PROP(n, clk_divider), \
+        .clock_name = DT_INST_CLOCKS_CELL(n, name),	\
+        .clock_src = DT_INST_CLOCKS_CELL(n, src),	\
+        .clock_div = DT_INST_CLOCKS_CELL(n, div),	\
         .pwr_gpio = GPIO_DT_SPEC_INST_GET_OR(n, pwr_gpios, {0}),    \
         .detect_gpio = GPIO_DT_SPEC_INST_GET_OR(n, cd_gpios, {0}),    \
         .vsel_gpio = GPIO_DT_SPEC_INST_GET_OR(n, vsel_gpios, {0}),    \

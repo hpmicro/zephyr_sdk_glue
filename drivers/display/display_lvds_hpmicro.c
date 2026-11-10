@@ -9,6 +9,7 @@
 #include <hpm_pixelmux_drv.h>
 #include <hpm_clock_drv.h>
 #include <hpm_lvb_drv.h>
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 LOG_MODULE_REGISTER(display_hpm_lvds, CONFIG_DISPLAY_LOG_LEVEL);
 
@@ -54,7 +55,7 @@ struct hpm_interface_lvds {
 #define DISPLAY_INTERFACE(inst)                                                                                    \
     .interface = &(struct hpm_interface_lvds) {                                                                    \
         .lvb_base       = (void *)DT_REG_ADDR_BY_NAME(DT_PARENT(INTERFACE_NODE_ID(inst)), lvb),                    \
-        .pixelmux_base  = (void *)DT_REG_ADDR_BY_NAME(DT_PARENT(INTERFACE_NODE_ID(inst)), pixelmux),               \
+        .pixelmux_base = (void *)DT_REG_ADDR(DT_PHANDLE_BY_IDX(DT_PARENT(INTERFACE_NODE_ID(inst)), pixelmux, 0)),  \
         .lvb_clock_name = DT_CLOCKS_CELL_BY_IDX(DT_PARENT(INTERFACE_NODE_ID(inst)), 0, name),                      \
         .lvb_clock_src  = DT_CLOCKS_CELL_BY_IDX(DT_PARENT(INTERFACE_NODE_ID(inst)), 0, src),                       \
         .lvds_channel   = DT_REG_ADDR(INTERFACE_NODE_ID(inst)),                                                    \
@@ -81,8 +82,13 @@ static int hpm_display_lcdc_clk_init(const struct device *dev)
     else
         div = (freq_khz + timing->pixel_clock_khz / 2) / timing->pixel_clock_khz;
 
-    clock_add_to_group(lcdc->lcdc_clock_name, 0);
-    clock_set_source_divider(lcdc->lcdc_clock_name, lcdc->lcdc_clock_src, div);
+    const struct hpm_clock_dt_spec lcdc_clock = {
+        .name = (clock_name_t)lcdc->lcdc_clock_name,
+        .src = (clk_src_t)lcdc->lcdc_clock_src,
+        .div = div,
+    };
+
+    clock_configure_enable(&lcdc_clock);
     data->pixel_clk_khz = clock_get_frequency(lcdc->lcdc_clock_name) / 1000;
 
     LOG_INF("pll clk        : %u KHz", freq_khz);
@@ -130,7 +136,7 @@ static void hpm_display_lvds_panel_lvb_init(const struct device *dev)
     lvb_config_t lvb_config;
     lvb_ch_config_t lvb_ch_cfg;
 
-    clock_add_to_group(interface->lvb_clock_name, 0);
+    clock_enable_name((clock_name_t)interface->lvb_clock_name);
     lvb_get_default_config(&lvb_config);
 
     if (lvds_cfg->dual_lvds_phy)

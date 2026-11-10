@@ -1,0 +1,140 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <dt-bindings/clock/hpm6360-clocks.h>
+#include <hpmicro/HPM6300/hpm63xx.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm6340", "hpmicro,hpm63xx";
+		i2c3: i2c@f302c000 {
+			compatible = "hpmicro,hpm-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks = <&clk CLOCK_I2C3 CLK_SRC_PLL0_CLK0 5>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			reg = <0xf302c000 DT_SIZE_K(16)>;
+			interrupts = <41 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		spi3: spi@f003c000 {
+			compatible = "hpmicro,hpm-spi";
+			reg = <0xf003c000 DT_SIZE_K(16)>;
+			clocks = <&clk CLOCK_SPI3 CLK_SRC_PLL0_CLK0 5>;
+			interrupts = <17 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			cs-sck-delay = <3>;
+			cs-minimum-high-time = <11>;
+		};
+
+		adc1: adc@f0014000 {
+			compatible = "hpmicro,hpm-adc16";
+			reg = <0xf0014000 DT_SIZE_K(16)>;
+			interrupts = <9 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_ADC1 CLK_ADC_SRC_ANA1 1>,
+				<&clk CLOCK_ANA1 CLK_SRC_PLL0_CLK1 2>;
+			adc-clk-div = <4>;
+			sample-time = <20>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
+
+		adc2: adc@f0018000 {
+			compatible = "hpmicro,hpm-adc16";
+			reg = <0xf0018000 DT_SIZE_K(16)>;
+			interrupts = <10 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_ADC2 CLK_ADC_SRC_ANA2 1>,
+				<&clk CLOCK_ANA2 CLK_SRC_PLL0_CLK1 2>;
+			adc-clk-div = <4>;
+			sample-time = <20>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
+
+		mcan0: can@f0080000 {
+			compatible = "hpmicro,hpm-can";
+			reg = <0xf0080000 DT_SIZE_K(16)>;
+			interrupts = <26 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN0 CLK_SRC_PLL0_CLK0 5>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		mcan1: can@f0084000 {
+			compatible = "hpmicro,hpm-can";
+			reg = <0xf0084000 DT_SIZE_K(16)>;
+			interrupts = <27 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN1 CLK_SRC_PLL0_CLK0 5>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		dac: dac@f0024000 {
+			reg = <0xf0024000 0x4000>;
+			clocks = <&clk CLOCK_DAC0 CLK_DAC_SRC_ANA3 1>,
+				<&clk CLOCK_ANA3 CLK_SRC_PLL0_CLK1 2>;
+			status = "disabled";
+		};
+
+		uart5: serial@f0054000 {
+			reg = <0xf0054000 0x4000>;
+			clocks = <&clk CLOCK_UART5 CLK_SRC_PLL0_CLK0 5>;
+			status = "disabled";
+		};
+
+		uart6: serial@f0058000 {
+			reg = <0xf0058000 0x4000>;
+			clocks = <&clk CLOCK_UART6 CLK_SRC_PLL0_CLK0 5>;
+			status = "disabled";
+		};
+
+		uart7: serial@f005c000 {
+			reg = <0xf005c000 0x4000>;
+			clocks = <&clk CLOCK_UART7 CLK_SRC_PLL0_CLK0 5>;
+			status = "disabled";
+		};
+
+		hall0: hall0@f0204000 {
+			reg = <0xf0204000 0x4000>;
+			status = "disabled";
+		};
+
+		qei0: qei@f0208000 {
+			reg = <0xf0208000 0x4000>;
+			status = "disabled";
+		};
+
+		hall1: hall1@f0214000 {
+			reg = <0xf0214000 0x4000>;
+			status = "disabled";
+		};
+
+		qei1: qei@f0218000 {
+			reg = <0xf0218000 0x4000>;
+			status = "disabled";
+		};
+
+		femc: femc@f3050000 {
+			reg = <0xf3050000 0x4000>;
+			clocks = <&clk CLOCK_FEMC CLK_SRC_PLL0_CLK1 2>;
+			status = "disabled";
+		};
+
+		ffa: ffa@f3058000 {
+			reg = <0xf3058000 0x4000>;
+			clocks = <&clk CLOCK_FFA0 CLOCK_AHB 1>;
+			status = "disabled";
+		};
+	};
+};

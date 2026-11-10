@@ -1,0 +1,6 @@
+board:
+  name: hpm5300evk
+  full_name: hpm5300evk
+  vendor: hpmicro
+  socs:
+    - name: hpm5361

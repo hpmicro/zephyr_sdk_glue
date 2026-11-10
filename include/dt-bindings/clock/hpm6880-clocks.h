@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2024-2025 HPMicro
- *SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2024-2026 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_HPM6880_CLOCKS_H
@@ -10,7 +10,7 @@
  *
  *<---------------------- AUTO_GENERATE ---------------------->
  *    This file was auto-generated, do not edit anything.
- *    generated on 2025-10-20 16:16:33 
+ *    generated on 2026-08-10 16:55:26
  */
 
 #define CLK_SRC_OSC24M  0
@@ -138,6 +138,8 @@
 #define CLOCK_ADC0  21168384
 #define CLOCK_ADC1  21233921
 #define CLOCK_CRC0  17958655
+#define CLOCK_OAMP  18024191
+#define CLOCK_SDM0  21300991
 #define CLOCK_AUD0  4294901812
 #define CLOCK_AUD1  4294901813
 #define CLOCK_AUD2  4294901814

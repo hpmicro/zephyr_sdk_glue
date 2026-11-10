@@ -1,0 +1,199 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include "dt-bindings/pinctrl/hpmicro-pinctrl-common.h"
+
+&pinctrl {
+	pinmux_uart0: pinmux_uart0 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 0), IOC_TYPE_IOC, 0, 2)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 1), IOC_TYPE_IOC, 0, 2)>;
+		};
+	};
+
+	pinmux_uart3: pinmux_uart3 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 15), IOC_TYPE_IOC, 0, 2)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 14), IOC_TYPE_IOC, 0, 2)>;
+		};
+	};
+
+	pinmux_gpioa: pinmux_gpioa {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 3), IOC_TYPE_IOC, 0, 0)>;
+			bias-pull-down;
+			input-enable;
+			keeper-capability-disable;
+			input-schmitt-enable;
+		};
+	};
+
+	pinmux_i2c3: pinmux_i2c3 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 13), IOC_TYPE_IOC, 0, 4)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 12), IOC_TYPE_IOC, 0, 4)>;
+			drive-open-drain;
+			bias-pull-up;
+			input-enable;
+		};
+	};
+
+	pinmux_spi1: pinmux_spi1 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 27), IOC_TYPE_IOC, 0, 5)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 28), IOC_TYPE_IOC, 0, 5)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 29), IOC_TYPE_IOC, 0, 5)>;
+			input-enable;
+		};
+
+		group1 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 26), IOC_TYPE_IOC, 0, 0)>;
+			bias-pull-up;
+		};
+	};
+
+	pinmux_usb0: pinmux_usb0 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 0), IOC_TYPE_IOC, 0, 25)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 1), IOC_TYPE_IOC, 0, 25)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 2), IOC_TYPE_IOC, 0, 25)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 0), IOC_TYPE_PIOC, 0, 3)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 1), IOC_TYPE_PIOC, 0, 3)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 2), IOC_TYPE_PIOC, 0, 3)>;
+		};
+	};
+
+	pinmux_adc0: pinmux_adc0 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 5), IOC_TYPE_IOC, 1, 0)>;
+		};
+	};
+
+	pinmux_uart3_gpio: pinmux_uart3_gpio {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 15), IOC_TYPE_IOC, 0, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 14), IOC_TYPE_IOC, 0, 0)>;
+		};
+	};
+
+	pinmux_uart_break_signal: pinmux_uart_break_signal {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 26), IOC_TYPE_IOC, 0, 0)>;
+		};
+	};
+
+	pinmux_i2c2: pinmux_i2c2 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 8), IOC_TYPE_IOC, 0, 4)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 9), IOC_TYPE_IOC, 0, 4)>;
+		};
+	};
+
+	pinmux_spi1_gpio_cs: pinmux_spi1_gpio_cs {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 26), IOC_TYPE_IOC, 0, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 27), IOC_TYPE_IOC, 0, 5)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 28), IOC_TYPE_IOC, 0, 5)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 29), IOC_TYPE_IOC, 0, 5)>;
+		};
+	};
+
+	pinmux_adc: pinmux_adc {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 8), IOC_TYPE_IOC, 1, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 9), IOC_TYPE_IOC, 1, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 10), IOC_TYPE_IOC, 1, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 11), IOC_TYPE_IOC, 1, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 12), IOC_TYPE_IOC, 1, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 13), IOC_TYPE_IOC, 1, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 14), IOC_TYPE_IOC, 1, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 15), IOC_TYPE_IOC, 1, 0)>;
+		};
+	};
+
+	pinmux_adc_bldc: pinmux_adc_bldc {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 13), IOC_TYPE_IOC, 1, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 14), IOC_TYPE_IOC, 1, 0)>;
+		};
+	};
+
+	pinmux_acmp: pinmux_acmp {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 9), IOC_TYPE_IOC, 0, 16)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 11), IOC_TYPE_IOC, 1, 0)>;
+		};
+	};
+
+	pinmux_gptmr0: pinmux_gptmr0 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 10), IOC_TYPE_IOC, 0, 1)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 15), IOC_TYPE_IOC, 0, 1)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 9), IOC_TYPE_IOC, 0, 1)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 8), IOC_TYPE_IOC, 0, 1)>;
+		};
+	};
+
+	pinmux_gptmr0_channel1_capture: pinmux_gptmr0_channel1_capture {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 9), IOC_TYPE_IOC, 0, 1)>;
+		};
+	};
+
+	pinmux_gptmr0_channel1_output: pinmux_gptmr0_channel1_output {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 8), IOC_TYPE_IOC, 0, 1)>;
+		};
+	};
+
+	pinmux_gptmr0_channel2_output: pinmux_gptmr0_channel2_output {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 10), IOC_TYPE_IOC, 0, 1)>;
+		};
+	};
+
+	pinmux_gptmr0_channel3_output: pinmux_gptmr0_channel3_output {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 15), IOC_TYPE_IOC, 0, 1)>;
+		};
+	};
+
+	pinmux_gptmr1: pinmux_gptmr1 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 2), IOC_TYPE_IOC, 0, 1)>;
+		};
+	};
+
+	pinmux_gptmr1_channel3_output: pinmux_gptmr1_channel3_output {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 13), IOC_TYPE_IOC, 0, 1)>;
+		};
+	};
+
+	pinmux_trgm_gptmr0_cap2_invert: pinmux_trgm_gptmr0_cap2_invert {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 31), IOC_TYPE_IOC, 0, 18)>;
+		};
+	};
+
+	pinmux_clk_ref: pinmux_clk_ref {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTA, 9), IOC_TYPE_IOC, 0, 24)>;
+		};
+	};
+
+	pinmux_brownout_indicate: pinmux_brownout_indicate {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTB, 13), IOC_TYPE_IOC, 0, 0)>;
+		};
+	};
+
+	pinmux_py_pgpio: pinmux_py_pgpio {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 0), IOC_TYPE_PIOC, 0, 0)>,
+				<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTY, 1), IOC_TYPE_PIOC, 0, 0)>;
+		};
+	};
+};

@@ -5,11 +5,13 @@ config SOC_SERIES_HPM6200
 	select RISCV
 	select RISCV_PRIVILEGED
 	select RISCV_HAS_PLIC
+	select RISCV_MACHINE_TIMER
+	select RISCV_SOC_HAS_GP_RELATIVE_ADDRESSING
 	select DYNAMIC_INTERRUPTS
 	help
 	  Enable support for HPMicro HPM62 series SoC
 
-config SOC_HPM6280
+config SOC_HPM62_COMMON
 	bool
 	select ATOMIC_OPERATIONS_C
 	select INCLUDE_RESET_VECTOR
@@ -21,6 +23,30 @@ config SOC_HPM6280
 	select CPU_HAS_DCACHE
 	select CPU_HAS_ICACHE
 	select RISCV_PMP if !MCUBOOT
+
+config SOC_HPM6220
+	bool
+	select SOC_HPM62_COMMON
+
+config SOC_HPM6240
+	bool
+	select SOC_HPM62_COMMON
+
+config SOC_HPM6260
+	bool
+	select SOC_HPM62_COMMON
+
+config SOC_HPM6264
+	bool
+	select SOC_HPM62_COMMON
+
+config SOC_HPM6280
+	bool
+	select SOC_HPM62_COMMON
+
+config SOC_HPM6284
+	bool
+	select SOC_HPM62_COMMON
 if SOC_SERIES_HPM6200
 
 choice

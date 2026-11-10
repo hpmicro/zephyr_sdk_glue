@@ -1,5 +1,6 @@
-# Copyright (c) 2022 HPMicro
+# Copyright (c) 2022-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_HPM6750EVK2
 	select SOC_HPM6750
+	select BOARD_EARLY_INIT_HOOK

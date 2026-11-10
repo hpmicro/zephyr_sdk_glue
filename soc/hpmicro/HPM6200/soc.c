@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 HPMicro
+ * Copyright (c) 2025-2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -11,11 +11,10 @@
 #include <hpm_common.h>
 #include <hpm_soc.h>
 #include "hpm_clock_drv.h"
-#include "hpm_pllctlv2_drv.h"
-#include "hpm_pcfg_drv.h"
 #ifdef CONFIG_NOCACHE_MEMORY
 #include <zephyr/linker/linker-defs.h>
 #include "hpm_pmp_drv.h"
+#include "hpm_l1c_drv.h"
 #endif
 #ifdef CONFIG_XIP
 #include "hpm_bootheader.h"
@@ -31,14 +30,6 @@ __attribute__((weak)) void c_startup(void)
 
 static void soc_init_clock(void)
 {
-    uint32_t cpu0_freq = clock_get_frequency(clock_cpu0);
-    if (cpu0_freq == PLLCTL_SOC_PLL_REFCLK_FREQ) {
-        /* Configure the External OSC ramp-up time: ~9ms */
-        pllctlv2_xtal_set_rampup_time(HPM_PLLCTLV2, 32UL * 1000UL * 9U);
-
-        /* Select clock setting preset1 */
-        sysctl_clock_set_preset(HPM_SYSCTL, 2);
-    }
     /* Add clocks to group 0 */
     clock_add_to_group(clock_cpu0, 0);
     clock_add_to_group(clock_mchtmr0, 0);
@@ -52,12 +43,6 @@ static void soc_init_clock(void)
     clock_add_to_group(clock_lmm0, 0);
     clock_add_to_group(clock_lmm1, 0);
     clock_add_to_group(clock_gpio, 0);
-    clock_add_to_group(clock_mot0, 0);
-    clock_add_to_group(clock_mot1, 0);
-    clock_add_to_group(clock_mot2, 0);
-    clock_add_to_group(clock_mot3, 0);
-    clock_add_to_group(clock_synt, 0);
-    clock_add_to_group(clock_ptpc, 0);
     /* Connect Group0 to CPU0 */
     clock_connect_group_to_cpu(0, 0);
 
@@ -66,18 +51,6 @@ static void soc_init_clock(void)
     clock_add_to_group(clock_mchtmr1, 1);
     /* Connect Group1 to CPU1 */
     clock_connect_group_to_cpu(1, 1);
-
-    /* Bump up DCDC voltage to 1275mv */
-    pcfg_dcdc_set_voltage(HPM_PCFG, 1275);
-
-    /* Configure CPU to 600MHz, AXI/AHB to 200MHz. CPU1 clock freqency same as CPU0 */
-    sysctl_config_cpu0_domain_clock(HPM_SYSCTL, clock_source_pll1_clk1, 1, 3, 3);
-    /* Configure PLL1 Post Divider */
-    pllctlv2_set_postdiv(HPM_PLLCTLV2, pllctlv2_pll1, pllctlv2_clk0, pllctlv2_div_2p0);    /* PLL1CLK0: 480MHz */
-    pllctlv2_set_postdiv(HPM_PLLCTLV2, pllctlv2_pll1, pllctlv2_clk1, pllctlv2_div_1p6);    /* PLL1CLK1: 600MHz */
-    /* Configure PLL1 Frequency to 960MHz */
-    pllctlv2_init_pll_with_freq(HPM_PLLCTLV2, pllctlv2_pll1, 960000000);
-    clock_update_core_clock();
 
     /* Configure mchtmr to 24MHz */
     clock_set_source_divider(clock_mchtmr0, clk_src_osc24m, 1);
@@ -102,6 +75,14 @@ static void soc_init_pma(void)
     pma_attrs[0].pma_addr = PMA_NAPOT_ADDR(start_addr, length);
     pma_attrs[0].pma_cfg.val = PMA_CFG(ADDR_MATCH_NAPOT, MEM_TYPE_MEM_NON_CACHE_BUF, AMO_EN);
     pma_config_attributes(&pma_attrs[0], ARRAY_SIZE(pma_attrs));
+
+    /*
+     * D-cache is already enabled in start.S. D45 does not update existing
+     * cache states when accesses become non-cacheable. Flush dirty lines and
+     * invalidate cached copies to keep the cacheability transition coherent.
+     * l1c_dc_flush_all() issues L1D_WBINVAL_ALL, so it performs both operations.
+     */
+    l1c_dc_flush_all();
 }
 #endif
 
@@ -117,6 +98,11 @@ static int hpmicro_soc_init(void)
 	irq_unlock(key);
 
 	return 0;
+}
+
+void arch_cache_init(void)
+{
+	
 }
 
 SYS_INIT(hpmicro_soc_init, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);

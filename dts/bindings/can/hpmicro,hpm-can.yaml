@@ -14,17 +14,6 @@ properties:
   interrupts:
     required: true
 
-  clk-name:
-    type: int
+  clocks:
     required: true
-    description: CAN clock name
 
-  clk-source:
-    type: int
-    required: true
-    description: CAN clock source
-
-  clk-divider:
-    type: int
-    required: true
-    description: CAN clock divider

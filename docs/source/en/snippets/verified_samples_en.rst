@@ -1,3 +1,6 @@
+.. Copyright (c) 2026 HPMicro
+.. SPDX-License-Identifier: Apache-2.0
+
 .. _supported_samples_en:
 
 Board Supported Matrix
@@ -7,238 +10,456 @@ The following samples have been verified on supported development boards.
 
 Table legend:
 
-- **Category**: Sample category
 - **Sample**: Sample path
 - **Snippet**: Snippet required to run the sample ("-" means not required)
-- **Board columns**: ✓ indicates supported, ✗ indicates not supported
+- **Board columns**: "yes" means the sample is supported and has been build-verified on the board; "-" means unsupported.
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 30 18 10 10 10 10
+   :widths: 30 18 10 10 10 10 10 10 10 10 10 10
    :class: verified-samples-table
 
-   * - Category
-     - Sample
+   * - Sample
      - Snippet
      - 6750evk2
      - 6800evk
      - 6200evk
      - 6e00evk
-   * - Basic
-     - samples/hello_world
+     - 5300evk
+     - 5100evk
+     - 5301evklite
+     - 5e00evk
+     - 6300evk
+     - 6p00evk
+   * - samples/hello_world
      - \-
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - Basic
-     - samples/basic/blinky
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - samples/basic/blinky
      - blinky
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - Basic
-     - samples/basic/blinky_pwm
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - samples/basic/blinky_pwm
      - blinky_pwm
-     - ✓
-     - ✗
-     - ✓
-     - ✓
-   * - Basic
-     - samples/basic/button
+     - yes
      - \-
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - Driver
-     - samples/drivers/eeprom
+     - yes
+     - yes
+     - yes
+     - yes
+     - \-
+     - yes
+     - yes
+     - yes
+   * - samples/basic/button
+     - \-
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - samples/drivers/eeprom
      - i2c_eeprom
-     - ✓
-     - ✓
-     - ✗
-     - ✓
-   * - Display
-     - samples/drivers/display
+     - yes
+     - yes
+     - \-
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+   * - samples/drivers/display
      - display_rgb
-     - ✓
-     - ✓
-     - ✗
-     - ✗
-   * - Display
-     - samples/drivers/display
+     - yes
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+   * - samples/drivers/display
      - display_mipi
-     - ✗
-     - ✓
-     - ✗
-     - ✗
-   * - Display
-     - samples/drivers/display
+     - \-
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+   * - samples/drivers/display
      - display_lvds
-     - ✗
-     - ✓
-     - ✗
-     - ✗
-   * - Display
-     - samples/drivers/display
+     - \-
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+   * - samples/drivers/display
      - display_dual_lvds
-     - ✗
-     - ✓
-     - ✗
-     - ✗
-   * - Camera
-     - samples/subsys/video/capture
+     - \-
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+   * - samples/drivers/video/capture
      - video_dvp
-     - ✓
-     - ✓
-     - ✗
-     - ✗
-   * - Camera
-     - samples/subsys/video/capture
+     - yes
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+   * - samples/drivers/video/capture
      - video_mipi
-     - ✗
-     - ✓
-     - ✗
-     - ✗
-   * - USB
-     - samples/subsys/usb/cdc_acm
+     - \-
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+   * - samples/subsys/usb/cdc_acm
      - cdc_acm
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - USB
-     - samples/subsys/usb/hid-keyboard
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - samples/subsys/usb/hid-keyboard
      - hid-keyboard
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - USB
-     - samples/subsys/usb/hid-mouse
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - samples/subsys/usb/hid-mouse
      - hid-mouse
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - USB
-     - samples/subsys/usb/mass
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - samples/subsys/usb/mass
      - mass
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - Network
-     - samples/net/sockets/echo_server
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - samples/net/sockets/echo_server
      - ethernet
-     - ✓
-     - ✓
-     - ✗
-     - ✓
-   * - Shell
-     - samples/subsys/shell/shell_module
+     - yes
+     - yes
+     - \-
+     - yes
+     - \-
+     - \-
+     - \-
+     - yes
+     - yes
+     - yes
+   * - samples/subsys/shell/shell_module
      - shell_module
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - CAN
-     - samples/modules/canopennode
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - samples/modules/canopennode
      - canopennode
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - CAN Test
-     - tests/drivers/can/api
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - \-
+     - yes
+     - yes
+     - yes
+   * - samples/drivers/watchdog
+     - watchdog
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - tests/drivers/counter/counter_basic_api
+     - counter
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - tests/drivers/can/api
      - can
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - CAN Test
-     - tests/drivers/can/timing
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - \-
+     - yes
+     - yes
+     - yes
+   * - tests/drivers/can/timing
      - can
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - CAN Test
-     - tests/drivers/can/shell
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - \-
+     - yes
+     - yes
+     - yes
+   * - tests/drivers/can/shell
      - can
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - UART Test
-     - tests/drivers/uart/uart_basic_api
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
      - \-
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - SDHC Test
-     - tests/drivers/sdhc
-     - sdhc
-     - ✓
-     - ✓
-     - ✗
-     - ✗
-   * - SDHC Test
-     - tests/drivers/disk/disk_access
-     - sdhc
-     - ✓
-     - ✓
-     - ✗
-     - ✗
-   * - SDHC Test
-     - tests/drivers/disk/disk_performance
-     - sdhc
-     - ✓
-     - ✓
-     - ✗
-     - ✗
-   * - SDHC Test
-     - tests/subsys/sd/sdmmc
-     - sdhc
-     - ✓
-     - ✓
-     - ✗
-     - ✗
-   * - SDHC Test
-     - tests/subsys/sd/mmc
-     - sdhc
-     - ✓
-     - ✓
-     - ✗
-     - ✗
-   * - CherryUSB
-     - cherryusb/device/msc/ram_disk
+     - yes
+     - yes
+     - yes
+   * - tests/drivers/uart/uart_basic_api
      - \-
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - CherryUSB
-     - cherryusb/device/cdc_acm/cdc_acm_vcom
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - tests/drivers/entropy/api
+     - entropy
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
      - \-
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - CherryUSB
-     - cherryusb/host/cdc_acm
      - \-
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - CherryUSB
-     - cherryusb/host/msc_disk
      - \-
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
+     - yes
+     - yes
+   * - tests/drivers/hwinfo/api
+     - hwinfo
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - tests/kernel/cache
+     - cache
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - tests/drivers/sdhc
+     - sdhc
+     - yes
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - yes
+     - \-
+   * - tests/drivers/disk/disk_access
+     - sdhc
+     - yes
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - yes
+     - \-
+   * - tests/drivers/disk/disk_performance
+     - sdhc
+     - yes
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - yes
+     - \-
+   * - tests/subsys/sd/sdmmc
+     - sdhc
+     - yes
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - yes
+     - \-
+   * - tests/subsys/sd/mmc
+     - sdhc
+     - yes
+     - yes
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - \-
+     - yes
+     - \-
+   * - tests/clock_tree
+     - \-
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - cherryusb/device/msc/ram_disk
+     - \-
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - cherryusb/device/cdc_acm/cdc_acm_vcom
+     - \-
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - cherryusb/host/usb_host
+     - \-
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes

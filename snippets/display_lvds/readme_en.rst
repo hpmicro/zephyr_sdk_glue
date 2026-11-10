@@ -1,21 +1,44 @@
-.. _display_lvds:
+.. _display_lvds_en:
 
-Display LVDS
-==================
-`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/drivers/display/README.html>`_
+LVDS Display
+=============
 
-Path
+Overview
+---------
+
+This sample uses Zephyr's display API to present the test pattern through the HPMicro LVDS interface and the board's configured panel.
+
+* `Zephyr 4.4.0 display sample <https://docs.zephyrproject.org/4.4.0/samples/drivers/display/README.html>`_
+
+Application paths
+------------------
+
+.. code-block:: text
+
+   zephyr/samples/drivers/display
+
+Hardware setup
 ---------------
 
-.. code-block::
+Connect the LCD panel required by the selected board overlay and verify that its power, backlight, and signal cables are seated correctly.
 
-    zephyr/samples/drivers/display
+Building
+---------
 
-Build Cmd
------------
-
-As hpm6800evk for example:
+Run from the west workspace root. The following commands use ``hpm6800evk`` as an example:
 
 .. code-block:: console
 
-    west build -p always -b hpm6750evk2 -S display_lvds samples/drivers/display
+   west build -p always -b hpm6800evk -S display_lvds zephyr/samples/drivers/display
+
+Expected behavior
+------------------
+
+The panel shows four corner rectangles in clockwise red, green, blue, and grey order. The grey area changes from black to white, which helps identify orientation and RGB ordering problems.
+
+Notes
+------
+
+.. note::
+
+   A successful build without the matching panel only verifies compilation; the visual result requires the configured display hardware.

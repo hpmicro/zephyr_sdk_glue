@@ -1,0 +1,38 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: hpm6300evk
+name: HPMicro HPM6300EVK
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+  - zcc
+ram: 32768
+flash: 16384
+supported:
+  - gpio
+  - uart
+  - i2c
+  - spi
+  - dma
+  - pwm
+  - adc
+  - acmp
+  - dac
+  - can
+  - usbd
+  - usbh
+  - ethernet
+  - sdhc
+  - femc
+  - qei
+  - hall
+  - tamper
+  - counter
+  - watchdog
+  - entropy
+testing:
+  ignore_tags:
+    - bluetooth
+vendor: hpmicro

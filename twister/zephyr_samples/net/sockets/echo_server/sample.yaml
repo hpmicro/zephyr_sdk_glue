@@ -1,0 +1,25 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  description: Test network sockets using a client/server sample
+  name: Socket Echo Server
+tests:
+  hpmicro.sample.net.sockets.echo_server:
+    min_flash: 140
+    harness: net
+    tags:
+    - hpmicro_verified
+    - ethernet
+    depends_on:
+    - ethernet
+    required_snippets:
+    - ethernet
+    platform_allow: &platforms
+    - hpm5e00evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

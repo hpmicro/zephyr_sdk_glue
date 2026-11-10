@@ -1,0 +1,30 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HPM6P00
+	bool
+	select SOC_FAMILY_HPM
+	select HAS_HPMSDK_PLLCTLV2
+	select HAS_HPMSDK_PCFG
+	help
+	  Enable support for HPMicro HPM6P series SoC
+
+config SOC_SERIES
+	default "HPM6P00" if SOC_SERIES_HPM6P00
+
+config SOC_HPM6P31
+	bool
+	select SOC_SERIES_HPM6P00
+
+config SOC_HPM6P41
+	bool
+	select SOC_SERIES_HPM6P00
+
+config SOC_HPM6P81
+	bool
+	select SOC_SERIES_HPM6P00
+
+config SOC
+	default "HPM6P31" if SOC_HPM6P31
+	default "HPM6P41" if SOC_HPM6P41
+	default "HPM6P81" if SOC_HPM6P81

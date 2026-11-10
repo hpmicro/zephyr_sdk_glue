@@ -1,0 +1,74 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  description: Sample application for displays
+  name: display_sample
+tests:
+  hpmicro.sample.drivers.display.rgb:
+    harness: console
+    harness_config:
+      fixture: tm070rdh13
+    tags:
+    - hpmicro_verified
+    - display
+    depends_on:
+    - display
+    filter: dt_chosen_enabled("zephyr,display")
+    required_snippets:
+    - display_rgb
+    platform_allow: &platforms
+    - hpm6750evk2
+    - hpm6800evk
+    integration_platforms: *platforms
+  hpmicro.sample.drivers.display.mipi:
+    harness: console
+    harness_config:
+      fixture: mc10128007_31b
+    tags:
+    - hpmicro_verified
+    - display
+    - mipi-dsi
+    depends_on:
+    - display
+    - mipi-dsi
+    filter: dt_chosen_enabled("zephyr,display")
+    required_snippets:
+    - display_mipi
+    platform_allow: &platforms_2
+    - hpm6800evk
+    integration_platforms: *platforms_2
+  hpmicro.sample.drivers.display.lvds:
+    harness: console
+    harness_config:
+      fixture: cc10128007
+    tags:
+    - hpmicro_verified
+    - display
+    - lvds
+    depends_on:
+    - display
+    - lvds
+    filter: dt_chosen_enabled("zephyr,display")
+    required_snippets:
+    - display_lvds
+    platform_allow: &platforms_3
+    - hpm6800evk
+    integration_platforms: *platforms_3
+  hpmicro.sample.drivers.display.dual_lvds:
+    harness: console
+    harness_config:
+      fixture: tm103xdgp01
+    tags:
+    - hpmicro_verified
+    - display
+    - lvds
+    depends_on:
+    - display
+    - lvds
+    filter: dt_chosen_enabled("zephyr,display")
+    required_snippets:
+    - display_dual_lvds
+    platform_allow: &platforms_4
+    - hpm6800evk
+    integration_platforms: *platforms_4

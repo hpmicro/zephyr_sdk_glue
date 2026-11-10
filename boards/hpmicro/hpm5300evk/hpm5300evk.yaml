@@ -1,0 +1,38 @@
+# Copyright 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: hpm5300evk
+name: HPMicro HPM5300EVK
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+  - zcc
+flash: 1024
+supported:
+  - gpio
+  - uart
+  - i2c
+  - spi
+  - dma
+  - pwm
+  - adc
+  - acmp
+  - dac
+  - opamp
+  - can
+  - lin
+  - usbd
+  - usbh
+  - qei
+  - qeo
+  - sei
+  - rdc
+  - plb
+  - counter
+  - watchdog
+  - entropy
+testing:
+  ignore_tags:
+    - bluetooth
+vendor: hpmicro

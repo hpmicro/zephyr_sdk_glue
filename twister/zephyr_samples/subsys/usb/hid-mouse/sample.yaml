@@ -1,0 +1,30 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: USB HID mouse sample
+tests:
+  hpmicro.sample.subsys.usb.hid_mouse:
+    harness: button
+    tags:
+    - hpmicro_verified
+    - usbd
+    - gpio
+    depends_on:
+    - usbd
+    - gpio
+    filter: dt_alias_exists("sw0") and dt_alias_exists("led0")
+    required_snippets:
+    - hid-mouse
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5301evklite
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

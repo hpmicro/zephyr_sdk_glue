@@ -1,0 +1,35 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HPM5300
+	bool
+	select SOC_FAMILY_HPM
+	select HAS_HPMSDK_PLLCTLV2
+	select HAS_HPMSDK_PCFG
+	help
+	  Enable support for HPMicro HPM5300 series SoCs.
+
+config SOC_SERIES
+	default "HPM5300" if SOC_SERIES_HPM5300
+
+config SOC_HPM5301
+	bool
+	select SOC_SERIES_HPM5300
+
+config SOC_HPM5321
+	bool
+	select SOC_SERIES_HPM5300
+
+config SOC_HPM5331
+	bool
+	select SOC_SERIES_HPM5300
+
+config SOC_HPM5361
+	bool
+	select SOC_SERIES_HPM5300
+
+config SOC
+	default "HPM5301" if SOC_HPM5301
+	default "HPM5321" if SOC_HPM5321
+	default "HPM5331" if SOC_HPM5331
+	default "HPM5361" if SOC_HPM5361

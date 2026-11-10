@@ -18,4 +18,6 @@ MEMORY
 
 }
 
+#define HPM_RETAINED_NOINIT_REGION APB_SRAM
+
 #include <../common/linker.ld>

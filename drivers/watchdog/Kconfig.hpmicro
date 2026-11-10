@@ -1,0 +1,23 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_WDG := hpmicro,hpm-wdg
+
+config WDG_HPMICRO
+    bool "HPMICRO WDG driver"
+    default y
+    depends on DT_HAS_HPMICRO_HPM_WDG_ENABLED
+    select HAS_HPMSDK_WDG
+    help
+        Enable the HPMICRO WDG driver
+
+DT_COMPAT_HPM_EWDG := hpmicro,hpm-ewdg
+
+config EWDG_HPMICRO
+    bool "HPMICRO EWDG driver"
+    default y
+    depends on DT_HAS_HPMICRO_HPM_EWDG_ENABLED
+    select HAS_HPMSDK_EWDG
+    help
+        Enable the HPMICRO EWDG driver
+

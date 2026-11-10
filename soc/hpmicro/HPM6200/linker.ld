@@ -18,4 +18,6 @@ MEMORY
 
 }
 
+#define HPM_RETAINED_NOINIT_REGION PGPR_REG
+
 #include <../common/linker.ld>

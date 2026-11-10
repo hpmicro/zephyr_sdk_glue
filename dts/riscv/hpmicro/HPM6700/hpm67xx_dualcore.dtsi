@@ -1,0 +1,61 @@
+/*
+* Copyright 2024-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <mem.h>
+
+#include <freq.h>
+
+/ {
+	clocks {
+		clk_cpu1: clk_cpu1 {
+			#clock-cells = <0>;
+			compatible = "hpmicro,hpm-cpu-clock";
+			node-name = <CLOCK_CPU1>;
+			clocks = <&pll0 0 2>;
+			status = "disabled";
+		};
+	};
+
+	cpus {
+		cpu1: cpu@1 {
+			compatible = "andestech,andescore-d45", "riscv"; /* riscv custom */
+				reg = <1>;
+			status = "okay";
+			riscv,isa-base = "rv32i";
+			riscv,isa-extensions = "i", "m", "a", "c", "f", "d", "b", "p", "zicsr", "zifencei",
+				"xandes";
+			i-cache-line-size = <64>;
+			d-cache-line-size = <64>;
+			cpu1_intc: interrupt-controller {
+				compatible = "riscv,cpu-intc";
+				#address-cells = <0>;
+				#interrupt-cells = <1>;
+				interrupt-controller;
+			};
+		};
+	};
+
+	soc {
+		core1_ilm_slv: memory@1180000 {
+			reg = <0x1180000 DT_SIZE_K(256)>;
+		};
+
+		core1_dlm_slv: memory@11c0000 {
+			reg = <0x11C0000 DT_SIZE_K(256)>;
+		};
+	};
+};
+
+&mtimer {
+	interrupts-extended = <&cpu0_intc 7 &cpu1_intc 7>;
+};
+
+&plic {
+	interrupts-extended = <&cpu0_intc 11 &cpu1_intc 11>;
+};
+
+&plic_sw {
+	interrupts-extended = <&cpu0_intc 3 &cpu1_intc 3>;
+};

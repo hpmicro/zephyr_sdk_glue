@@ -1,5 +1,9 @@
-# Copyright (c) 2025 HPMicro
+# Copyright (c) 2025-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
+
+# Inherit Zephyr's current LLD property set before applying ZCC-specific
+# options. This keeps properties added by newer Zephyr releases available.
+include(${ZEPHYR_BASE}/cmake/linker/lld/linker_flags.cmake)
 
 check_set_linker_property(TARGET linker PROPERTY memusage "${LINKERFLAGPREFIX},--print-memory-usage")
 

@@ -1,5 +1,6 @@
 board:
   name: hpm6800evk
+  full_name: hpm6800evk
   vendor: hpmicro
   socs:
     - name: hpm6880

@@ -1,0 +1,65 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  HPMicro CPU clock domain. The parent clock selects a PLL output and records
+  the CPU divider. AXI and AHB are derived from the resulting CPU clock.
+
+compatible: "hpmicro,hpm-cpu-clock"
+
+include: [clock-controller.yaml, base.yaml]
+
+properties:
+  node-name:
+    type: int
+    required: true
+    description: HPM SDK clock_name_t value for this CPU clock.
+
+  clocks:
+    required: true
+    description: Parent PLL output and CPU divider.
+
+  axi-divider:
+    type: int
+    enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+    description: AXI divider based on the divided CPU clock.
+
+  ahb-divider:
+    type: int
+    enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+    description: AHB divider based on the divided CPU clock.
+
+  "#clock-cells":
+    const: 0

@@ -22,6 +22,18 @@ properties:
       required: true
       description: sample time in clock cycles
 
+    adc-clk-div:
+      type: int
+      default: 4
+      description: ADC conversion clock divider
+
+    vref-mv:
+      type: int
+      description: |
+        ADC reference voltage in millivolts. HPM ADC uses an external
+        reference supplied by the board (typically VREFH). Required
+        when the ADC instance is enabled.
+
     en-hw-trig:
       type: boolean
       required: false

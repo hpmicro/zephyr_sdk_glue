@@ -1,0 +1,35 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: USB HID keyboard sample
+tests:
+  hpmicro.sample.subsys.usb.hid_keyboard:
+    timeout: 15
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+      - HID keyboard sample is initialized
+    tags:
+    - hpmicro_verified
+    - usbd
+    - gpio
+    depends_on:
+    - usbd
+    - gpio
+    filter: dt_alias_exists("sw0") and dt_alias_exists("led0")
+    required_snippets:
+    - hid-keyboard
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5301evklite
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

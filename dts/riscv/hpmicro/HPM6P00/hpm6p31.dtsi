@@ -1,0 +1,13 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <dt-bindings/clock/hpm6p81-clocks.h>
+#include <hpmicro/HPM6P00/hpm6pxx.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm6p31", "hpmicro,hpm6pxx";
+	};
+};

@@ -1,4 +1,4 @@
-# Copyright (c) 2025 HPMicro
+# Copyright (c) 2025-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 set(riscv_mabi "lp")
@@ -70,8 +70,16 @@ if(CONFIG_RISCV_ISA_EXT_ZBS)
     string(CONCAT riscv_march ${riscv_march} "_zbs")
 endif()
 
-string(CONCAT riscv_march ${riscv_march} "_xandes")
-list(APPEND TOOLCHAIN_C_FLAGS -mabi=${riscv_mabi} -march=${riscv_march})
-list(APPEND TOOLCHAIN_LD_FLAGS NO_SPLIT -mabi=${riscv_mabi} -march=${riscv_march})
+list(APPEND TOOLCHAIN_C_FLAGS
+    -mabi=${riscv_mabi}
+    -march=${riscv_march}
+    -mno-relax
+)
+list(APPEND TOOLCHAIN_LD_FLAGS NO_SPLIT
+    -mabi=${riscv_mabi}
+    -march=${riscv_march}
+    -mno-relax
+    -Wl,--no-relax
+)
 
 message(STATUS "RISC-V ABI: ${riscv_mabi}, ISA: ${riscv_march}")

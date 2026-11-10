@@ -1,12 +1,20 @@
 /*
- * Copyright 2025 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright 2025-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
 
+/*
+* hpm6750evk2 dual ethernet: only ONE port can be enabled at a time,
+* because the driver supports a single interface type per build
+* (CONFIG_ETH_HPM_RGMII or CONFIG_ETH_HPM_RMII, see hpm6750evk2.conf).
+*   - eth0: RGMII / GbE  / RTL8211  (default)
+*   - eth1: RMII / 100M  / RTL8201
+* Enable one, disable the other, and match the conf's interface choice.
+*/
 &eth0 {
-    status = "okay";
+	status = "okay";
 };
 
 &eth1 {
-    status = "disabled";
+	status = "disabled";
 };

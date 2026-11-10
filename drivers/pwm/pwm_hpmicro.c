@@ -11,6 +11,7 @@
 #include <soc.h>
 #include <zephyr/drivers/pinctrl.h>
 #include "hpm_clock_drv.h"
+#include <drivers/clock_control/hpmicro_clock_control.h>
 #include "dt-bindings/pwm/hpmicro-pwm-common.h"
 #include <zephyr/logging/log.h>
 
@@ -34,7 +35,6 @@ LOG_MODULE_REGISTER(pwm_hpmicro, CONFIG_PWM_LOG_LEVEL);
 struct pwm_hpmicro_config {
 	HPM_PWM_BASE_TYPE *base;
 	uint32_t clock_name;
-	uint32_t period;
 	uint32_t dead_zone_in_half_cycle;
 	const struct pinctrl_dev_config *pincfg;
 };
@@ -53,19 +53,26 @@ static int hpmicro_pwm_v1_set_cycles(const struct device *dev, uint32_t channel,
 	pwm_config_t pwm_config;
 	pwm_cmp_config_t cmp_config[2] = {0};
 	HPM_PWM_BASE_TYPE *pwm_base = config->base;
-	uint32_t rld = 0, xrld = 0, prld = 0;
+	uint32_t rld = 0, xrld = 0;
 	uint32_t rld_cmp = 0, xrld_cmp = 0;
-	uint16_t i, j;
+	uint16_t i;
 
 	pwm_get_default_pwm_config(pwm_base, &pwm_config);
-	if (flags == PWM_POLARITY_INVERTED) {
-		pwm_config.invert_output = true;
-	} else if (flags == PWM_POLARITY_NORMAL) {
-		pwm_config.invert_output = false;
-	} else if (flags == PWM_TRIG_ENABLE) {
-		cmp_config[0].enable_ex_cmp  = false;
+
+	/*
+	 * Trigger mode: configure CMP[channel] as a compare/trigger source.
+	 * Reload is expected from init (or a prior waveform set); only the
+	 * compare point is updated here. pulse_cycles is the CMP value.
+	 * CMP[MAX-1] is reserved as the hardware event that loads CMP shadows.
+	 */
+	if ((flags & PWM_TRIG_MASK) == PWM_TRIG_ENABLE) {
+		if ((channel < 8U) || (channel >= (PWM_SOC_CMP_MAX_COUNT - 1U))) {
+			return -EINVAL;
+		}
+
+		cmp_config[0].enable_ex_cmp = false;
 		cmp_config[0].mode = pwm_cmp_mode_output_compare;
-		cmp_config[0].cmp = period_cycles + 1;
+		cmp_config[0].cmp = pulse_cycles;
 		cmp_config[0].update_trigger = pwm_shadow_register_update_on_hw_event;
 
 		cmp_config[1].mode = pwm_cmp_mode_output_compare;
@@ -74,74 +81,81 @@ static int hpmicro_pwm_v1_set_cycles(const struct device *dev, uint32_t channel,
 		pwm_config_cmp(pwm_base, channel, &cmp_config[0]);
 		pwm_load_cmp_shadow_on_capture(pwm_base, PWM_SOC_CMP_MAX_COUNT - 1, 0);
 		pwm_config_cmp(pwm_base, PWM_SOC_CMP_MAX_COUNT - 1, &cmp_config[1]);
-	
+
 		pwm_start_counter(pwm_base);
 		pwm_issue_shadow_register_lock_event(pwm_base);
 		return 0;
-	} else {
-		return -ENOTSUP;
 	}
 
-	if (period_cycles >  0xffffff) {
-		for (i = 1; i <= 16; i++) {
+	/* Waveform outputs use PWMCFG[0..PWM_MAX-1]; ch8+ are REF/TRIG only */
+	if (channel >= PWM_SOC_PWM_MAX_COUNT) {
+		return -EINVAL;
+	}
+
+	pwm_config.invert_output = ((flags & PWM_POLARITY_MASK) == PWM_POLARITY_INVERTED);
+
+	if (period_cycles > 0xffffff) {
+		for (i = 1; i <= 15; i++) {
 			if ((period_cycles / (i + 1)) <= 0xffffff) {
 				rld = period_cycles / (i + 1);
 				xrld = i;
-				prld = (xrld << 24) | rld;
-				for (j = 0; j <= 16; j++) {
-					if (((period_cycles - pulse_cycles) / (j + 1)) <= 0xffffff) {
-						rld_cmp = (period_cycles - pulse_cycles) / (j + 1);
-						xrld_cmp = j;
-						break;
-					} else if (j >= 16) {
-						return -ENOTSUP;
-					}
+				/*
+				 * Map rising edge at (period - pulse) onto extended
+				 * counter space: t = XCNT*(RLD+1) + CNT.
+				 * XRLD is 4-bit (0..15).
+				 */
+				{
+					uint32_t rise = period_cycles - pulse_cycles;
+					uint32_t inner = rld + 1U;
+
+					xrld_cmp = rise / inner;
+					rld_cmp = rise % inner;
 				}
 				break;
-			} else if (i >= 16) {
+			} else if (i >= 15) {
 				return -ENOTSUP;
 			}
 		}
 	} else {
 		rld = period_cycles;
 		xrld = 0;
-		prld = period_cycles;
 		rld_cmp = period_cycles - pulse_cycles;
 		xrld_cmp = 0;
 	}
 
-	if (prld != ((PWM_RLD_XRLD_GET(pwm_base->RLD) << 24) | PWM_RLD_RLD_GET(pwm_base->RLD))) {
+	pwm_config.enable_output = true;
+	pwm_config.dead_zone_in_half_cycle = config->dead_zone_in_half_cycle;
+	pwm_set_reload(pwm_base, xrld, rld);
+	pwm_set_start_count(pwm_base, 0, 0);
 
-		pwm_config.enable_output = true;
-		pwm_config.dead_zone_in_half_cycle = config->dead_zone_in_half_cycle;
-		pwm_set_reload(pwm_base, xrld, rld);
-		pwm_set_start_count(pwm_base, 0, 0);
+	cmp_config[0].enable_ex_cmp  = true;
+	cmp_config[0].mode = pwm_cmp_mode_output_compare;
+	cmp_config[0].cmp = rld + 1;
+	cmp_config[0].ex_cmp = xrld;
+	cmp_config[0].update_trigger = pwm_shadow_register_update_on_hw_event;
 
-		cmp_config[0].enable_ex_cmp  = true;
-		cmp_config[0].mode = pwm_cmp_mode_output_compare;
-		cmp_config[0].cmp = rld + 1;
-		cmp_config[0].ex_cmp = xrld;
-		cmp_config[0].update_trigger = pwm_shadow_register_update_on_modify;
+	cmp_config[1].enable_ex_cmp  = true;
+	cmp_config[1].mode = pwm_cmp_mode_output_compare;
+	cmp_config[1].cmp = rld;
+	cmp_config[1].ex_cmp = xrld;
+	cmp_config[1].update_trigger = pwm_shadow_register_update_on_modify;
 
-		cmp_config[1].enable_ex_cmp  = true;
-		cmp_config[1].mode = pwm_cmp_mode_output_compare;
-		cmp_config[1].cmp = rld;
-		cmp_config[1].ex_cmp = xrld;
-		cmp_config[1].update_trigger = pwm_shadow_register_update_on_modify;
-
-		if (status_success != pwm_setup_waveform(pwm_base, channel, &pwm_config, channel, &cmp_config[0], 1)) {
-			LOG_ERR("failed to setup waveform\n");
-			return -ENOTSUP;
-		}
-		pwm_load_cmp_shadow_on_capture(pwm_base, PWM_SOC_CMP_MAX_COUNT - 1, 0);
-		pwm_config_cmp(pwm_base, PWM_SOC_CMP_MAX_COUNT - 1, &cmp_config[1]);
-	
-		pwm_start_counter(pwm_base);
-		pwm_issue_shadow_register_lock_event(pwm_base);
+	if (status_success != pwm_setup_waveform(pwm_base, channel, &pwm_config, channel, &cmp_config[0], 1)) {
+		LOG_ERR("failed to setup waveform\n");
+		return -ENOTSUP;
+	}
+	/* CMP[MAX-1]=RLD selects period-boundary shadow load (SDK pwm_output) */
+	if (status_success != pwm_load_cmp_shadow_on_match(pwm_base,
+				PWM_SOC_CMP_MAX_COUNT - 1, &cmp_config[1])) {
+		LOG_ERR("failed to config shadow load cmp\n");
+		return -ENOTSUP;
 	}
 
+	pwm_start_counter(pwm_base);
+	pwm_issue_shadow_register_lock_event(pwm_base);
+
 	pwm_shadow_register_unlock(pwm_base);
-    pwm_cmp_update_cmp_value(pwm_base, channel, rld_cmp, xrld_cmp);
+	pwm_cmp_update_cmp_value(pwm_base, channel, rld_cmp, xrld_cmp);
 	pwm_issue_shadow_register_lock_event(pwm_base);
 	return 0;
 }
@@ -154,9 +168,8 @@ static int hpmicro_pwm_v2_set_cycles(const struct device *dev, uint32_t channel,
 {
 	const struct pwm_hpmicro_config *config = dev->config;
 	HPM_PWM_BASE_TYPE *pwm_base = config->base;
-	uint32_t rld, xrld, prld, rld_cmp, xrld_cmp;
-	uint16_t i, j;
-	
+	uint32_t rld;
+
 	if (channel > 7) {
 		return -ENOTSUP;
 	}
@@ -183,42 +196,30 @@ static int hpmicro_pwm_v2_set_cycles(const struct device *dev, uint32_t channel,
 	uint8_t shadow_cmp2 = shadow_cmp1 + 1;                              /* ch0:2, ch1:4 */
 
 	/* Handle polarity inversion */
-	bool invert_output = false;
-	if (flags == PWM_POLARITY_INVERTED) {
-		invert_output = true;
-	} else if (flags == PWM_POLARITY_NORMAL) {
-		invert_output = false;
-	} else {
-		return -ENOTSUP;
-	}
+	bool invert_output = ((flags & PWM_POLARITY_MASK) == PWM_POLARITY_INVERTED);
 
-	/* pwmv2 only support period <= 0xffffff */
-	if (period_cycles > 0xffffff) {
-		return -ENOTSUP;
-	} else {
-		rld = period_cycles;
-		xrld = 0;
-		prld = period_cycles;
-		rld_cmp = period_cycles - pulse_cycles;
-		xrld_cmp = 0;
+	if ((period_cycles == 0U) || (pulse_cycles > period_cycles)) {
+		return -EINVAL;
 	}
+	/* Hardware period T = reload; SDK uses freq*ms/1000 - 1 */
+	if (period_cycles > 0xffffffU) {
+		return -ENOTSUP;
+	}
+	rld = period_cycles - 1U;
 
 	/* Unlock shadow registers */
 	pwmv2_shadow_register_unlock(pwm_base);
 
-	/* Set reload value with extended precision */
-	pwmv2_set_shadow_val(pwm_base, shadow_reload, rld, xrld, false);
-	
-	/* Set compare values for PWMv2 edge-aligned mode 
-	* PWMv2 needs two compare values to generate one PWM waveform:
-	* - cmp1: rising edge (usually 0 for edge-aligned)  
-	* - cmp2: falling edge (duty cycle point)
-	*/
-	uint32_t cmp1_val = 0;  /* Rising edge at counter start */
-	uint32_t cmp2_val = rld_cmp;  /* Falling edge for duty cycle */
-	
-	pwmv2_set_shadow_val(pwm_base, shadow_cmp1, cmp1_val, 0, false);
-	pwmv2_set_shadow_val(pwm_base, shadow_cmp2, cmp2_val, xrld_cmp, false);
+	/* Set reload (4th arg is high-resolution tick 0..255, not XRLD) */
+	pwmv2_set_shadow_val(pwm_base, shadow_reload, rld, 0, false);
+
+	/*
+	 * Edge-aligned (UM): high while a <= CNT < b.
+	 * a=0, b=pulse → high for pulse cycles; pulse=0 → always low;
+	 * pulse=period → b=T+1 → always high.
+	 */
+	pwmv2_set_shadow_val(pwm_base, shadow_cmp1, 0, 0, false);
+	pwmv2_set_shadow_val(pwm_base, shadow_cmp2, pulse_cycles, 0, false);
 
 	/* Configure counter (first time only or when period changes) */
 	pwmv2_counter_select_data_offset_from_shadow_value(pwm_base, counter, shadow_reload);
@@ -246,18 +247,12 @@ static int hpmicro_pwm_v2_set_cycles(const struct device *dev, uint32_t channel,
 	/* Lock shadow registers to apply changes */
 	pwmv2_shadow_register_lock(pwm_base);
 
-	/* Handle four cmp mode for odd channels (1, 3, 5, 7) */
-	if (channel & 0x01) {
-		if (pwmv2_get_cmp_working_status(pwm_base, (pwm_channel_t)(channel - 1)) == 0xFFFFFF00) {
-			/* Odd channel - need to enable four_cmp for proper operation */
-			pwmv2_enable_four_cmp(pwm_base, (pwm_channel_t)(channel - 1));  /* Enable for even channel */
-		} else {
-			pwmv2_disable_four_cmp(pwm_base, (pwm_channel_t)(channel - 1));
-		}
-	} else {
-		/* Even channel - disable four cmp for normal PWM operation */
-		pwmv2_disable_four_cmp(pwm_base, (pwm_channel_t)channel);
-	}
+	/*
+	 * TRIG_SEL4 lives on even channels only. Zephyr uses 2-cmp duty PWM
+	 * (SDK pwm_output / rgb_led / sdm): always clear it on the even floor
+	 * so odd channels use CMP N*2+2..N*2+3. Four-cmp is unused here.
+	 */
+	pwmv2_disable_four_cmp(pwm_base, (pwm_channel_t)(channel & ~1U));
 	/* Enable channel output */
 	pwmv2_channel_enable_output(pwm_base, (pwm_channel_t)channel);
 	
@@ -322,9 +317,6 @@ static int hpmicro_pwm_get_cycles_per_sec(const struct device *dev,
 static int pwm_hpmicro_v1_init(const struct device *dev)
 {
 	const struct pwm_hpmicro_config *config = dev->config;
-	pwm_config_t pwm_config;
-	uint32_t freqc;
-	HPM_PWM_BASE_TYPE *pwm_base = config->base;
 	int err;
 
 	err = pinctrl_apply_state(config->pincfg, PINCTRL_STATE_DEFAULT);
@@ -332,13 +324,7 @@ static int pwm_hpmicro_v1_init(const struct device *dev)
 		return err;
 	}
 
-	pwm_get_default_pwm_config(pwm_base, &pwm_config);
-	pwm_config.enable_output = true;
-    pwm_config.dead_zone_in_half_cycle = config->dead_zone_in_half_cycle;
-    pwm_config.invert_output = false;
-	freqc = clock_get_frequency(config->clock_name);
-	pwm_set_reload(pwm_base, 0, freqc / config->period);
-    pwm_set_start_count(pwm_base, 0, 0);
+	clock_enable_name((clock_name_t)config->clock_name);
 
 	return 0;
 }
@@ -356,6 +342,8 @@ static int pwm_hpmicro_v2_init(const struct device *dev)
 	if (err < 0) {
 		return err;
 	}
+
+	clock_enable_name((clock_name_t)config->clock_name);
 
 	/* Deinitialize PWMv2 to reset to known state */
 	pwmv2_deinit(pwm_base);
@@ -386,8 +374,7 @@ static const struct pwm_driver_api pwm_hpmicro_driver_api = {
 		.base = (HPM_PWM_BASE_TYPE *)DT_INST_REG_ADDR(n),	  \
 		.clock_name = DT_INST_CLOCKS_CELL(n, name),		\
 		.pincfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n),		  \
-		.period = DT_INST_PROP(n, period_init),			\
-		.dead_zone_in_half_cycle = DT_INST_PROP(n, dead_zone_in_half_cycle),	\
+		.dead_zone_in_half_cycle = DT_INST_PROP_OR(n, dead_zone_in_half_cycle, 0),	\
 	};								  \
 									  \
 	DEVICE_DT_INST_DEFINE(n,					  \

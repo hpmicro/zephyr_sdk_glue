@@ -1,0 +1,181 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <dt-bindings/clock/hpm6880-clocks.h>
+#include <hpmicro/HPM6800/hpm68xx.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm6850", "hpmicro,hpm68xx";
+		lcdc0: lcdc@f1000000 {
+			compatible = "hpmicro,hpm-lcdc";
+			id = <0>;
+			reg = <0xf1000000 DT_SIZE_K(16)>;
+			router = <&pixelmux>;
+			interrupts = <73 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLK_PLL4CLK0 CLK_SRC_OSC24M 1>, <&clk CLOCK_LCD0 CLK_SRC_PLL4_CLK0 4>;
+			clock-names = "pll", "lcdc";
+			status = "disabled";
+		};
+
+		lcdc1: lcdc@f1004000 {
+			compatible = "hpmicro,hpm-lcdc";
+			id = <1>;
+			reg = <0xf1004000 DT_SIZE_K(16)>;
+			router = <&pixelmux>;
+			interrupts = <74 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLK_PLL4CLK0 CLK_SRC_OSC24M 1>, <&clk CLOCK_LCD1 CLK_SRC_PLL4_CLK0 4>;
+			clock-names = "pll", "lcdc";
+			status = "disabled";
+		};
+
+		lvb: lvb@f1030000 {
+			compatible = "hpmicro,hpm-lvb";
+			reg = <0xf1030000 DT_SIZE_K(16)>, <0xf1034000 DT_SIZE_K(16)>;
+			reg-names = "lvb", "pixelmux";
+			clocks = <&clk CLOCK_LVB CLOCK_AXIV 1>;
+			clock-names = "lvb";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			lvb_lvds0: lvds@0 {
+				compatible = "hpmicro,hpm-lvds";
+				reg = <0>;
+			};
+
+			lvb_lvds1: lvds@1 {
+				compatible = "hpmicro,hpm-lvds";
+				reg = <1>;
+			};
+		};
+
+		camera0: camera0@f1008000 {
+			compatible = "hpmicro,hpm-camera";
+			clocks = <&clk CLOCK_CAMERA0 CLK_SRC_PLL4_CLK0 8>;
+			reg = <0xf1008000 0x4000>;
+			interrupts = <71 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		camera1: camera1@f100c000 {
+			compatible = "hpmicro,hpm-camera";
+			clocks = <&clk CLOCK_CAMERA1 CLK_SRC_PLL4_CLK0 8>;
+			reg = <0xf100c000 0x4000>;
+			interrupts = <72 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		pdma: pdma@f1010000 {
+			reg = <0xf1010000 0x4000>;
+			clocks = <&clk CLOCK_PDMA CLOCK_AXIV 1>;
+			status = "disabled";
+		};
+
+		jpeg: jpeg@f1014000 {
+			reg = <0xf1014000 0x4000>;
+			clocks = <&clk CLOCK_JPEG CLOCK_AXIV 1>;
+			status = "disabled";
+		};
+
+		gwc0: gwc0@f1018000 {
+			reg = <0xf1018000 0x4000>;
+			clocks = <&clk CLOCK_GWC0 CLOCK_AXIV 1>;
+			status = "disabled";
+		};
+
+		gwc1: gwc1@f101c000 {
+			reg = <0xf101c000 0x4000>;
+			clocks = <&clk CLOCK_GWC1 CLOCK_AXIV 1>;
+			status = "disabled";
+		};
+
+		mipi_dsi0: mipi-dsi0@f1020000 {
+			compatible = "hpmicro,hpm-mipi-dsi";
+			id = <0>;
+			reg = <0xf1020000 0x4000>;
+			reg-names = "mipi_dsi";
+			mipi_dsi_phy = <&mipi_dsi_phy0>;
+			pixelmux = <&pixelmux>;
+			clocks = <&clk CLOCK_DSI0 CLK_SRC_OSC24M 0>;
+			clock-names = "dsi";
+			interrupts = <81 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		mipi_dsi1: mipi-dsi1@f1024000 {
+			compatible = "hpmicro,hpm-mipi-dsi";
+			id = <1>;
+			reg = <0xf1024000 0x4000>;
+			reg-names = "mipi_dsi";
+			mipi_dsi_phy = <&mipi_dsi_phy1>;
+			pixelmux = <&pixelmux>;
+			clocks = <&clk CLOCK_DSI1 CLK_SRC_OSC24M 0>;
+			clock-names = "dsi";
+			interrupts = <82 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		mipi_csi0: mipi-csi0@f1028000 {
+			compatible = "hpmicro,hpm-mipi-csi";
+			reg = <0xf1028000 0x4000>;
+			mipi_csi_phy = <&mipi_csi_phy0>;
+			clocks = <&clk CLOCK_CSI0 CLK_SRC_PLL4_CLK0 43>;
+			interrupts = <83 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		mipi_csi1: mipi-csi1@f102c000 {
+			compatible = "hpmicro,hpm-mipi-csi";
+			reg = <0xf102c000 0x4000>;
+			mipi_csi_phy = <&mipi_csi_phy1>;
+			clocks = <&clk CLOCK_CSI1 CLK_SRC_PLL4_CLK0 43>;
+			interrupts = <88 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+		};
+
+		pixelmux: pixel-mux@f1034000 {
+			compatible = "hpmicro,hpm-pixelmux";
+			reg = <0xf1034000 0x4000>;
+			status = "disabled";
+		};
+
+		lcb: lcb@f1038000 {
+			reg = <0xf1038000 0x4000>;
+			clocks = <&clk CLOCK_LCB CLOCK_AXIV 1>;
+			status = "disabled";
+		};
+
+		mipi_dsi_phy0: mipi-dsi-phy0@f4140000 {
+			compatible = "hpmicro,hpm-mipi-dsi-phy";
+			reg = <0xf4140000 0x4000>;
+			status = "disabled";
+		};
+
+		mipi_dsi_phy1: mipi-dsi-phy1@f4144000 {
+			compatible = "hpmicro,hpm-mipi-dsi-phy";
+			reg = <0xf4144000 0x4000>;
+			status = "disabled";
+		};
+
+		mipi_csi_phy0: mipi-csi-phy0@f4148000 {
+			compatible = "hpmicro,hpm-mipi-csi-phy";
+			reg = <0xf4148000 0x4000>;
+			status = "disabled";
+		};
+
+		mipi_csi_phy1: mipi-csi-phy1@f414c000 {
+			compatible = "hpmicro,hpm-mipi-csi-phy";
+			reg = <0xf414c000 0x4000>;
+			status = "disabled";
+		};
+	};
+};

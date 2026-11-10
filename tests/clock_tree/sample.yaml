@@ -1,0 +1,28 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: HPMicro runtime clock tree report
+tests:
+  hpmicro.test.clock_tree:
+    tags:
+      - hpmicro_verified
+    platform_allow: &platforms
+      - hpm5100evk
+      - hpm5300evk
+      - hpm5301evklite
+      - hpm5e00evk
+      - hpm6200evk
+      - hpm6300evk
+      - hpm6750evk2
+      - hpm6800evk
+      - hpm6e00evk
+      - hpm6p00evk
+    integration_platforms: *platforms
+    harness: console
+    harness_config:
+      type: multi_line
+      regex:
+        - "HPMicro runtime clock tree report"
+        - "clock_cpu0 +[1-9][0-9]* Hz"
+        - "Enabled clock nodes: [1-9][0-9]*"

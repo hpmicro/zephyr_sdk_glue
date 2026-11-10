@@ -1,5 +1,34 @@
 # Change Log
 
+## [0.8.0]: 2026.11.9
+
+All changes since 0.7.0
+
+### Added:
+- [soc]: add support for the HPM51xx, HPM53xx, HPM5Exx, HPM63xx, and HPM6Pxx series, with initial board targets based on HPM5151, HPM5301, HPM5361, HPM5E31, HPM6360, and HPM6P81
+- [boards]: add support for hpm5100evk, hpm5300evk, hpm5301evklite, hpm5e00evk, hpm6300evk, and hpm6p00evk
+- [runners]: add J-Link flash and debug runner support for HPMicro EVKs, including configurable device, interface speed, Commander, and GDB Server paths alongside the existing OpenOCD runner
+- [drivers]: add cache management, GPTMR counter, hardware information, entropy RNG, WDG, and EWDG support
+- [twister]: add HPMicro adaptations for 15 upstream Zephyr samples and 13 upstream tests, together with snippet-based board configurations and CherryUSB test metadata
+- [tests]: add the clock_tree runtime diagnostic to report PLL outputs, CPU frequencies, and enabled peripheral clocks
+
+### Changed:
+- [manifest]: update the Zephyr baseline from v3.7.0 to v4.4.0 and HPM SDK to v1.13.0; update LVGL to v9.5.0, CherryUSB to v1.6.1 or later, and refresh FatFS, MCUboot, Mbed TLS, and the remaining west dependencies
+- [toolchain]: update the default Zephyr SDK toolchain to v1.0.1, port ZCC compiler and linker integration to Zephyr v4.4.0, and enable ZCC in the HPMicro board metadata
+- [soc]: align RISC-V CPU and timer metadata, ROM startup, pinned linker sections, retained watchdog memory, shared SRAM, DTCM, and non-cacheable memory layouts with Zephyr v4.4.0
+- [devicetree]: reorganize SoC descriptions into per-series and per-model layers and normalize device resources, memory regions, pinctrl, clock topology, provider cells, and MIPI/display phandle relationships across new and existing HPMicro families
+- [drivers]: port ADC, CAN/MCAN, display, Ethernet, flash, GPIO, I2C, pinctrl, PWM, SDHC, UART, SPI, USB UDC/CherryUSB, and video/camera drivers to the Zephyr v4.4 APIs and the expanded SoC set
+- [clock]: add explicit clock ownership, move peripheral clock enablement into individual driver initialization, retain only global enables at SoC startup, consolidate PLL/PLLv2 handling, and refresh clock bindings and initialization for every supported SoC
+- [boards]: align board metadata with the Zephyr v4.4 schema and Twister, centralize J-Link and OpenOCD runner configuration, update OpenOCD target and probe settings, and enable optimized builds
+- [usb]: adapt the UDC driver to the Zephyr v4.4 control-transfer model, add remote wakeup and board-control support, and make the UDC snippets self-contained
+- [samples]: extend verified snippets to the new boards and replace the separate CherryUSB host samples with a unified demo supporting multiple CDC, HID, and mass-storage devices
+- [scripts]: update the west supply workflow and clock-header generation for the revised manifests and new SoC families
+- [docs]: refresh the getting-started guides, expand the bilingual snippet and clock_tree documentation, and update the Sphinx staging, navigation, and build workflows
+
+### Fixed:
+- [drivers]: fix CAN/MCAN filtering and instance selection, SDHC/SDIO operation, GPIO both-edge interrupts, watchdog reset handling, per-instance Ethernet clocks, MIPI DSI lane configuration, and USB mass-storage and control-transfer behavior
+- [boards]: correct runner paths, partition overlays, GPIO key pinctrl, Ethernet PHY and clock routing, display pixelmux and DDR initialization, USB overlays, and EEPROM I2C routing
+
 ## [0.7.0]: 2026.1.30
 
 All changes since 0.6.0
@@ -14,107 +43,6 @@ All changes since 0.6.0
 ### Changed:
 - update pwm drivers include pwm and pwmv2
 - update sdk_env to v1.11.0
-
-### Verified sample: (-PATH @CASE :SNIPPETS)
-
-- hpm6750evk2:
-  - zephyr/samples/hello_world
-  - zephyr/samples/basic/blinky: blinky
-  - zephyr/samples/basic/blinky_pwm: blinky_pwm
-  - zephyr/samples/basic/button
-  - zephyr/samples/drivers/eeprom: i2c_eeprom
-  - zephyr/samples/modules/canopennode: canopennode
-  - zephyr/samples/drivers/display: display_rgb
-  - zephyr/samples/subsys/video/capture: video_dvp
-  - zephyr/samples/subsys/usb/cdc_acm: cdc_acm
-  - zephyr/samples/subsys/usb/hid-keyboard: hid-keyboard
-  - zephyr/samples/subsys/usb/hid-mouse: hid-mouse
-  - zephyr/samples/subsys/usb/mass: mass
-  - zephyr/samples/net/sockets/echo_server: ethernet
-  - zephyr/samples/subsys/shell/shell_module: shell_module
-  - zephyr/tests/drivers/can/api: can
-  - zephyr/tests/drivers/can/timing: can
-  - zephyr/tests/drivers/can/shell: can
-  - zephyr/tests/drivers/uart/uart_basic_api
-  - zephyr/tests/drivers/sdhc: sdhc
-  - zephyr/tests/drivers/disk/disk_access: sdhc
-  - zephyr/tests/drivers/disk/disk_performance: sdhc
-  - zephyr/tests/subsys/sd/sdmmc: sdhc
-  - zephyr/tests/subsys/sd/mmc: sdhc
-  - sdk_glue/samples/cherryusb/device/msc/ram_disk
-  - sdk_glue/samples/cherryusb/device/cdc_acm/cdc_acm_vcom
-  - sdk_glue/samples/cherryusb/host/cdc_acm
-  - sdk_glue/samples/cherryusb/host/msc_disk
-
-- hpm6800evk:
-  - zephyr/samples/hello_world
-  - zephyr/samples/basic/blinky: blinky
-  - zephyr/samples/basic/button
-  - zephyr/samples/drivers/eeprom: i2c_eeprom
-  - zephyr/samples/subsys/video/capture: video_dvp, video_mipi
-  - zephyr/samples/modules/canopennode: canopennode
-  - zephyr/samples/drivers/display: display_rgb, display_mipi, display_lvds, display_dual_lvds
-  - zephyr/samples/subsys/usb/cdc_acm: cdc_acm
-  - zephyr/samples/subsys/usb/hid-keyboard: hid-keyboard
-  - zephyr/samples/subsys/usb/hid-mouse: hid-mouse
-  - zephyr/samples/subsys/usb/mass: mass
-  - zephyr/samples/net/sockets/echo_server: ethernet
-  - zephyr/samples/subsys/shell/shell_module: shell_module
-  - zephyr/tests/drivers/can/api: can
-  - zephyr/tests/drivers/can/timing: can
-  - zephyr/tests/drivers/can/shell: can
-  - zephyr/tests/drivers/uart/uart_basic_api
-  - zephyr/tests/drivers/sdhc: sdhc
-  - zephyr/tests/drivers/disk/disk_access: sdhc
-  - zephyr/tests/drivers/disk/disk_performance: sdhc
-  - zephyr/tests/subsys/sd/sdmmc: sdhc
-  - zephyr/tests/subsys/sd/mmc: sdhc
-  - sdk_glue/samples/cherryusb/device/msc/ram_disk
-  - sdk_glue/samples/cherryusb/device/cdc_acm/cdc_acm_vcom
-  - sdk_glue/samples/cherryusb/host/cdc_acm
-  - sdk_glue/samples/cherryusb/host/msc_disk
-
-- hpm6200evk:
-  - zephyr/samples/hello_world
-  - zephyr/samples/basic/blinky: blinky
-  - zephyr/samples/basic/blinky_pwm: blinky_pwm
-  - zephyr/samples/basic/button
-  - zephyr/samples/modules/canopennode: canopennode
-  - zephyr/samples/subsys/usb/cdc_acm: cdc_acm
-  - zephyr/samples/subsys/usb/hid-keyboard: hid-keyboard
-  - zephyr/samples/subsys/usb/hid-mouse: hid-mouse
-  - zephyr/samples/subsys/usb/mass: mass
-  - zephyr/samples/subsys/shell/shell_module: shell_module
-  - zephyr/tests/drivers/can/api: can
-  - zephyr/tests/drivers/can/timing: can
-  - zephyr/tests/drivers/can/shell: can
-  - zephyr/tests/drivers/uart/uart_basic_api
-  - sdk_glue/samples/cherryusb/device/msc/ram_disk
-  - sdk_glue/samples/cherryusb/device/cdc_acm/cdc_acm_vcom
-  - sdk_glue/samples/cherryusb/host/cdc_acm
-  - sdk_glue/samples/cherryusb/host/msc_disk
-
-- hpm6e00evk:
-  - zephyr/samples/hello_world
-  - zephyr/samples/basic/blinky: blinky
-  - zephyr/samples/basic/blinky_pwm: blinky_pwm
-  - zephyr/samples/basic/button
-  - zephyr/samples/drivers/eeprom: i2c_eeprom
-  - zephyr/samples/modules/canopennode: canopennode
-  - zephyr/samples/subsys/usb/cdc_acm: cdc_acm
-  - zephyr/samples/subsys/usb/hid-keyboard: hid-keyboard
-  - zephyr/samples/subsys/usb/hid-mouse: hid-mouse
-  - zephyr/samples/subsys/usb/mass: mass
-  - zephyr/samples/subsys/shell/shell_module: shell_module
-  - zephyr/samples/net/sockets/echo_server: ethernet
-  - zephyr/tests/drivers/can/api: can
-  - zephyr/tests/drivers/can/timing: can
-  - zephyr/tests/drivers/can/shell: can
-  - zephyr/tests/drivers/uart/uart_basic_api
-  - sdk_glue/samples/cherryusb/device/msc/ram_disk
-  - sdk_glue/samples/cherryusb/device/cdc_acm/cdc_acm_vcom
-  - sdk_glue/samples/cherryusb/host/cdc_acm
-  - sdk_glue/samples/cherryusb/host/msc_disk
 
 ## [0.6.0]: 2025.8.4
 
@@ -186,4 +114,3 @@ All changes since 0.1.0
   - dts: add hpm67xx series and hpm68xx series dts map
   - sdk_glue: add hpm_sdk in zephyr build
   - west: add west import system, zephyr v3.4.0
-

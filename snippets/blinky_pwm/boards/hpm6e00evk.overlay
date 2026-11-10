@@ -1,8 +1,7 @@
 /*
- * Copyright 2025 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
-
+* Copyright 2025-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 / {
 	aliases {
@@ -27,14 +26,3 @@
 	pinctrl-0 = <&pinmux_pwm1>;
 	pinctrl-names = "default";
 };
-
-&pinctrl {
-		pinmux_pwm1: pinmux_pwm1 {
-		group0 {
-			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 8), IOC_TYPE_IOC, 0, 16)>,
-						<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 9), IOC_TYPE_IOC, 0, 16)>,
-						<HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 10), IOC_TYPE_IOC, 0, 16)>;
-		};
-	};
-};
-

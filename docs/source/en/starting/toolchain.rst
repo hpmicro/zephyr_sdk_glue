@@ -17,9 +17,9 @@ Supported Toolchains
    * - Toolchain
      - Variable Value
      - Description
-   * - Zephyr SDK
+   * - Zephyr SDK 1.0.1
      - ``zephyr``
-     - Official Zephyr SDK, supports multiple architectures
+     - Default recommended toolchain for sdk_glue, with RISC-V GNU support
    * - ZCC
      - ``zcc``
      - LLVM/Clang-based toolchain
@@ -57,7 +57,7 @@ Environment Variable Description
    * - ``ZEPHYR_TOOLCHAIN_VARIANT``
      - Specifies the toolchain type to use. Zephyr loads the corresponding toolchain configuration based on this variable.
    * - ``ZCC_TOOLCHAIN_PATH``
-     - Installation path of the ZCC toolchain. Should point to the toolchain's root directory (parent of the bin directory).
+     - Installation path of the ZCC toolchain. Should point to the toolchain's root directory (parent of the bin directory), for example, ``~/sdk_env/toolchains/zcc-4.1.5/``.
    * - ``TOOLCHAIN_ROOT``
      - Root directory of toolchain adaptation files, typically pointing to the path containing the ``cmake/`` directory.
 

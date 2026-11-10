@@ -1,0 +1,143 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <dt-bindings/clock/hpm5361-clocks.h>
+#include <hpmicro/HPM5300/hpm53xx.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm5331", "hpmicro,hpm53xx";
+		gptmr2: gpt@f0008000 {
+			reg = <0xf0008000 0x4000>;
+			clocks = <&clk CLOCK_GPTMR2 CLK_SRC_PLL1_CLK0 8>;
+			status = "disabled";
+		};
+
+		gptmr3: gpt@f000c000 {
+			reg = <0xf000c000 0x4000>;
+			clocks = <&clk CLOCK_GPTMR3 CLK_SRC_PLL1_CLK0 8>;
+			status = "disabled";
+		};
+
+		ptpc: ptpc@f02fc000 {
+			reg = <0xf02fc000 0x4000>;
+			clocks = <&clk CLOCK_PTPC CLOCK_AHB 1>;
+			status = "disabled";
+		};
+
+		qei0: qei@f0300000 {
+			reg = <0xf0300000 0x4000>;
+			status = "disabled";
+		};
+
+		qei1: qei@f0304000 {
+			reg = <0xf0304000 0x4000>;
+			status = "disabled";
+		};
+
+		qeo0: qeo@f0308000 {
+			reg = <0xf0308000 0x4000>;
+			status = "disabled";
+		};
+
+		qeo1: qeo@f030c000 {
+			reg = <0xf030c000 0x4000>;
+			status = "disabled";
+		};
+
+		mmc0: mmc0@f0310000 {
+			reg = <0xf0310000 0x4000>;
+			status = "disabled";
+		};
+
+		mmc1: mmc1@f0314000 {
+			reg = <0xf0314000 0x4000>;
+			status = "disabled";
+		};
+
+		pwm0: pwm@f0318000 {
+			reg = <0xf0318000 0x4000>;
+			status = "disabled";
+		};
+
+		pwm1: pwm@f031c000 {
+			reg = <0xf031c000 0x4000>;
+			status = "disabled";
+		};
+
+		rdc: rdc@f0320000 {
+			reg = <0xf0320000 0x4000>;
+			status = "disabled";
+		};
+
+		plb: plb@f0324000 {
+			reg = <0xf0324000 0x4000>;
+			status = "disabled";
+		};
+
+		sei: sei@f032c000 {
+			reg = <0xf032c000 0x4000>;
+			status = "disabled";
+		};
+
+		sdp: sdp@f3040000 {
+			reg = <0xf3040000 0x4000>;
+			clocks = <&clk CLOCK_SDP CLOCK_AHB 1>;
+			status = "disabled";
+		};
+
+		sec: sec@f3044000 {
+			reg = <0xf3044000 0x4000>;
+			status = "disabled";
+		};
+
+		mon: mon@f3048000 {
+			reg = <0xf3048000 0x4000>;
+			status = "disabled";
+		};
+
+		rng: rng@f304c000 {
+			reg = <0xf304c000 0x4000>;
+			clocks = <&clk CLOCK_RNG CLOCK_AHB 1>;
+			status = "disabled";
+		};
+
+		keym: keym@f3054000 {
+			reg = <0xf3054000 0x4000>;
+			status = "disabled";
+		};
+
+		adc1: adc@f3084000 {
+			reg = <0xf3084000 0x4000>;
+			clocks = <&clk CLOCK_ADC1 CLK_ADC_SRC_AHB0 1>,
+				<&clk CLOCK_AHB CLOCK_CPU0 2>;
+			status = "disabled";
+		};
+
+		dac0: dac@f3090000 {
+			reg = <0xf3090000 0x4000>;
+			clocks = <&clk CLOCK_DAC0 CLK_DAC_SRC_AHB0 1>,
+				<&clk CLOCK_AHB CLOCK_CPU0 2>;
+			status = "disabled";
+		};
+
+		dac1: dac@f3094000 {
+			reg = <0xf3094000 0x4000>;
+			clocks = <&clk CLOCK_DAC1 CLK_DAC_SRC_AHB0 1>,
+				<&clk CLOCK_AHB CLOCK_CPU0 2>;
+			status = "disabled";
+		};
+
+		opamp0: opamp0@f30a0000 {
+			reg = <0xf30a0000 0x4000>;
+			status = "disabled";
+		};
+
+		opamp1: opamp1@f30a4000 {
+			reg = <0xf30a4000 0x4000>;
+			status = "disabled";
+		};
+	};
+};

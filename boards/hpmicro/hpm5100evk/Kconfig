@@ -1,0 +1,5 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_HPM5100EVK
+	select SOC_HPM5151

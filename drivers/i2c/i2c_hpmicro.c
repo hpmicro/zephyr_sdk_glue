@@ -16,6 +16,7 @@
 #include <soc.h>
 #include <hpm_i2c_drv.h>
 #include <hpm_clock_drv.h>
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 #define HPM_I2C_STATUS_SLAVE_IDLE          0
 #define HPM_I2C_STATUS_SLAVE_BEGIN_WRITE   1
@@ -57,9 +58,13 @@ static int hpmicro_i2c_set_bus_speed(const struct device *dev, uint32_t dev_conf
 	struct hpmicro_i2c_data *data = dev->data;
 	i2c_config_t config;
 	uint32_t freq;
-	/* Configure clock and de-assert reset for I2Cx */
-	clock_set_source_divider(cfg->clock_name, cfg->clock_src, cfg->clock_div);
-	clock_add_to_group(cfg->clock_name, 0);
+	const struct hpm_clock_dt_spec clock = {
+		.name = (clock_name_t)cfg->clock_name,
+		.src = (clk_src_t)cfg->clock_src,
+		.div = cfg->clock_div,
+	};
+
+	clock_configure_enable(&clock);
 
 	switch (I2C_SPEED_GET(dev_config)) {
 	case I2C_SPEED_STANDARD:

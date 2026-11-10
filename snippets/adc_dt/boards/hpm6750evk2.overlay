@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: Apache-2.0
+/*
+ * Copyright (c) 2026 HPMicro
+ *
+ * ADC0 channel 11 (PE25, ADC0.VIN11, ADC12 IP).
+ */
+
+/ {
+	zephyr,user {
+		io-channels = <&adc0 11>;
+	};
+};
+
+&adc0 {
+	status = "okay";
+	pinctrl-0 = <&pinmux_adc12>;
+	pinctrl-names = "default";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@b {
+		reg = <11>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <0>;
+		zephyr,resolution = <12>;
+	};
+};

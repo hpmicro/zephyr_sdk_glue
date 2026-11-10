@@ -1,32 +1,44 @@
-.. _shell_module:
+.. _shell_shell_module_en:
 
 Shell Module
 =============
-`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/subsys/shell/shell_module/README.html>`_
 
 Overview
---------
+---------
 
-This is a simple application demonstrating how to write and register commands
-using the Shell API:
+This sample demonstrates how to register Zephyr shell commands, subcommands, dynamic commands, dictionary arguments, and a bypass callback.
 
-- **Register Static commands**: ``version`` is a static command that prints the kernel version.
-- **Register Dynamic commands**: See ``dynamic`` command for details on how dynamic commands are implemented.
-- **Register Dictionary commands**: ``dictionary`` implements subsect of dictionary commands.
-- **Set a Bypass callback**: ``bypass`` implements the bypass callback.
+* `Zephyr 4.4.0 shell module sample <https://docs.zephyrproject.org/4.4.0/samples/subsys/shell/shell_module/README.html>`_
 
-Path
+Application paths
+------------------
+
+.. code-block:: text
+
+   zephyr/samples/subsys/shell/shell_module
+
+Hardware setup
 ---------------
 
-.. code-block::
+Connect to the board console at the baud rate configured by the board.
 
-    zephyr/samples/subsys/shell/shell_module
+Building
+---------
 
-Build Cmd
------------
-
-As hpm6750evk2 for example:
+Run from the west workspace root. The following commands use ``hpm6750evk2`` as an example:
 
 .. code-block:: console
 
-    west build -p always -b hpm6750evk2 -S shell_module zephyr/samples/subsys/shell/shell_module
+   west build -p always -b hpm6750evk2 -S shell_module zephyr/samples/subsys/shell/shell_module
+
+Expected behavior
+------------------
+
+A shell prompt appears. Running ``help`` lists the sample commands; the commands demonstrate parameters, dynamic entries, dictionary values, and bypass input handling.
+
+Notes
+------
+
+.. note::
+
+   Enter ``help <command>`` in the shell to inspect the arguments supported by each demonstration command.

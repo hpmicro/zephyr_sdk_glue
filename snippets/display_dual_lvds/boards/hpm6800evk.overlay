@@ -1,29 +1,33 @@
 /*
- * Copyright 2024 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright 2024-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 / {
-    chosen {
-        zephyr,display = &panel_tm103xdgp01;
-    };
+	chosen {
+		zephyr,display = &panel_tm103xdgp01;
+	};
 };
 
 &lcdc0 {
-    status = "okay";
+	status = "okay";
+};
+
+&pixelmux {
+	status = "okay";
 };
 
 &lvb_lvds0 {
-    status = "okay";
+	status = "okay";
 };
 
 &panel_tm103xdgp01 {
-    status = "okay";
+	status = "okay";
 };
 
 /*
- * backlight control
- */
+* backlight control
+*/
 &gpioa {
-    status = "okay";
+	status = "okay";
 };

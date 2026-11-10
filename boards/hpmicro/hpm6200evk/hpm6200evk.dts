@@ -1,18 +1,17 @@
 /*
- * Copyright 2025 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright 2025-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 /dts-v1/;
 
-#include <hpmicro/hpm6280.dtsi>
+#include <hpmicro/HPM6200/hpm6280.dtsi>
 #include "hpm6200evk-pinctrl.dtsi"
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
 / {
 	model = "HPMicro HPM6200EVK";
 	compatible = "HPMicro,hpm6200evk";
-
 	aliases {
 		led0 = &led_r;
 		led1 = &led_g;
@@ -37,10 +36,12 @@
 			gpios = <&gpioa 27 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDR";
 		};
+
 		led_g: led_g {
 			gpios = <&gpiob 1 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDG";
 		};
+
 		led_b: led_b {
 			gpios = <&gpiob 19 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDB";
@@ -73,14 +74,10 @@
 };
 
 &gpioa {
-	pinctrl-0 = <&pinmux_gpioa>;
-	pinctrl-names = "default";
 	status = "okay";
 };
 
 &gpiob {
-	pinctrl-0 = <&pinmux_gpiob>;
-	pinctrl-names = "default";
 	status = "okay";
 };
 
@@ -129,14 +126,12 @@
 		erase-block-size = <4096>;
 		write-block-size = <1>;
 		nor-cfg-opt-hdr = <0xfcf90001>;
-		nor-cfg-opt-opt0 = <0x05>;
-		nor-cfg-opt-opt1 = <0x1000>;
-
+		nor-cfg-opt-opt0 = <0x07>;
+		nor-cfg-opt-opt1 = <0x00>;
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
-
 			boot_partition: partition@0 {
 				label = "mcuboot";
 				reg = <0x3000 0x40000>;
@@ -173,4 +168,60 @@
 zephyr_udc0: &usb0 {
 	compatible = "hpmicro,hpm-udc";
 	status = "disabled";
+};
+
+&rng0 {
+	status = "disabled";
+};
+
+&mcan0 {
+	status = "disabled";
+	pinctrl-0 = <&pinmux_mcan0>;
+	pinctrl-names = "default";
+	can-transceiver {
+		max-bitrate = <5000000>;
+	};
+};
+
+&adc0 {
+	vref-mv = <3300>;
+};
+
+&adc1 {
+	vref-mv = <3300>;
+};
+
+&adc2 {
+	vref-mv = <3300>;
+};
+
+&gpt2 {
+	status = "disabled";
+};
+
+&wdg0 {
+	status = "disabled";
+};
+
+&hwinfo0 {
+	status = "disabled";
+};
+
+&pll1 {
+	pll-frequency = <DT_FREQ_M(960)>;
+	status = "okay";
+	clk0 {
+		div-p = <5>;
+	};
+
+	clk1 {
+		div-p = <3>;
+	};
+};
+
+&clk_cpu0 {
+	clocks = <&pll1 1 1>;
+	axi-divider = <3>;
+	ahb-divider = <3>;
+	status = "okay";
 };

@@ -1,11 +1,11 @@
 /*
- * Copyright 2024-2025 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright 2024-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 /dts-v1/;
 
-#include <hpmicro/hpm6750.dtsi>
+#include <hpmicro/HPM6700/hpm6750.dtsi>
 #include "hpm6750evk2-pinctrl.dtsi"
 #include <zephyr/dt-bindings/display/panel.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
@@ -13,7 +13,6 @@
 / {
 	model = "HPMicro HPM6750EVK2";
 	compatible = "HPMicro,hpm6750evk2";
-
 	aliases {
 		led0 = &led_r;
 		led1 = &led_g;
@@ -44,10 +43,12 @@
 			gpios = <&gpiob 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDR";
 		};
+
 		led_g: led_g {
 			gpios = <&gpiob 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDG";
 		};
+
 		led_b: led_b {
 			gpios = <&gpiob 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDB";
@@ -60,6 +61,7 @@
 			gpios = <&gpioz 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			zephyr,code = <INPUT_KEY_0>;
 		};
+
 		wbutn: wbutn {
 			gpios = <&gpioz 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			zephyr,code = <INPUT_KEY_1>;
@@ -78,7 +80,6 @@
 			hback_porch = <36>;
 			hsync_len = <10>;
 			hsync_pol = <1>;
-
 			vactive = <480>;
 			vfront_porch = <10>;
 			vback_porch = <20>;
@@ -98,7 +99,6 @@
 			status = "disabled";
 		};
 	};
-
 };
 
 &rgb0 {
@@ -155,6 +155,18 @@
 	status = "okay";
 };
 
+&gpioc {
+	pinctrl-0 = <&pinmux_gpioc>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&gpiod {
+	pinctrl-0 = <&pinmux_gpiod>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
 &gpioe {
 	pinctrl-0 = <&pinmux_gpioe>;
 	pinctrl-names = "default";
@@ -183,20 +195,17 @@
 	status = "disabled";
 	pinctrl-0 = <&pinmux_i2c0>;
 	pinctrl-names = "default";
-
 	ov7725: ov7725@21 {
 		compatible = "ovti,ov7725";
 		reg = <0x21>;
 		status = "disabled";
-
 		reset-gpios = <&gpioa 22 GPIO_ACTIVE_HIGH>;
 	};
 
 	touch_rgb: gt911@5d {
-        compatible = "goodix,gt911";
+		compatible = "goodix,gt911";
 		reg = <0x5d>;
 		status = "disabled";
-
 		irq-gpios = <&gpiob 8 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpiob 9 GPIO_ACTIVE_LOW>;
 	};
@@ -211,6 +220,7 @@
 		pagesize = <16>;
 	};
 };
+
 &spi2 {
 	status = "disabled";
 	pinctrl-0 = <&pinmux_spi2>;
@@ -220,6 +230,7 @@
 	dmas = <&hdma 0 4>, <&hdma 1 5>;
 	dma-names = "rx", "tx";
 };
+
 &hdma {
 	status = "okay";
 };
@@ -239,12 +250,10 @@
 		nor-cfg-opt-hdr = <0xfcf90002>;
 		nor-cfg-opt-opt0 = <0x07>;
 		nor-cfg-opt-opt1 = <0xe>;
-
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
-
 			boot_partition: partition@0 {
 				label = "mcuboot";
 				reg = <0x3000 0x40000>;
@@ -306,17 +315,95 @@ zephyr_udc0: &usb0 {
 };
 
 &eth0 {
-    pinctrl-0 = <&pinmux_eth_rgmii>;
-    pinctrl-names = "default";
+	pinctrl-0 = <&pinmux_eth_rgmii>;
+	pinctrl-names = "default";
 	phy-addr = <2>; /* rtl8211e */
-	reset-gpios = <&gpiof 0 GPIO_ACTIVE_LOW>;
-    status = "disabled";
+		reset-gpios = <&gpiof 0 GPIO_ACTIVE_LOW>;
+	status = "disabled";
 };
 
 &eth1 {
-    pinctrl-0 = <&pinmux_eth_rmii>;
-    pinctrl-names = "default";
+	pinctrl-0 = <&pinmux_eth_rmii>;
+	pinctrl-names = "default";
+	clocks = <&clk CLOCK_ETH1 CLK_SRC_PLL2_CLK1 5>;
 	phy-addr = <2>; /* rtl8201e */
-	reset-gpios = <&gpioe 26 GPIO_ACTIVE_LOW>;
-    status = "disabled";
+		reset-gpios = <&gpioe 26 GPIO_ACTIVE_LOW>;
+	status = "disabled";
+};
+
+&can0 {
+	status = "disabled";
+	pinctrl-0 = <&pinmux_can0>;
+	pinctrl-names = "default";
+	can-transceiver {
+		max-bitrate = <5000000>;
+	};
+};
+
+&sd1 {
+	status = "disabled";
+	pinctrl-0 = <&pinmux_sd1>;
+	pinctrl-names = "default";
+	power-delay-ms = <0>;
+	pwr-3v3-support;
+	pwr-3v0-support;
+	mmc-hs200-1_8v;
+	mmc-hs400-1_8v;
+	embedded-4-bit-support;
+	sdmmc {
+		compatible = "zephyr,sdmmc-disk";
+		disk-name = "SD";
+		status = "disabled";
+	};
+};
+
+&adc0 {
+	vref-mv = <3300>;
+};
+
+&adc1 {
+	vref-mv = <3300>;
+};
+
+&adc2 {
+	vref-mv = <3300>;
+};
+
+&adc3 {
+	vref-mv = <3300>;
+};
+
+&gpt2 {
+	status = "disabled";
+};
+
+&wdg0 {
+	status = "disabled";
+};
+
+&hwinfo0 {
+	status = "disabled";
+};
+
+&rng0 {
+	status = "disabled";
+};
+
+&pll0 {
+	pll-frequency = <DT_FREQ_M(816)>;
+	status = "okay";
+};
+
+&clk_cpu0 {
+	clocks = <&pll0 0 1>;
+	status = "okay";
+};
+
+&clk_cpu1 {
+	clocks = <&pll0 0 1>;
+	status = "okay";
+};
+
+&clk_ahb {
+	status = "okay";
 };

@@ -1,0 +1,26 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: HPMicro Drivers Can Shell test
+tests:
+  hpmicro.test.drivers.can.shell:
+    tags:
+    - hpmicro_verified
+    - can
+    depends_on:
+    - can
+    filter: dt_chosen_enabled("zephyr,canbus")
+    required_snippets:
+    - can
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

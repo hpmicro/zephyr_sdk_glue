@@ -1,0 +1,21 @@
+# Copyright 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM EWDG
+
+compatible: "hpmicro,hpm-ewdg"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  reset_none_intr:
+    description: Disable reset on watchdog timeout
+    type: boolean
+    required: false
+

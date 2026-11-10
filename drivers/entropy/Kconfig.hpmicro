@@ -1,0 +1,14 @@
+# HPMICRO CASTCAN configuration options
+
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_RNG := hpmicro,hpm-rng
+
+config RNG_HPMICRO
+    bool "HPMICRO TRNG driver"
+    default y
+    depends on DT_HAS_HPMICRO_HPM_RNG_ENABLED
+    select HAS_HPMSDK_RNG
+    help
+        Enable the HPMICRO RNG driver

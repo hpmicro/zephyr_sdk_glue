@@ -1,353 +1,215 @@
-====================================
+===================
 Docker 环境配置
-====================================
+===================
 
-使用 **Docker** 是配置 HPMicro Zephyr 开发环境最快捷的方式。无需手动安装依赖，容器中已预先配置好所有环境。
+Docker 镜像提供 HPMicro Zephyr 开发所需的依赖和工具，当前版本内置：
+
+- ZCC 4.1.5
+- Zephyr SDK 1.0.1（默认工具链）
+- HPMicro OpenOCD
+- ZCC 与 Zephyr SDK 工具链切换脚本
+
+源码不再打包到镜像中。``zephyr``、``sdk_glue``、``sdk_env``、``modules`` 和
+``bootloader`` 目录由主机分别挂载到容器中，因此在主机上修改代码后，容器内可以立即
+看到修改，无需重新构建docker镜像。
 
 前置条件
----------
+=========
 
-开始之前，请确保：
+- Linux 主机已安装 Docker 和 Docker Compose
+- 已获得完整的 ZSG 工作区，且各模块目录位于同一级目录
+- 如需烧录或调试，主机已连接 CMSIS-DAP 等 USB 调试器
 
-- 已安装 Docker
-- （可选）已安装 Docker Compose，便于容器管理
-- USB 访问权限（用于烧录，推荐使用 Linux）
+工作区结构
+============
+
+``docker-compose.yaml`` 位于 ``sdk_glue`` 目录。启动容器前，工作区应至少包含：
+
+.. code-block:: text
+
+    ZSG/
+    |-- zephyr/
+    |-- sdk_glue/
+    |   `-- docker-compose.yaml
+    |-- sdk_env/hpm_sdk
+
+
+.. note::
+
+   Compose 文件中的相对路径以 ``sdk_glue`` 目录为基准。请在该目录中执行
+   ``docker compose`` 命令，否则应使用 ``-f`` 显式指定 Compose 文件。
 
 获取 Docker 镜像
-------------------
+==================
 
-您可以从 **DockerHub** 拉取镜像，或者下载镜像包后使用 ``docker load`` 加载。
-
-从 DockerHub 拉取
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+当前 Compose 配置使用镜像 ``zephyr_hpmicro:v0.8.0``。可以加载发布的镜像包：
 
 .. code-block:: console
 
-    docker pull swhpmicro/zephyr-hpmicro:latest
+    docker load -i zephyr_hpmicro-v0.8.0.tar
+    docker image ls zephyr_hpmicro
 
-从镜像包加载（推荐国内用户使用）
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+镜像包可从以下地址获取：
 
-国内用户推荐下载镜像包后本地加载，速度更快更稳定。
+- `zephyr_hpmicro-v0.8.0.tar <https://resource.hpmicro.com/zephyr_hpmicro-v0.8.0.tar>`_
 
-#. 下载镜像包
+如果从镜像仓库拉取后得到的是带仓库前缀的镜像名称，请将其标记为 Compose 使用的名称：
 
-   从以下地址下载镜像包：
+.. code-block:: console
 
-   - `docker <https://resource.hpmicro.com/zephyr-hpmicro-latest.tar.gz>`_
-   - 其他分发渠道获取 ``zephyr-hpmicro-latest.tar.gz`` 文件
+    docker pull swhpmicro/zephyr_hpmicro:v0.8.0
+    docker tag swhpmicro/zephyr_hpmicro:v0.8.0 zephyr_hpmicro:v0.8.0
 
-#. 加载镜像
+启动和管理容器
+================
+
+#. 进入 ``sdk_glue`` 目录并启动容器：
 
    .. code-block:: console
 
-       docker load -i zephyr-hpmicro-latest.tar.gz
+       cd /path/to/ZSG/sdk_glue
+       docker compose up -d
 
-#. 验证镜像已加载
+#. 进入容器：
 
    .. code-block:: console
 
-       docker images | grep zephyr-hpmicro
+       docker compose exec zephyr bash
 
-   您应该能看到类似以下输出：
+#. 使用完毕后停止并删除容器：
 
-   .. code-block:: text
+   .. code-block:: console
 
-       swhpmicro/zephyr-hpmicro    latest    xxxxxxxxxx    xx days ago    xxGB
+       docker compose down
 
-配置工具链
--------------------
+``docker compose down`` 不会删除主机源码。后续再次执行 ``docker compose up -d`` 即可
+重新创建容器。
 
-由于 Zephyr SDK 体积较大，未包含在 Docker 镜像中。
+源码挂载方式
+=============
 
-Zephyr SDK
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compose 将主机工作区的各模块映射到容器的 ``/home/User/zephyr_space``：
 
-Zephyr 官方 SDK，功能完整，兼容性最佳。
+.. list-table:: 源码目录映射
+   :header-rows: 1
 
-.. code-block:: console
+   * - 主机目录
+     - 容器目录
+   * - ``../zephyr``
+     - ``/home/User/zephyr_space/zephyr``
+   * - ``.``（``sdk_glue``）
+     - ``/home/User/zephyr_space/sdk_glue``
+   * - ``../sdk_env``
+     - ``/home/User/zephyr_space/sdk_env``
+   * - ``../modules``
+     - ``/home/User/zephyr_space/modules``
+   * - ``../bootloader``
+     - ``/home/User/zephyr_space/bootloader``
 
-    mkdir ~/zephyr-hpmicro && cd ~/zephyr-hpmicro
-    wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/zephyr-sdk-0.16.5_linux-x86_64.tar.xz
-    tar xvf zephyr-sdk-0.16.5_linux-x86_64.tar.xz
-    cd zephyr-sdk-0.16.5 && ./setup.sh -t all -h -c && cd ..
+容器的默认工作目录为 ``/home/User/zephyr_space``。由于这些目录是绑定挂载，容器内
+对源码的修改也会直接写入主机文件。
 
+工具链
+======
 
-方法一：使用 Docker Run
--------------------------
+镜像同时包含 Zephyr SDK 1.0.1 和 ZCC 4.1.5，不需要从主机挂载或另外安装工具链。
 
-此方法适合快速测试或一次性使用。
+Zephyr SDK 1.0.1
+----------------
 
-基本用法
-~~~~~~~~~
-
-.. code-block:: console
-
-    docker run -it --rm \
-        -v ~/zephyr-hpmicro/zephyr-sdk-0.16.5:/home/zephyr/zephyr_space/zephyr-sdk-0.16.5 \
-        swhpmicro/zephyr-hpmicro:latest \
-        bash
-
-启用 USB 设备访问（用于烧录）
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-烧录固件到开发板需要 USB 设备访问权限：
-
-.. code-block:: console
-
-    docker run -it --rm \
-        --privileged \
-        -v /dev/bus/usb:/dev/bus/usb \
-        -v ~/zephyr-hpmicro/zephyr-sdk-0.16.5:/home/zephyr/zephyr_space/zephyr-sdk-0.16.5 \
-        swhpmicro/zephyr-hpmicro:latest \
-        bash
-
-挂载自定义项目目录
-~~~~~~~~~~~~~~~~~~~~
-
-如需挂载您自己的项目目录：
+Zephyr SDK 是默认工具链，安装路径为
+``/opt/toolchains/zephyr-sdk-1.0.1``。进入容器后可检查当前配置：
 
 .. code-block:: console
 
-    docker run -it --rm \
-        --privileged \
-        -v /dev/bus/usb:/dev/bus/usb \
-        -v ~/zephyr-hpmicro/zephyr-sdk-0.16.5:/home/zephyr/zephyr_space/zephyr-sdk-0.16.5 \
-        -v ~/my_projects:/home/zephyr/zephyr_space/my_projects \
-        swhpmicro/zephyr-hpmicro:latest \
-        bash
+    echo $ZEPHYR_TOOLCHAIN_VARIANT
+    echo $ZEPHYR_SDK_INSTALL_DIR
 
-使用本地加载的镜像运行
-~~~~~~~~~~~~~~~~~~~~~~~~
+默认输出应分别为 ``zephyr`` 和 ``/opt/toolchains/zephyr-sdk-1.0.1``。
 
-如果您通过 ``docker load`` 加载了镜像包，运行命令与上述相同，使用相同的镜像名称：
-
-.. code-block:: console
-
-    docker run -it --rm \
-        --privileged \
-        -v /dev/bus/usb:/dev/bus/usb \
-        -v ~/zephyr-hpmicro/zephyr-sdk-0.16.5:/home/zephyr/zephyr_space/zephyr-sdk-0.16.5 \
-        swhpmicro/zephyr-hpmicro:latest \
-        bash
-
-.. note::
-
-    无论是从 DockerHub 拉取还是从镜像包加载，镜像名称都是 ``swhpmicro/zephyr-hpmicro:latest``，使用方式完全相同。
-
-
-方法二：使用 Docker Compose
--------------------------------------
-
-Docker Compose 提供了更便捷的容器管理方式，配置可持久化保存。
-
-步骤一：提取 docker-compose.yaml
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-方法一：使用 docker run
-
-.. code-block:: console
-
-    cd ~/zephyr-hpmicro
-    docker run --rm swhpmicro/zephyr-hpmicro:latest cat /home/zephyr/zephyr_space/sdk_glue/docker-compose.yaml > docker-compose.yaml
-
-.. note::
-
-    注意：不要使用 ``-t`` 或 ``-it`` 选项，否则输出可能包含终端转义序列。
-
-方法二：使用 docker cp
-
-如果方法一生成的文件包含终端符号，可以使用以下方法：
-
-.. code-block:: console
-
-    cd ~/zephyr-hpmicro
-    docker create --name temp_container zephyr-hpmicro:latest
-    docker cp temp_container:/home/zephyr/zephyr_space/sdk_glue/docker-compose.yaml ./docker-compose.yaml
-    docker rm temp_container
-
-.. note::
-
-    无论是从 DockerHub 拉取还是从镜像包加载的镜像，提取命令都是相同的。
-
-步骤二：启动容器
-~~~~~~~~~~~~~~~~~~
-
-.. code-block:: console
-
-    docker compose up -d
-
-步骤三：进入容器
-~~~~~~~~~~~~~~~~~~
-
-.. code-block:: console
-
-    docker compose exec zephyr-dev bash
-
-步骤四：停止容器
-~~~~~~~~~~~~~~~~~~
-
-.. code-block:: console
-
-    docker compose down
-
-
-目录结构
+ZCC 4.1.5
 ---------
 
-配置完成后，您的工作目录结构如下：
-
-.. code-block:: text
-
-    ~/zephyr-hpmicro/
-    ├── docker-compose.yaml      # Docker Compose 配置文件
-    ├── zephyr-sdk-0.16.5/       # Zephyr SDK（已下载）
-    │   ├── setup.sh
-    │   ├── sdk_version
-    │   └── ...
-    └── my_projects/             # 可选：您的自定义项目
-
-容器内部结构：
-
-.. code-block:: text
-
-    /home/zephyr/zephyr_space/
-    ├── bootloader/              # （内置于镜像）
-    ├── modules/                 # （内置于镜像）
-    ├── sdk_env/                 # HPMicro SDK（内置）
-    ├── sdk_glue/                # （内置于镜像）
-    ├── zephyr/                  # Zephyr 源码（内置）
-    │   └── samples/             # 示例项目
-    ├── zephyr-sdk-0.16.5/       # （从主机挂载）
-    └── my_projects/             # （可选，从主机挂载）
-
-
-编译与烧录
------------
-
-进入容器后，您可以编译和烧录示例程序：
-
-#. 编译示例
-
-    .. code-block:: console
-
-        cd /home/zephyr/zephyr_space/zephyr
-        west build -p always -b hpm6750evk2 -S blinky samples/basic/blinky
-
-#. 烧录到目标板（请先连接开发板）
-
-    .. code-block:: console
-
-        west flash
-
-#. 调试
-
-    .. code-block:: console
-
-        west debug
-
-可用开发板
-~~~~~~~~~~~~
+使用镜像内置脚本切换到 ZCC：
 
 .. code-block:: console
 
-    west boards | grep hpm
+    source ~/zephyr_space/use-zcc.sh
 
-常用开发板包括：
+切回 Zephyr SDK：
 
-- ``hpm6750evk2``
-- ``hpm6800evk``
-- ``hpm6200evk``
-- ``hpm6e00evk``
+.. code-block:: console
 
+    source ~/zephyr_space/use-zephyr-sdk.sh
+
+.. note::
+
+   必须使用 ``source`` 执行脚本，使环境变量在当前 shell 中生效。每次新进入一个
+   shell 时，工具链都会使用 Compose 配置的默认值；如需使用 ZCC，请再次执行切换脚本。
+
+OpenOCD、编译和烧录
+====================
+
+HPMicro OpenOCD 已打包到镜像中，不需要在主机或挂载目录中另行安装。进入容器后可直接
+编译、烧录和调试：
+
+.. code-block:: console
+
+    cd /home/User/zephyr_space/zephyr
+    west build -p always -b hpm6750evk2 -S blinky samples/basic/blinky
+    west flash
+    west debug
+
+Compose 已启用 ``privileged: true``，并将 ``/dev/bus/usb`` 挂载到容器，以便 OpenOCD
+访问 USB 调试器。
+
+使用 docker run
+================
+
+推荐使用 Compose，以避免遗漏源码或 USB 挂载。如需直接使用 ``docker run``，等效命令为：
+
+.. code-block:: console
+
+    docker run -it --rm --privileged --hostname docker \
+        -v /path/to/ZSG/zephyr:/home/User/zephyr_space/zephyr \
+        -v /path/to/ZSG/sdk_glue:/home/User/zephyr_space/sdk_glue \
+        -v /path/to/ZSG/sdk_env:/home/User/zephyr_space/sdk_env \
+        -v /path/to/ZSG/modules:/home/User/zephyr_space/modules \
+        -v /path/to/ZSG/bootloader:/home/User/zephyr_space/bootloader \
+        -v /dev/bus/usb:/dev/bus/usb \
+        -w /home/User/zephyr_space \
+        zephyr_hpmicro:v0.8.0
+
+请将 ``/path/to/ZSG`` 替换为主机上的实际工作区绝对路径。
 
 常见问题
----------
+=========
 
-找不到 Zephyr SDK
-~~~~~~~~~~~~~~~~~~~
+容器内看不到源码
+------------------
 
-确保 ``zephyr-sdk-0.16.5`` 文件夹已正确挂载，并且已在其中运行过 ``setup.sh``：
-
-.. code-block:: console
-
-    cd ~/zephyr-hpmicro/zephyr-sdk-0.16.5
-    ./setup.sh -t all -h -c
-
-无法烧录 - 找不到设备
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-#. 检查调试器是否已连接：
-
-    .. code-block:: console
-
-        lsusb | grep -i xxx
-
-#. 确保使用了 ``--privileged`` 参数（docker run）或设置了 ``privileged: true`` (docker-compose)
-
-#. 确认 ``/dev/bus/usb`` 已挂载
-
-串口设备权限被拒绝
-~~~~~~~~~~~~~~~~~~~~
-
-方法一：添加到 dialout 组（适用于标准串口设备）
-
-在主机上将您的用户添加到 dialout 组：
+确认五个模块目录与 ``sdk_glue`` 位于同一级，并从 ``sdk_glue`` 目录启动 Compose。可用
+以下命令检查实际挂载：
 
 .. code-block:: console
 
-    sudo usermod -aG dialout $USER
+    docker compose config
+    docker compose exec zephyr ls /home/User/zephyr_space
 
-然后注销并重新登录。
+找不到工具链
+------------
 
-方法二：配置 udev 规则
-
-如果方法一仍然无法访问串口，特别是使用 USB 调试器（如 CMSIS-DAP、OpenOCD 等）时，需要配置 udev 规则。
-
-某些 USB 调试器设备不是标准的串口设备，仅添加到 ``dialout`` 组可能不够。通过配置 udev 规则，可以为这些设备设置正确的权限。
-
-#. 创建 udev 规则文件（host）：
-
-   .. code-block:: console
-
-       sudo nano /etc/udev/rules.d/99-openocd.rules
-
-#. 添加以下规则内容（根据您的调试器类型选择）：
-
-   .. code-block:: text
-
-       # 允许所有用户访问 USB 调试器
-       SUBSYSTEM=="usb", ATTR{idVendor}=="0d28", MODE="0666"
-       KERNEL=="ttyACM*", MODE="0666"
-       KERNEL=="ttyUSB*", MODE="0666"
-
-#. 重新加载 udev 规则：
-
-   .. code-block:: console
-
-       sudo udevadm control --reload-rules
-       sudo udevadm trigger
-
-#. 重新插拔 USB 设备，或重启系统。
-
-.. note::
-
-   如果您的调试器不在上述列表中，可以通过以下命令查看设备的 ``idVendor`` 和 ``idProduct``：
-
-   .. code-block:: console
-
-       lsusb
-
-   然后根据实际的 ``idVendor`` 和 ``idProduct`` 创建对应的 udev 规则。
-
-使用不同版本的 SDK
-~~~~~~~~~~~~~~~~~~~~
-
-在启动前设置环境变量：
+Zephyr SDK 和 ZCC 均位于镜像内，不应再挂载主机 SDK。先切回默认工具链并检查环境变量：
 
 .. code-block:: console
 
-    export ZEPHYR_SDK_PATH=./zephyr-sdk-0.17.0
-    docker compose up -d
+    source ~/zephyr_space/use-zephyr-sdk.sh
+    echo $ZEPHYR_TOOLCHAIN_VARIANT
+    echo $ZEPHYR_SDK_INSTALL_DIR
 
+OpenOCD 找不到 USB 设备
+-----------------------
 
+#. 在主机上执行 ``lsusb``，确认调试器已连接。
+#. 确认 Compose 中保留 ``privileged: true`` 和 ``/dev/bus/usb:/dev/bus/usb``。
+#. 重新插拔调试器并重新创建容器。

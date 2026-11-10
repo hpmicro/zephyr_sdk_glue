@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2024-2025 HPMicro
- *SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2024-2026 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_HPM6360_CLOCKS_H
@@ -10,7 +10,7 @@
  *
  *<---------------------- AUTO_GENERATE ---------------------->
  *    This file was auto-generated, do not edit anything.
- *    generated on 2025-10-20 16:16:33 
+ *    generated on 2026-08-10 16:55:26
  */
 
 #define CLK_SRC_OSC24M  0

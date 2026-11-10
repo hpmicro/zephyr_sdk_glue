@@ -35,7 +35,7 @@ linux上的环境配置
      - 3.20.5
 
    * - `Python <https://www.python.org/>`_
-     - 3.8
+     - 3.12
 
    * - `Devicetree compiler <https://www.devicetree.org/>`_
      - 1.4.6
@@ -60,14 +60,14 @@ linux上的环境配置
         cd ${workspace}
         west init -m https://github.com/hpmicro/zephyr_sdk_glue.git --mr main
 
-#. 获取所需仓库的源代码,默认从github获取,需要切换到国内源,请输入第一条指令:
+#. 获取所需仓库的源代码,默认从github获取,需要切换到gitee源,请输入第一条指令:
 
     .. code-block:: console
 
         west config manifest.file west_gitee.yml
         west update
 
-#. 配置CMake变量
+#. 将zephyr安装路径注册到cmake中
 
     .. code-block:: console
 
@@ -97,7 +97,7 @@ linux上的环境配置
 Zephyr SDK
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Zephyr 官方 SDK，功能完整，兼容性最佳。
+Zephyr SDK 1.0.1 是默认推荐工具链。以下步骤安装 minimal SDK 包，并由 ``setup.sh`` 自动下载 RISC-V GNU 工具链。
 
 下载地址：`ZEPHYR-SDK <https://github.com/zephyrproject-rtos/sdk-ng/releases/>`_
 
@@ -106,16 +106,18 @@ Zephyr 官方 SDK，功能完整，兼容性最佳。
     .. code-block:: console
 
         cd ${workspace}
-        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/zephyr-sdk-0.16.5_linux-x86_64.tar.xz
-        wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/sha256.sum | shasum --check --ignore-missing
-        tar xvf zephyr-sdk-0.16.5_linux-x86_64.tar.xz
+        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v1.0.1/zephyr-sdk-1.0.1_linux-x86_64_minimal.tar.xz
+        wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v1.0.1/sha256.sum | sha256sum --check --ignore-missing
+        tar xvf zephyr-sdk-1.0.1_linux-x86_64_minimal.tar.xz
 
-#. 配置工具链必要变量
+    该校验命令仅检查当前已下载的 minimal SDK 压缩包。RISC-V 工具链将在下一步由 ``setup.sh`` 下载。
+
+#. 安装 RISC-V 工具链和主机工具，并注册 Zephyr SDK
 
     .. code-block:: console
 
-        cd zephyr-sdk-0.16.5
-        ./setup.sh
+        cd zephyr-sdk-1.0.1
+        ./setup.sh -t riscv64-zephyr-elf -h -c
 
 ZCC 工具链
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -202,4 +204,3 @@ GNU 交叉编译工具链
 
         cd sdk_glue/docs
         make html
-

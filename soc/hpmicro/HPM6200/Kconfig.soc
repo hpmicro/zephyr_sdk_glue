@@ -11,9 +11,34 @@ config SOC_SERIES_HPM6200
 config SOC_SERIES
 	default "HPM6200" if SOC_SERIES_HPM6200
 
+config SOC_HPM6220
+	bool
+	select SOC_SERIES_HPM6200
+
+config SOC_HPM6240
+	bool
+	select SOC_SERIES_HPM6200
+
+config SOC_HPM6260
+	bool
+	select SOC_SERIES_HPM6200
+
+config SOC_HPM6264
+	bool
+	select SOC_SERIES_HPM6200
+
 config SOC_HPM6280
 	bool
 	select SOC_SERIES_HPM6200
 
+config SOC_HPM6284
+	bool
+	select SOC_SERIES_HPM6200
+
 config SOC
+	default "HPM6220" if SOC_HPM6220
+	default "HPM6240" if SOC_HPM6240
+	default "HPM6260" if SOC_HPM6260
+	default "HPM6264" if SOC_HPM6264
 	default "HPM6280" if SOC_HPM6280
+	default "HPM6284" if SOC_HPM6284

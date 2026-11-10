@@ -1,0 +1,9 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+board:
+  name: hpm6p00evk
+  full_name: hpm6p00evk
+  vendor: hpmicro
+  socs:
+    - name: hpm6p81

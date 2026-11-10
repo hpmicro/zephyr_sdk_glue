@@ -1,14 +1,13 @@
-# Copyright 2025 HPMicro
+# Copyright 2025-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 identifier: hpm6200evk
 name: HPMicro HPM6200EVK
 type: mcu
-arch: riscv32
+arch: riscv
 toolchain:
   - zephyr
-  - cross-compile
-ram: 1024
+  - zcc
 flash: 16384
 supported:
   - gpio
@@ -17,10 +16,21 @@ supported:
   - spi
   - dma
   - pwm
-  - adc16
-  - mcan
+  - adc
+  - acmp
+  - dac
+  - can
+  - lin
   - usbd
-  - cherryusb
+  - usbh
+  - qei
+  - hall
+  - sdm
+  - pla
+  - tamper
+  - counter
+  - watchdog
+  - entropy
 testing:
   ignore_tags:
     - bluetooth

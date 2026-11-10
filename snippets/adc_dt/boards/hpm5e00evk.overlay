@@ -1,0 +1,28 @@
+/*
+ * Copyright (c) 2026 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * ADC0 channel 1 (PF26, ADC0.IN1)
+ */
+
+/ {
+	zephyr,user {
+		io-channels = <&adc0 1>;
+	};
+};
+
+&adc0 {
+	status = "okay";
+	pinctrl-0 = <&pinmux_adc0>;
+	pinctrl-names = "default";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@1 {
+		reg = <1>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <0>;
+		zephyr,resolution = <16>;
+	};
+};

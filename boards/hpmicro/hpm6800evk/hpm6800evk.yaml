@@ -1,4 +1,4 @@
-# Copyright 2024-2025 HPMicro
+# Copyright 2024-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 identifier: hpm6800evk
@@ -7,24 +7,34 @@ type: mcu
 arch: riscv
 toolchain:
   - zephyr
-  - cross-compile
-ram: 512
+  - zcc
+ram: 262144
 flash: 16384
 supported:
   - gpio
   - uart
-  - dma
-  - can
-  - spi
-  - adc16
-  - pwm
   - i2c
+  - spi
+  - dma
+  - pwm
+  - adc
+  - can
   - video
-  - mcan
-  - sdxc
+  - display
+  - mipi-csi
+  - mipi-dsi
+  - lvds
+  - sdhc
   - usbd
-  - cherryusb
-  - enet
+  - usbh
+  - ethernet
+  - i2s
+  - pdm
+  - dao
+  - tamper
+  - counter
+  - watchdog
+  - entropy
 testing:
   ignore_tags:
     - bluetooth

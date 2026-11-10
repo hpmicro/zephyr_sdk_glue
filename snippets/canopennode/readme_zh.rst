@@ -1,22 +1,24 @@
 .. _canopennode:
 
 CANopen
-=======
-`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/modules/canopennode/README.html>`_
+========
+`zephyr sample link <https://docs.zephyrproject.org/4.4.0/samples/modules/canopennode/README.html>`_
 
 概述
-----
+-----
 
 canopen demo提供以下功能:
 
 - Heartbeat
 - NMT
 - SDO
+- PDO
 - Emergency
 - Storage
+- OTA
 
 路径
----------------
+-----
 
 .. code-block::
 
@@ -25,104 +27,117 @@ canopen demo提供以下功能:
 命令行
 -------
 
-以hpm6750evk为例:
+以hpm6750evk2 为例:
 
 .. code-block:: console
 
     west build -p always -b hpm6750evk2 -S canopennode samples/modules/canopennode
 
 硬件设置
---------
-需要一块板连接到toomoss canbox
+---------
+需要将开发板连接到 toomoss canbox，同时打开软件 ecu-bus pro，导入相应的主站测试脚本
 
 运行现象
---------
+---------
 当示例成功运行时，控制台打印以下内容:
 
 .. code-block:: console
 
-    *** Booting Zephyr OS build 36940db938a8 ***
-    [00:00:00.000,000] <dbg> canopen_driver: CO_CANmodule_init: rxSize = 13, txSize = 9
-    [00:00:00.001,000] <dbg> canopen_driver: CO_CANmodule_init: excessive number of concurrent CAN RX filters enabled (needs 13, 16 available)
-    [00:00:00.001,000] <inf> app: CANopen stack initialized
+    *** Booting Zephyr OS build zsg_v0.8.0 ***
+    [00:00:00.004,000] <inf> fs_nvs: 8 Sectors of 4096 bytes
+    [00:00:00.004,000] <inf> fs_nvs: alloc wra: 1, f80
+    [00:00:00.004,000] <inf> fs_nvs: data wra: 1, 9c
+    [00:00:00.005,000] <dbg> canopen_storage: canopen_settings_set: restored object dictionary ROM entries
+    [00:00:00.006,000] <dbg> canopen_storage: canopen_settings_set: restored object dictionary EEPROM entries
+    [00:00:00.006,000] <dbg> canopen_driver: CO_CANmodule_init: rxSize = 13, txSize = 9
+    [00:00:00.006,000] <dbg> canopen_driver: CO_CANmodule_init: excessive number of concurrent CAN RX filters enabled (needs 13, 16 available)
+    [00:00:00.007,000] <inf> app: CANopen stack initialized
 
-    canbox settings:
-    if driver is can, baudrate choose 1M and data baudrate choose 5M;
-    if driver is mcan, baudrate choose 500k and data baudrate choose 2M;
-    canbox will show receive messages:
-    1	0x70A	1	7F	0.000000(time)	接收	标准帧	数据帧	CAN	CAN1	0x53800101(device_num)
+在 ecu-bus pro 软件中，运行主站脚本后，可以通过 Trace 和 Message 栏确认测试结果，当看到 Mesage 栏出现以下信息时：
 
-    NMT test:
-    (1) stop remote node
-    send cmd:
-    277	0x0	2	02 00	275.007680	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    receive :
-    278	0x70A	1	04	275.017340	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    (2) enter pre-optional state
-    send cmd:
-    5	0x0	2	80 00	3.116790	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    receive :
-    6	0x70A	1	7F	4.001140	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    (3) start remote node
-    send cmd:
-    4	0x0	2	01 00	2.391500	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    receive :
-    5	0x70A	1	05	3.001110	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    (4) reset node
-    send cmd:
-    4	0x0	2	82 00	2.383120	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    receive :
-    5	0x70A	1	00	2.384540	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    6	0x70A	1	7F	2.884110	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    (5) reset communication
-    send cmd:
-    3	0x0	2	81 00	1.793990	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    receive :
-    4	0x70A	1	00	1.810980	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    6	0x70A	1	7F	2.310900	接收	标准帧	数据帧	CAN	CAN1	0x53800101
+.. code-block:: console
 
-    SDO test:
-    (1) read SDO messages show as:
-    this cmd will read index-1008 and will return 'Z', 'e', 'p', 'h', 'y', 'r', ' 
-    ', 'R', 'T', 'O', 'S', '/', 'C', 'A', 'N', 'o', 'p', 'e', 'n', 'N', 'o', 'd', 'e'.
-    4	0x60A	8	40 08 10 00 00 00 00 00	2.155810	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    5	0x58A	8	41 08 10 00 17 00 00 00	2.156240	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    6	0x60A	8	60 00 00 00 00 00 00 00	2.356310	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    7	0x58A	8	00 5A 65 70 68 79 72 20	2.358200	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    8	0x60A	8	70 00 00 00 00 00 00 00	2.556710	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    9	0x58A	8	10 52 54 4F 53 2F 43 41	2.558200	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    10	0x60A	8	60 00 00 00 00 00 00 00	2.757310	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    11	0x58A	8	00 4E 6F 70 65 6E 4E 6F	2.758210	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    12	0x60A	8	70 00 00 00 00 00 00 00	2.957410	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    13	0x58A	8	1B 64 65 00 00 00 00 00	2.958230	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    (2) write SDO messages show as:
-    this cmd will write index-1017 and this 2bits is heartbeattime, default is 0x3e8
-    28	0x60A	8	2B 17 10 00 E9 03 00 00	25.784190	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    29	0x58A	8	60 17 10 00 00 00 00 00	25.786020	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    read this index to verify if has write successfully
-    158	0x60A	8	40 17 10 00 00 00 00 00	154.079570	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    159	0x58A	8	4B 17 10 00 E9 03 00 00	154.080370	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    (3) read times of button pressed
-    this cmd read index-2120 and the content will record the button pressed times, and this also can be tested by PDO
-    12	0x60A	8	40 02 21 00 00 00 00 00	10.160030	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    13	0x58A	8	43 02 21 00 02(button) 00 00 00	10.161480	接收	标准帧	数据帧	CAN	CAN1	0x53800101
+    [SUCCESS] 测试成功！
 
-    Storage test:
-    (1) test save function: read and set 0x1017(HeartBeat), save ROM params, then reboot board, after reboot read 0x1017 to verify if the value is saved, should be 0x7D0
-    6	0x60A	8	40 17 10 00 00 00 00 00	4.429488	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    7	0x58A	8	4B 17 10 00 E8 03 00 00	4.430003	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    11	0x60A	8	2B 17 10 00 D0 07 00 00	7.391081	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    12	0x58A	8	60 17 10 00 00 00 00 00	7.391740	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    13	0x60A	8	40 17 10 00 00 00 00 00	8.605892	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    14	0x58A	8	4B 17 10 00 D0 07 00 00	8.607634	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    16	0x60A	8	23 10 10 01 73 61 76 65	10.233778	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    17	0x58A	8	60 10 10 01 00 00 00 00	10.242064	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    23	0x60A	8	40 17 10 00 00 00 00 00	17.209388	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    24	0x58A	8	4B 17 10 00 D0 07 00 00	17.212890	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    (2) test load function: load ROM params, then read 0x1017 to verify if the value is loaded, should be 0x3E8
-    28	0x60A	8	23 11 10 01 6C 6F 61 64	23.253276	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    29	0x58A	8	60 11 10 01 00 00 00 00	23.257206	接收	标准帧	数据帧	CAN	CAN1	0x53800101
-    34	0x60A	8	40 17 10 00 00 00 00 00	25.488288	发送	标准帧	数据帧	CAN	CAN1	0x53800101
-    35	0x58A	8	4B 17 10 00 E8 03 00 00	25.490994	接收	标准帧	数据帧	CAN	CAN1	0x53800101
+同时， Trace 栏可以看到心跳信息（0x70a）和 PDO 信息（0x18a）规律出现时，表示测试成功。
 
+如果想要测试 canopen 的 OTA 功能，需要打开 mcuboot，具体参考：http://192.168.20.97/2025/08/20/%e5%9c%a8zephyr%e4%b8%ad%e4%bd%bf%e7%94%a8mcuboot/
+
+将打开 mcuboot 重新编译的 canopen 示例固件（可见注释2）烧录到开发板后，可以看到以下打印内容：
+
+.. code-block:: console
+
+    *** Booting MCUboot 5af38164715e ***
+    *** Using Zephyr OS build zsg_v0.8.0 ***
+    I: Starting bootloader
+    I: Primary image: magic=good, swap_type=0x1, copy_done=0x3, image_ok=0x1
+    I: Scratch: magic=unset, swap_type=0x1, copy_done=0x3, image_ok=0x3
+    I: Boot source: primary slot
+    I: Image index: 0, Swap type: none
+    I: Bootloader chainload address offset: 0x43000
+    I: Image version: v0.0.0
+    I: Jumping to the first image slot
+    *** Booting Zephyr OS build zsg_v0.8.0 ***
+    [00:00:00.004,000] <inf> fs_nvs: 8 Sectors of 4096 bytes
+    [00:00:00.004,000] <inf> fs_nvs: alloc wra: 1, f80
+    [00:00:00.004,000] <inf> fs_nvs: data wra: 1, 9c
+    [00:00:00.005,000] <dbg> canopen_storage: canopen_settings_set: restored object dictionary ROM entries
+    [00:00:00.006,000] <dbg> canopen_storage: canopen_settings_set: restored object dictionary EEPROM entries
+    [00:00:00.006,000] <dbg> canopen_driver: CO_CANmodule_init: rxSize = 13, txSize = 9
+    [00:00:00.006,000] <dbg> canopen_driver: CO_CANmodule_init: excessive number of concurrent CAN RX filters enabled (needs 13, 16 available)
+    [00:00:00.007,000] <inf> app: CANopen stack initialized
+
+在 ecu-bus pro 软件中，运行带 mcuboot 测试的主站脚本，传输 OTA 升级的固件（可见注释3），当开始 OTA 传输时，可以看到以下打印内容：
+
+.. code-block:: console
+
+    [00:00:00.007,000] <inf> app: CANopen stack initialized
+    [00:00:00.007,000] <inf> app: Green LED not available
+    [00:00:00.007,000] <inf> app: Red LED not available
+    [00:03:19.664,000] <dbg> canopen_program: canopen_odf_1f51: program status = 1, cmd = 0
+    [00:03:19.664,000] <dbg> canopen_program: canopen_program_cmd_stop: program stopped
+    [00:03:19.694,000] <dbg> canopen_program: canopen_odf_1f51: program status = 0, cmd = 3
+    [00:03:19.694,000] <dbg> canopen_program: canopen_program_cmd_clear: erasing flash area
+    [00:03:28.315,000] <dbg> canopen_program: canopen_program_cmd_clear: program cleared
+    [00:03:28.498,000] <dbg> canopen_program: canopen_odf_1f50: total = 84268
+
+传输成功，并成功通过校验后，开发板会自动重启并切换到传输的新固件，此时可以看到以下打印内容：
+
+.. code-block:: console
+
+    *** Booting MCUboot 5af38164715e ***
+    *** Using Zephyr OS build zsg_v0.8.0 ***
+    I: Starting bootloader
+    I: Primary image: magic=good, swap_type=0x1, copy_done=0x3, image_ok=0x1
+    I: Scratch: magic=unset, swap_type=0x1, copy_done=0x3, image_ok=0x3
+    I: Boot source: primary slot
+    I: Image index: 0, Swap type: test
+    I: Starting swap using scratch algorithm.
+    I: Bootloader chainload address offset: 0x43000
+    I: Image version: v0.1.1
+    I: Jumping to the first image slot
+    *** Booting Zephyr OS build zsg_v0.8.0 ***
+    [00:00:00.005,000] <inf> fs_nvs: 8 Sectors of 4096 bytes
+    [00:00:00.005,000] <inf> fs_nvs: alloc wra: 1, f78
+    [00:00:00.005,000] <inf> fs_nvs: data wra: 1, a8
+    [00:00:00.006,000] <dbg> canopen_storage: canopen_settings_set: restored object dictionary ROM entries
+    [00:00:00.007,000] <dbg> canopen_storage: canopen_settings_set: restored object dictionary EEPROM entries
+    [00:00:00.007,000] <dbg> canopen_driver: CO_CANmodule_init: rxSize = 13, txSize = 9
+    [00:00:00.007,000] <dbg> canopen_driver: CO_CANmodule_init: excessive number of concurrent CAN RX filters enabled (needs 13, 16 available)
+    [00:00:00.007,000] <inf> app: CANopen stack initialized
+    [00:00:00.007,000] <inf> app: ################################################
+    [00:00:00.007,000] <inf> app: ##                                            ##
+    [00:00:00.007,000] <inf> app: ##   ****   OTA UPDATE SUCCESS   ****         ##
+    [00:00:00.007,000] <inf> app: ##   ****      VERSION 0.8.1     ****         ##
+    [00:00:00.007,000] <inf> app: ##                                            ##
+    [00:00:00.007,000] <inf> app: ################################################
+    [00:00:00.007,000] <inf> app: Green LED not available
+    [00:00:00.007,000] <inf> app: Red LED not available
+
+注意：
+    1. ecu bus pro clock freq 需要设置为 40MHz， 波特率 500KHz, 采样频率 87.5%
+    2. 宏 CONFIG_BOOTLOADER_MCUBOOT，CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_SCRATCH，测试 mcuboot 时需要再 canopennode.conf 开启，当前默认关闭
+    3. 测试 canopen OTA 功能时，mcuboot_canopen 初始版本版本号默认为 v0.0.0，烧写地址为 slot0； OTA 升级的固件烧写地址为 slot1，版本号为 v0.1.1；烧写完毕后，mcuboot 会自动切换到 slot1 的固件运行，运行后打印的版本号为 v0.1.1， OTA 升级成功；关于 OTA 升级烧写地址的描述，可以参考 zephyr 官方文档：https://docs.zephyrproject.org/latest/zephyr.pdf 4.9 章 Device Management
+    4. OTA 升级的示例固件已经全部编好放在当前目录 /test_image/ 下面，不同的板子需要烧录不同的固件，烧录前，确认在同级目录下 canopennode_master_mcuboot.ts 脚本中，烧写的固件路径和名称是否正确，如果不是需要手动修改，当前默认烧录的固件是 hpm6750evk2 的固件
+    5. OTA 升级的固件除了打印和版本号不同，其他内容和当前固件完全一样，都是可以正常运行的
 

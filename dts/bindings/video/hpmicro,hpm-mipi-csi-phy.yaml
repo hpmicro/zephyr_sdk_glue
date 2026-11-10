@@ -1,0 +1,8 @@
+# Copyright 2024, 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM MIPI CSI PHY
+
+compatible: "hpmicro,hpm-mipi-csi-phy"
+
+include: ["base.yaml"]

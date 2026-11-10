@@ -11,9 +11,39 @@ config SOC_SERIES_HPM6E00
 config SOC_SERIES
 	default "HPM6E00" if SOC_SERIES_HPM6E00
 
+config SOC_HPM6E50
+	bool
+	select SOC_SERIES_HPM6E00
+
+config SOC_HPM6E60
+	bool
+	select SOC_SERIES_HPM6E00
+
+config SOC_HPM6E6Y
+	bool
+	select SOC_SERIES_HPM6E00
+
+config SOC_HPM6E70
+	bool
+	select SOC_SERIES_HPM6E00
+
 config SOC_HPM6E80
 	bool
 	select SOC_SERIES_HPM6E00
 
+config SOC_HPM6E84
+	bool
+	select SOC_SERIES_HPM6E00
+
+config SOC_HPM6E8Y
+	bool
+	select SOC_SERIES_HPM6E00
+
 config SOC
+	default "HPM6E50" if SOC_HPM6E50
+	default "HPM6E60" if SOC_HPM6E60
+	default "HPM6E6Y" if SOC_HPM6E6Y
+	default "HPM6E70" if SOC_HPM6E70
 	default "HPM6E80" if SOC_HPM6E80
+	default "HPM6E84" if SOC_HPM6E84
+	default "HPM6E8Y" if SOC_HPM6E8Y

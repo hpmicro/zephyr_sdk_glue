@@ -17,9 +17,9 @@ Zephyr RTOS 支持多种工具链，包括 GCC、Clang、IAR、以及自定义�
    * - 工具链
      - 变量值
      - 说明
-   * - Zephyr SDK
+   * - Zephyr SDK 1.0.1
      - ``zephyr``
-     - Zephyr 官方 SDK，支持多种架构
+     - sdk_glue 默认推荐工具链，提供 RISC-V GNU 支持
    * - ZCC
      - ``zcc``
      - 基于 LLVM/Clang 的工具链

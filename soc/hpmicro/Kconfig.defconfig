@@ -1,13 +1,16 @@
 # Configuration options for hpmicro riscv SOCs supporting the riscv privileged
 # architecture specification
 
-# Copyright (c) 2024 HPMicro
+# Copyright (c) 2024-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 # default value between 40 to 60, after plic init, before console init
 if SOC_FAMILY_HPM
 
 rsource "${ZEPHYR_SDK_GLUE_MODULE_DIR}/soc/hpmicro/*/Kconfig.defconfig.series"
+
+config KOBJECT_TEXT_AREA
+    default 2048 if USERSPACE && NO_OPTIMIZATIONS && "$(ZEPHYR_TOOLCHAIN_VARIANT)" = "zcc"
 
 config SERIAL_INIT_PRIORITY
     default KERNEL_INIT_PRIORITY_DEVICE

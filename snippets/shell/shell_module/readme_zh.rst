@@ -1,31 +1,44 @@
-.. _shell_module:
+.. _shell_shell_module_zh:
 
 Shell 模块
 ===========
-`zephyr 示例链接 <https://docs.zephyrproject.org/3.7.0/samples/subsys/shell/shell_module/README.html>`_
 
 概述
---------
+-----
 
-这是一个简单的应用程序，演示如何使用 Shell API 编写和注册命令：
+本示例演示如何注册 Zephyr shell 命令、子命令、动态命令、字典参数以及 bypass 回调。
 
-- **注册静态命令**: ``version`` 是一个打印内核版本的静态命令。
-- **注册动态命令**: 参考 ``dynamic`` 命令了解如何实现动态命令。
-- **注册字典命令**: ``dictionary`` 实现了字典命令的子集。
-- **设置旁路回调**: ``bypass`` 实现了旁路回调功能。
+* `Zephyr 4.4.0 shell module sample <https://docs.zephyrproject.org/4.4.0/samples/subsys/shell/shell_module/README.html>`_
 
-路径
----------------
+示例路径
+---------
 
-.. code-block::
+.. code-block:: text
 
-    zephyr/samples/subsys/shell/shell_module
+   zephyr/samples/subsys/shell/shell_module
 
-命令行
------------
+硬件准备
+---------
 
-以hpm6750evk2为例:
+按开发板配置的波特率连接串口控制台。
+
+构建
+-----
+
+在 west 工作区根目录执行。以下命令以 ``hpm6750evk2`` 为例：
 
 .. code-block:: console
 
-    west build -p always -b hpm6750evk2 -S shell_module zephyr/samples/subsys/shell/shell_module
+   west build -p always -b hpm6750evk2 -S shell_module zephyr/samples/subsys/shell/shell_module
+
+预期现象
+---------
+
+串口出现 shell 提示符。执行 ``help`` 可看到示例命令，并可验证参数、动态条目、字典值和 bypass 输入处理。
+
+注意事项
+---------
+
+.. note::
+
+   可在 shell 中输入 ``help <command>`` 查看每个演示命令支持的参数。

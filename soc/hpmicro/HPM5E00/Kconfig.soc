@@ -1,0 +1,30 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HPM5E00
+	bool
+	select SOC_FAMILY_HPM
+	select HAS_HPMSDK_PLLCTLV2
+	select HAS_HPMSDK_PCFG
+	help
+	  Enable support for HPMicro HPM5E series SoC
+
+config SOC_SERIES
+	default "HPM5E00" if SOC_SERIES_HPM5E00
+
+config SOC_HPM5E11
+	bool
+	select SOC_SERIES_HPM5E00
+
+config SOC_HPM5E31
+	bool
+	select SOC_SERIES_HPM5E00
+
+config SOC_HPM5E3Y
+	bool
+	select SOC_SERIES_HPM5E00
+
+config SOC
+	default "HPM5E11" if SOC_HPM5E11
+	default "HPM5E31" if SOC_HPM5E31
+	default "HPM5E3Y" if SOC_HPM5E3Y

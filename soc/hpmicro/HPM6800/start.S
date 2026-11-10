@@ -6,6 +6,7 @@
  */
 
 #include <zephyr/toolchain.h>
+#include <zephyr/offsets.h>
 #include <soc.h>
 #include "hpm_csr_regs.h"
 
@@ -16,10 +17,14 @@ SECTION_FUNC(init, _start)
 	csrrw x0, mstatus, x0
 
 #ifdef CONFIG_INIT_EXT_RAM
-    la t0, _stack_safe
-    mv sp, t0
+    la sp, __hpm_boot_stack_top
     call _init_ext_ram
 #endif
+
+	/* Use Zephyr's interrupt stack after the main RAM is available. */
+	la sp, z_interrupt_stacks
+	li t0, __z_interrupt_stack_SIZEOF
+	add sp, sp, t0
 
 #ifdef CONFIG_ICACHE
 	call l1c_ic_enable

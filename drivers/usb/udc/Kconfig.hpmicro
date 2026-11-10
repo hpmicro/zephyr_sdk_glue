@@ -1,4 +1,4 @@
-# Copyright (c) 2025 HPMicro
+# Copyright (c) 2025-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 DT_COMPAT_HPM_UDC := hpmicro,hpm-udc
@@ -8,5 +8,19 @@ config UDC_HPMICRO
 	default y
 	depends on DT_HAS_HPMICRO_HPM_UDC_ENABLED
 	select HAS_HPMSDK_USB
+	select NOCACHE_MEMORY if CPU_HAS_DCACHE
+	select PINCTRL
+	select UDC_BUF_FORCE_NOCACHE if DCACHE
+	select UDC_DRIVER_HAS_HIGH_SPEED_SUPPORT
+	select UDC_WORKQUEUE
 	help
 	  Enable support for hpmicro usb device driver.
+
+config UDC_HPMICRO_EVENT_QUEUE_SIZE
+	int "Number of queued USB controller events"
+	depends on UDC_HPMICRO
+	range 4 32
+	default 16
+	help
+	  Number of USB controller events that can be queued between interrupt
+	  and UDC workqueue context.

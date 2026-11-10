@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 hpmicro
+ * Copyright (c) 2025-2026 hpmicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,7 +18,9 @@
 
 #include "../udc/udc_common.h"
 #include "hpm_clock_drv.h"
+#include "hpm_usb_drv.h"
 #include "hpm_usb_device.h"
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(udc_hpmicro, CONFIG_UDC_DRIVER_LOG_LEVEL);
@@ -40,41 +42,49 @@ struct udc_hpm_config {
 	USB_Type *base;
 	clock_name_t clock_name;
 	const struct pinctrl_dev_config *pincfg;
+	bool use_internal_vbus;
+	bool power_active_high;
+	uint32_t power_stable_delay_ms;
+};
+
+enum udc_hpm_event_type {
+	UDC_HPM_EVT_ERROR,
+	UDC_HPM_EVT_RESET,
+	UDC_HPM_EVT_SUSPEND,
+	UDC_HPM_EVT_RESUME,
+	UDC_HPM_EVT_VBUS_REMOVED,
+	UDC_HPM_EVT_VBUS_READY,
+	UDC_HPM_EVT_XFER,
+	UDC_HPM_EVT_SETUP,
+};
+
+struct udc_hpm_event {
+	sys_snode_t node;
+	const struct device *dev;
+	enum udc_hpm_event_type type;
+	union {
+		int status;
+		struct {
+			uint8_t ep;
+			uint16_t len;
+		} xfer;
+		struct usb_setup_packet setup;
+	};
 };
 
 struct udc_hpm_data {
 	usb_device_handle_t handle;
+	struct k_work work;
+	struct k_fifo fifo;
 };
 
-/* TODO: implement the cache maintenance
- * solution1: Use the non-cached buf to do memcpy before/after giving buffer to usb controller.
- * solution2: Use cache API to flush/invalid cache. but it needs the given buffer is
- * cache line size aligned and the buffer range cover multiple of cache line size block.
- * Need to change the usb stack to implement it, will try to implement it later.
- */
+K_MEM_SLAB_DEFINE(udc_hpm_event_slab, sizeof(struct udc_hpm_event),
+		  CONFIG_UDC_HPMICRO_EVENT_QUEUE_SIZE, sizeof(void *));
+
 #if defined(CONFIG_NOCACHE_MEMORY)
-K_HEAP_DEFINE_NOCACHE(hpm_packet_alloc_pool, 16u * 2u * 1024u);
-
-/* allocate non-cached buffer for usb */
-static void *udc_hpm_nocache_alloc(uint32_t size)
-{
-	void *p = (void *)k_heap_alloc(&hpm_packet_alloc_pool, size, K_NO_WAIT);
-
-	if (p != NULL) {
-		(void)memset(p, 0, size);
-	}
-
-	return p;
-}
-
-/* free the allocated non-cached buffer */
-static void udc_hpm_nocache_free(void *p)
-{
-	if (p == NULL) {
-		return;
-	}
-	k_heap_free(&hpm_packet_alloc_pool, p);
-}
+#define USB_HPM_DCD_DATA_SECTION __attribute__((__section__(".nocache")))
+#else
+#define USB_HPM_DCD_DATA_SECTION
 #endif
 
 /* Index to bit position in register */
@@ -96,32 +106,23 @@ static int udc_hpm_ep_feed(const struct device *dev,
 	unsigned int key;
 
 	key = irq_lock();
-	if (!udc_ep_is_busy(dev, cfg->addr)) {
-		udc_ep_set_busy(dev, cfg->addr, true);
+	if (!udc_ep_is_busy(cfg)) {
+		udc_ep_set_busy(cfg, true);
 		irq_unlock(key);
 
 		if (USB_EP_DIR_IS_OUT(cfg->addr)) {
 			len = net_buf_tailroom(buf);
-#if defined(CONFIG_NOCACHE_MEMORY)
-			data = (len == 0 ? NULL : udc_hpm_nocache_alloc(len));
-#else
 			data = net_buf_tail(buf);
-#endif
 			status = usb_device_edpt_xfer(handle, cfg->addr, data, len);
 		} else {
 			len = buf->len;
-#if defined(CONFIG_NOCACHE_MEMORY)
-			data = (len == 0 ? NULL : udc_hpm_nocache_alloc(len));
-			memcpy(data, buf->data, len);
-#else
 			data = buf->data;
-#endif
 			status = usb_device_edpt_xfer(handle, cfg->addr, data, len);
 		}
 
 		key = irq_lock();
 		if (!status) {
-			udc_ep_set_busy(dev, cfg->addr, false);
+			udc_ep_set_busy(cfg, false);
 		}
 		irq_unlock(key);
 	} else {
@@ -138,7 +139,7 @@ static int udc_hpm_ep_try_feed(const struct device *dev,
 {
 	struct net_buf *feed_buf;
 
-	feed_buf = udc_buf_peek(dev, cfg->addr);
+	feed_buf = udc_buf_peek(cfg);
 	if (feed_buf) {
 		int ret = udc_hpm_ep_feed(dev, cfg, feed_buf);
 
@@ -148,51 +149,75 @@ static int udc_hpm_ep_try_feed(const struct device *dev,
 	return 0;
 }
 
-/*
- * Allocate buffer and initiate a new control OUT transfer.
- */
-static int udc_hpm_ctrl_feed_dout(const struct device *dev,
-				   const size_t length)
+static void udc_hpm_event_submit(const struct device *dev, const struct udc_hpm_event *event)
 {
-	struct net_buf *buf;
-	struct udc_ep_config *cfg = udc_get_ep_cfg(dev, USB_CONTROL_EP_OUT);
-	int ret;
+	struct udc_hpm_data *priv = udc_get_private(dev);
+	struct udc_hpm_event *queued_event;
+	int err;
 
-	buf = udc_ctrl_alloc(dev, USB_CONTROL_EP_OUT, length);
-	if (buf == NULL) {
-		return -ENOMEM;
+	err = k_mem_slab_alloc(&udc_hpm_event_slab, (void **)&queued_event, K_NO_WAIT);
+	if (unlikely(err)) {
+		LOG_ERR("USB event slab exhausted");
+		udc_submit_event(dev, UDC_EVT_ERROR, err);
+		return;
 	}
 
-	net_buf_put(&cfg->fifo, buf);
+	queued_event->dev = dev;
+	queued_event->type = event->type;
 
-	ret = udc_hpm_ep_feed(dev, cfg, buf);
-
-	if (ret) {
-		net_buf_unref(buf);
-		return ret;
+	switch (event->type) {
+	case UDC_HPM_EVT_ERROR:
+		queued_event->status = event->status;
+		break;
+	case UDC_HPM_EVT_XFER:
+		queued_event->xfer = event->xfer;
+		break;
+	case UDC_HPM_EVT_SETUP:
+		queued_event->setup = event->setup;
+		break;
+	default:
+		break;
 	}
 
-	return 0;
+	k_fifo_put(&priv->fifo, queued_event);
+	k_work_submit_to_queue(udc_get_work_q(), &priv->work);
+}
+
+static void udc_hpm_handler_reset(const struct device *dev)
+{
+	struct udc_ep_config *cfg;
+
+	cfg = udc_get_ep_cfg(dev, USB_CONTROL_EP_OUT);
+	if (cfg->stat.enabled) {
+		udc_ep_disable_internal(dev, USB_CONTROL_EP_OUT);
+	}
+
+	cfg = udc_get_ep_cfg(dev, USB_CONTROL_EP_IN);
+	if (cfg->stat.enabled) {
+		udc_ep_disable_internal(dev, USB_CONTROL_EP_IN);
+	}
+
+	if (udc_ep_enable_internal(dev, USB_CONTROL_EP_OUT, USB_EP_TYPE_CONTROL,
+				   USB_HPM_EP0_SIZE, 0)) {
+		LOG_ERR("Failed to enable control OUT endpoint");
+		return;
+	}
+
+	if (udc_ep_enable_internal(dev, USB_CONTROL_EP_IN, USB_EP_TYPE_CONTROL,
+				   USB_HPM_EP0_SIZE, 0)) {
+		LOG_ERR("Failed to enable control IN endpoint");
+		return;
+	}
+
+	udc_submit_event(dev, UDC_EVT_RESET, 0);
 }
 
 static void udc_hpm_handler_setup(const struct device *dev, struct usb_setup_packet *setup)
 {
 	struct udc_hpm_data *priv = udc_get_private(dev);
 	usb_device_handle_t *handle = &priv->handle;
-	int err;
-	struct net_buf *buf;
 
 	LOG_DBG("setup packet");
-	buf = udc_ctrl_alloc(dev, USB_CONTROL_EP_OUT,
-			sizeof(struct usb_setup_packet));
-	if (buf == NULL) {
-		LOG_ERR("Failed to allocate for setup");
-		return ;
-	}
-
-	udc_ep_buf_set_setup(buf);
-	memcpy(buf->data, setup, 8);
-	net_buf_add(buf, 8);
 
 	if (setup->RequestType.type == USB_REQTYPE_TYPE_STANDARD &&
 	    setup->RequestType.direction == USB_REQTYPE_DIR_TO_DEVICE &&
@@ -201,94 +226,34 @@ static void udc_hpm_handler_setup(const struct device *dev, struct usb_setup_pac
 		usb_dcd_set_address(handle->regs, setup->wValue);
 	}
 
-	/* Update to next stage of control transfer */
-	udc_ctrl_update_stage(dev, buf);
-
-	if (!buf->len) {
-		return ;
-	}
-
-	if (udc_ctrl_stage_is_data_out(dev)) {
-		/*  Allocate and feed buffer for data OUT stage */
-		LOG_DBG("s:%p|feed for -out-", buf);
-		err = udc_hpm_ctrl_feed_dout(dev, udc_data_stage_length(buf));
-		if (err == -ENOMEM) {
-			err = udc_submit_ep_event(dev, buf, err);
-		}
-	} else if (udc_ctrl_stage_is_data_in(dev)) {
-		err = udc_ctrl_submit_s_in_status(dev);
-	} else {
-		err = udc_ctrl_submit_s_status(dev);
-	}
-
-	return ;
+	udc_setup_received(dev, setup);
 }
 
 static int udc_hpm_handler_ctrl_out(const struct device *dev, struct net_buf *buf,
-				uint8_t *hpm_buf, uint16_t hpm_len)
+				uint16_t hpm_len)
 {
-	int err = 0;
 	uint32_t len;
 
 	len = MIN(net_buf_tailroom(buf), hpm_len);
-#if defined(CONFIG_NOCACHE_MEMORY)
-	memcpy(net_buf_tail(buf), hpm_buf, len);
-	udc_hpm_nocache_free(hpm_buf);
-#endif
 	net_buf_add(buf, len);
-	if (udc_ctrl_stage_is_status_out(dev)) {
-		/* Update to next stage of control transfer */
-		udc_ctrl_update_stage(dev, buf);
-		/* Status stage finished, notify upper layer */
-		err = udc_ctrl_submit_status(dev, buf);
-	} else {
-		/* Update to next stage of control transfer */
-		udc_ctrl_update_stage(dev, buf);
-	}
 
-	if (udc_ctrl_stage_is_status_in(dev)) {
-		err = udc_ctrl_submit_s_out_status(dev, buf);
-	}
-
-	return err;
+	return udc_submit_ep_event(dev, buf, 0);
 }
 
 static int udc_hpm_handler_ctrl_in(const struct device *dev, struct net_buf *buf,
-				uint8_t *hpm_buf, uint16_t hpm_len)
+				uint16_t hpm_len)
 {
-	int err = 0;
 	uint32_t len;
 
 	len = MIN(buf->len, hpm_len);
 	buf->data += len;
 	buf->len -= len;
-#if defined(CONFIG_NOCACHE_MEMORY)
-	udc_hpm_nocache_free(hpm_buf);
-#endif
 
-	if (udc_ctrl_stage_is_status_in(dev) ||
-	udc_ctrl_stage_is_no_data(dev)) {
-		/* Status stage finished, notify upper layer */
-		err = udc_ctrl_submit_status(dev, buf);
-	}
-
-	/* Update to next stage of control transfer */
-	udc_ctrl_update_stage(dev, buf);
-
-	if (udc_ctrl_stage_is_status_out(dev)) {
-		/*
-		 * IN transfer finished, release buffer,
-		 * control OUT buffer should be already fed.
-		 */
-		net_buf_unref(buf);
-		err = udc_hpm_ctrl_feed_dout(dev, 0u);
-	}
-
-	return err;
+	return udc_submit_ep_event(dev, buf, 0);
 }
 
 static int udc_hpm_handler_non_ctrl_in(const struct device *dev, uint8_t ep,
-			struct net_buf *buf, uint8_t *hpm_buf, uint16_t hpm_len)
+			struct net_buf *buf, uint16_t hpm_len)
 {
 	int err;
 	uint32_t len;
@@ -297,9 +262,6 @@ static int udc_hpm_handler_non_ctrl_in(const struct device *dev, uint8_t ep,
 	buf->data += len;
 	buf->len -= len;
 
-#if defined(CONFIG_NOCACHE_MEMORY)
-	udc_hpm_nocache_free(hpm_buf);
-#endif
 	err = udc_submit_ep_event(dev, buf, 0);
 	udc_hpm_ep_try_feed(dev, udc_get_ep_cfg(dev, ep));
 
@@ -307,37 +269,31 @@ static int udc_hpm_handler_non_ctrl_in(const struct device *dev, uint8_t ep,
 }
 
 static int udc_hpm_handler_non_ctrl_out(const struct device *dev, uint8_t ep,
-			struct net_buf *buf, uint8_t *hpm_buf, uint16_t hpm_len)
+			struct net_buf *buf, uint16_t hpm_len)
 {
 	int err;
 	uint32_t len;
 
 	len = MIN(net_buf_tailroom(buf), hpm_len);
-#if defined(CONFIG_NOCACHE_MEMORY)
-	memcpy(net_buf_tail(buf), hpm_buf, len);
-#endif
 	net_buf_add(buf, len);
 
-#if defined(CONFIG_NOCACHE_MEMORY)
-	udc_hpm_nocache_free(hpm_buf);
-#endif
 	err = udc_submit_ep_event(dev, buf, 0);
 	udc_hpm_ep_try_feed(dev, udc_get_ep_cfg(dev, ep));
 
 	return err;
 }
 
-static int udc_hpm_handler_out(const struct device *dev, uint8_t ep,
-				uint8_t *hpm_buf, uint16_t hpm_len)
+static int udc_hpm_handler_out(const struct device *dev, uint8_t ep, uint16_t hpm_len)
 {
 	int err;
 	struct net_buf *buf;
+	struct udc_ep_config *const cfg = udc_get_ep_cfg(dev, ep);
 	unsigned int key;
 
-	buf = udc_buf_get(dev, ep);
+	buf = udc_buf_get(cfg);
 
 	key = irq_lock();
-	udc_ep_set_busy(dev, ep, false);
+	udc_ep_set_busy(cfg, false);
 	irq_unlock(key);
 
 	if (buf == NULL) {
@@ -346,9 +302,9 @@ static int udc_hpm_handler_out(const struct device *dev, uint8_t ep,
 	}
 
 	if (ep == USB_CONTROL_EP_OUT) {
-		err = udc_hpm_handler_ctrl_out(dev, buf, hpm_buf, hpm_len);
+		err = udc_hpm_handler_ctrl_out(dev, buf, hpm_len);
 	} else {
-		err = udc_hpm_handler_non_ctrl_out(dev, ep, buf, hpm_buf, hpm_len);
+		err = udc_hpm_handler_non_ctrl_out(dev, ep, buf, hpm_len);
 	}
 
 	return err;
@@ -379,14 +335,14 @@ static bool udc_hpm_handler_zlt(const struct device *dev, uint8_t ep, struct net
 	return false;
 }
 
-static int udc_hpm_handler_in(const struct device *dev, uint8_t ep,
-				uint8_t *hpm_buf, uint16_t hpm_len)
+static int udc_hpm_handler_in(const struct device *dev, uint8_t ep, uint16_t hpm_len)
 {
 	int err;
 	struct net_buf *buf;
+	struct udc_ep_config *const cfg = udc_get_ep_cfg(dev, ep);
 	unsigned int key;
 
-	buf = udc_buf_peek(dev, ep);
+	buf = udc_buf_peek(cfg);
 	if (buf == NULL) {
 		udc_submit_event(dev, UDC_EVT_ERROR, -ENOBUFS);
 		return -ENOBUFS;
@@ -396,10 +352,10 @@ static int udc_hpm_handler_in(const struct device *dev, uint8_t ep,
 		return 0;
 	}
 
-	buf = udc_buf_get(dev, ep);
+	buf = udc_buf_get(cfg);
 
 	key = irq_lock();
-	udc_ep_set_busy(dev, ep, false);
+	udc_ep_set_busy(cfg, false);
 	irq_unlock(key);
 
 	if (buf == NULL) {
@@ -407,65 +363,103 @@ static int udc_hpm_handler_in(const struct device *dev, uint8_t ep,
 		return -ENOBUFS;
 	}
 	if (ep == USB_CONTROL_EP_IN) {
-		err = udc_hpm_handler_ctrl_in(dev, buf, hpm_buf, hpm_len);
+		err = udc_hpm_handler_ctrl_in(dev, buf, hpm_len);
 	} else {
-		err = udc_hpm_handler_non_ctrl_in(dev, ep, buf, hpm_buf, hpm_len);
+		err = udc_hpm_handler_non_ctrl_in(dev, ep, buf, hpm_len);
 	}
 
 	return err;
+}
+
+static void udc_hpm_work_handler(struct k_work *item)
+{
+	struct udc_hpm_data *priv = CONTAINER_OF(item, struct udc_hpm_data, work);
+	struct udc_hpm_event *event;
+	int err;
+
+	while ((event = k_fifo_get(&priv->fifo, K_NO_WAIT)) != NULL) {
+		const struct device *dev = event->dev;
+
+		switch (event->type) {
+		case UDC_HPM_EVT_ERROR:
+			udc_submit_event(dev, UDC_EVT_ERROR, event->status);
+			break;
+		case UDC_HPM_EVT_RESET:
+			udc_hpm_handler_reset(dev);
+			break;
+		case UDC_HPM_EVT_SUSPEND:
+			udc_set_suspended(dev, true);
+			udc_submit_event(dev, UDC_EVT_SUSPEND, 0);
+			break;
+		case UDC_HPM_EVT_RESUME:
+			if (udc_is_suspended(dev)) {
+				udc_set_suspended(dev, false);
+				udc_submit_event(dev, UDC_EVT_RESUME, 0);
+			}
+			break;
+		case UDC_HPM_EVT_VBUS_REMOVED:
+			udc_submit_event(dev, UDC_EVT_VBUS_REMOVED, 0);
+			break;
+		case UDC_HPM_EVT_VBUS_READY:
+			udc_submit_event(dev, UDC_EVT_VBUS_READY, 0);
+			break;
+		case UDC_HPM_EVT_XFER:
+			if (USB_EP_DIR_IS_IN(event->xfer.ep)) {
+				err = udc_hpm_handler_in(dev, event->xfer.ep, event->xfer.len);
+			} else {
+				err = udc_hpm_handler_out(dev, event->xfer.ep, event->xfer.len);
+			}
+			if (unlikely(err)) {
+				udc_submit_event(dev, UDC_EVT_ERROR, err);
+			}
+			break;
+		case UDC_HPM_EVT_SETUP:
+			udc_hpm_handler_setup(dev, &event->setup);
+			break;
+		}
+
+		k_mem_slab_free(&udc_hpm_event_slab, event);
+	}
 }
 
 static void udc_hpm_isr(const struct device *dev)
 {
 	struct udc_hpm_data *priv = udc_get_private(dev);
 	usb_device_handle_t *handle = &priv->handle;
+	struct udc_hpm_event event;
 	uint32_t int_status;
 	uint32_t transfer_len;
 	bool ep_cb_req;
 
-	/* Acknowledge handled interrupt */
+	/* Acknowledge handled interrupt and keep UDC state changes in the event thread. */
 	int_status = usb_device_status_flags(handle);
 	int_status &= usb_device_interrupts(handle);
 	usb_device_clear_status_flags(handle, int_status);
 
 	if (int_status & USB_USBINTR_UEE_MASK) {
 		LOG_DBG("usbd intr error!\r\n");
-		udc_submit_event(dev, UDC_EVT_ERROR, -EIO);
+		event.type = UDC_HPM_EVT_ERROR;
+		event.status = -EIO;
+		udc_hpm_event_submit(dev, &event);
+	}
+
+	if (IS_ENABLED(CONFIG_UDC_ENABLE_SOF) &&
+	    (int_status & USB_USBINTR_SRE_MASK)) {
+		udc_submit_sof_event(dev);
 	}
 
 	if (int_status & USB_USBINTR_URE_MASK) {
-		struct udc_ep_config *cfg;
 		usb_device_bus_reset(handle, USB_HPM_EP0_SIZE);
-		cfg = udc_get_ep_cfg(dev, USB_CONTROL_EP_OUT);
-		if (cfg->stat.enabled) {
-			udc_ep_disable_internal(dev, USB_CONTROL_EP_OUT);
-		}
-		cfg = udc_get_ep_cfg(dev, USB_CONTROL_EP_IN);
-		if (cfg->stat.enabled) {
-			udc_ep_disable_internal(dev, USB_CONTROL_EP_IN);
-		}
-		if (udc_ep_enable_internal(dev, USB_CONTROL_EP_OUT,
-					USB_EP_TYPE_CONTROL,
-					USB_HPM_EP0_SIZE, 0)) {
-			LOG_ERR("Failed to enable control endpoint");
-			return ;
-		}
-
-		if (udc_ep_enable_internal(dev, USB_CONTROL_EP_IN,
-					USB_EP_TYPE_CONTROL,
-					USB_HPM_EP0_SIZE, 0)) {
-			LOG_ERR("Failed to enable control endpoint");
-			return ;
-		}
-		udc_submit_event(dev, UDC_EVT_RESET, 0);
+		event.type = UDC_HPM_EVT_RESET;
+		udc_hpm_event_submit(dev, &event);
 	}
 
 	if (int_status & USB_USBINTR_SLE_MASK) {
 		if (usb_device_get_suspend_status(handle)) {
 			/* Note: Host may delay more than 3 ms before and/or after bus reset before doing enumeration. */
 			if (usb_device_get_address(handle)) {
-				udc_set_suspended(dev, true);
-				udc_submit_event(dev, UDC_EVT_SUSPEND, 0);
+				event.type = UDC_HPM_EVT_SUSPEND;
+				udc_hpm_event_submit(dev, &event);
 			}
 		} else {
 		}
@@ -473,15 +467,17 @@ static void udc_hpm_isr(const struct device *dev)
 
 	if (int_status & USB_USBINTR_PCE_MASK) {
 		if (!usb_device_get_port_ccs(handle)) {
-			udc_submit_event(dev, UDC_EVT_VBUS_REMOVED, 0);
+			event.type = UDC_HPM_EVT_VBUS_REMOVED;
+			udc_hpm_event_submit(dev, &event);
 		} else {
-			udc_set_suspended(dev, false);
-			udc_submit_event(dev, UDC_EVT_RESUME, 0);
-			udc_submit_event(dev, UDC_EVT_VBUS_READY, 0);
+			event.type = UDC_HPM_EVT_RESUME;
+			udc_hpm_event_submit(dev, &event);
+			event.type = UDC_HPM_EVT_VBUS_READY;
+			udc_hpm_event_submit(dev, &event);
 		}
 	}
 
-	if (int_status & USB_USBINTR_UE_MASK) {
+	if ((int_status & USB_USBINTR_UE_MASK) && !(int_status & USB_USBINTR_URE_MASK)) {
 		uint32_t const edpt_complete = usb_device_get_edpt_complete_status(handle);
 		uint32_t const edpt_setup_status = usb_device_get_setup_status(handle);
 
@@ -489,15 +485,30 @@ static void udc_hpm_isr(const struct device *dev)
 			usb_device_clear_edpt_complete_status(handle, edpt_complete);
 			for (uint8_t ep_idx = 0; ep_idx < USB_SOS_DCD_MAX_QHD_COUNT; ep_idx++) {
 				if (edpt_complete & (1 << ep_idx2bit(ep_idx))) {
+					dcd_qhd_t *p_qhd;
+					dcd_qtd_t *p_qtd;
+					uint8_t ep_addr;
+
 					transfer_len = 0;
 					ep_cb_req = true;
 
 					/* Failed QTD also get ENDPTCOMPLETE set */
-					dcd_qhd_t *p_qhd = usb_device_qhd_get(handle, ep_idx);
-					dcd_qtd_t *p_qtd = p_qhd->attached_qtd;
+					p_qhd = usb_device_qhd_get(handle, ep_idx);
+					p_qtd = p_qhd->attached_qtd;
+					if (p_qtd == NULL) {
+						LOG_ERR("Endpoint %u completed without a QTD", ep_idx);
+						event.type = UDC_HPM_EVT_ERROR;
+						event.status = -EIO;
+						udc_hpm_event_submit(dev, &event);
+						continue;
+					}
+
 					while (1) {
 						if (p_qtd->halted || p_qtd->xact_err || p_qtd->buffer_err) {
 							LOG_DBG("usbd transfer error!\r\n");
+							event.type = UDC_HPM_EVT_ERROR;
+							event.status = -EIO;
+							udc_hpm_event_submit(dev, &event);
 							ep_cb_req = false;
 							break;
 						} else if (p_qtd->active) {
@@ -515,22 +526,30 @@ static void udc_hpm_isr(const struct device *dev)
 					}
 					
 					if (ep_cb_req) {
-						uint8_t const ep_addr = (ep_idx / 2) | ((ep_idx & 0x01) ? 0x80 : 0);
-						if (ep_addr & 0x80) {
-							udc_hpm_handler_in(dev, ep_addr, (uint8_t *)p_qhd->attached_buffer, transfer_len);
-						} else {
-							udc_hpm_handler_out(dev, ep_addr, (uint8_t *)p_qhd->attached_buffer, transfer_len);
-						}
+						ep_addr = (ep_idx / 2) | ((ep_idx & 0x01) ? 0x80 : 0);
+						event.type = UDC_HPM_EVT_XFER;
+						event.xfer.ep = ep_addr;
+						event.xfer.len = transfer_len;
+						udc_hpm_event_submit(dev, &event);
 					}
 				}
 			}
 		}
 
 		if (edpt_setup_status) {
-			/*------------- Set up Received -------------*/
-			usb_device_clear_setup_status(handle, edpt_setup_status);
+			/*------------- Setup Received -------------*/
 			dcd_qhd_t *qhd0 = usb_device_qhd_get(handle, 0);
-			udc_hpm_handler_setup(dev, (struct usb_setup_packet *)&qhd0->setup_request);
+
+			usb_device_clear_setup_status(handle, edpt_setup_status);
+			do {
+				usb_dcd_set_sutw(handle->regs, true);
+				memcpy(&event.setup, (const void *)&qhd0->setup_request,
+				       sizeof(event.setup));
+			} while (!usb_dcd_get_sutw(handle->regs));
+			usb_dcd_set_sutw(handle->regs, false);
+
+			event.type = UDC_HPM_EVT_SETUP;
+			udc_hpm_event_submit(dev, &event);
 		}
 	}
 }
@@ -561,6 +580,17 @@ static int udc_hpm_ep_enqueue(const struct device *dev,
 			struct udc_ep_config *const cfg,
 			struct net_buf *const buf)
 {
+	if (cfg->addr == USB_CONTROL_EP_OUT) {
+		struct udc_buf_info *bi = udc_get_buf_info(buf);
+
+		if (bi->setup) {
+			udc_buf_put(cfg, buf);
+
+			/* SETUP can be received without arming control OUT. */
+			return 0;
+		}
+	}
+
 	udc_buf_put(cfg, buf);
 	if (cfg->stat.halted) {
 		LOG_DBG("ep 0x%02x halted", cfg->addr);
@@ -573,17 +603,13 @@ static int udc_hpm_ep_enqueue(const struct device *dev,
 static int udc_hpm_ep_dequeue(const struct device *dev,
 			struct udc_ep_config *const cfg)
 {
-	struct net_buf *buf;
 	unsigned int key;
 
 	cfg->stat.halted = false;
-	buf = udc_buf_get_all(dev, cfg->addr);
-	if (buf) {
-		udc_submit_ep_event(dev, buf, -ECONNABORTED);
-	}
+	udc_ep_cancel_queued(dev, cfg);
 
 	key = irq_lock();
-	udc_ep_set_busy(dev, cfg->addr, false);
+	udc_ep_set_busy(cfg, false);
 	irq_unlock(key);
 
 	return 0;
@@ -625,9 +651,7 @@ static int udc_hpm_ep_enable(const struct device *dev,
 	tmp_ep_cfg.ep_addr = cfg->addr;
 	tmp_ep_cfg.max_packet_size = cfg->mps;
 
-	usb_device_edpt_open(handle, &tmp_ep_cfg);
-
-	return 0;
+	return usb_device_edpt_open(handle, &tmp_ep_cfg) ? 0 : -EIO;
 }
 
 static int udc_hpm_ep_disable(const struct device *dev,
@@ -645,7 +669,12 @@ static int udc_hpm_ep_disable(const struct device *dev,
 
 static int udc_hpm_host_wakeup(const struct device *dev)
 {
-	return -ENOTSUP;
+	struct udc_hpm_data *priv = udc_get_private(dev);
+	usb_device_handle_t *handle = &priv->handle;
+
+	usb_dcd_remote_wakeup(handle->regs);
+
+	return 0;
 }
 
 static int udc_hpm_set_address(const struct device *dev, const uint8_t addr)
@@ -663,6 +692,16 @@ static int udc_hpm_enable(const struct device *dev)
 	struct udc_hpm_data *priv = udc_get_private(dev);
 	usb_device_handle_t *handle = &priv->handle;
 
+	if (udc_ep_enable_internal(dev, USB_CONTROL_EP_OUT,
+				USB_EP_TYPE_CONTROL, USB_HPM_EP0_SIZE, 0)) {
+		LOG_ERR("Failed to enable control endpoint");
+	}
+
+	if (udc_ep_enable_internal(dev, USB_CONTROL_EP_IN,
+				USB_EP_TYPE_CONTROL, USB_HPM_EP0_SIZE, 0)) {
+		LOG_ERR("Failed to enable control endpoint");
+	}
+
 	handle->regs->USBCMD |= USB_USBCMD_RS_MASK;
 
 	return 0;
@@ -672,8 +711,19 @@ static int udc_hpm_disable(const struct device *dev)
 {
 	struct udc_hpm_data *priv = udc_get_private(dev);
 	usb_device_handle_t *handle = &priv->handle;
+	struct udc_ep_config *cfg;
 
 	handle->regs->USBCMD &= ~USB_USBCMD_RS_MASK;
+
+	cfg = udc_get_ep_cfg(dev, USB_CONTROL_EP_OUT);
+	if (cfg->stat.enabled) {
+		udc_ep_disable_internal(dev, USB_CONTROL_EP_OUT);
+	}
+
+	cfg = udc_get_ep_cfg(dev, USB_CONTROL_EP_IN);
+	if (cfg->stat.enabled) {
+		udc_ep_disable_internal(dev, USB_CONTROL_EP_IN);
+	}
 
 	return 0;
 }
@@ -685,10 +735,31 @@ static int udc_hpm_init(const struct device *dev)
 	usb_device_handle_t *handle = &priv->handle;
 	uint32_t int_mask;
 
+	if (config->power_active_high) {
+		usb_hcd_set_power_ctrl_polarity(config->base, true);
+	}
+
+	if (config->power_stable_delay_ms != 0U) {
+		k_busy_wait(config->power_stable_delay_ms * USEC_PER_MSEC);
+	}
+
+	if (config->use_internal_vbus) {
+		usb_phy_using_internal_vbus(config->base);
+	}
+
 	int_mask = (USB_USBINTR_UE_MASK | USB_USBINTR_UEE_MASK | USB_USBINTR_SLE_MASK |
 				USB_USBINTR_PCE_MASK | USB_USBINTR_URE_MASK);
+	if (IS_ENABLED(CONFIG_UDC_ENABLE_SOF)) {
+		int_mask |= USB_USBINTR_SRE_MASK;
+	}
 
-	usb_device_init(handle, int_mask);
+	if (!usb_device_init(handle, int_mask)) {
+		return -EIO;
+	}
+
+	if (!IS_ENABLED(CONFIG_UDC_DRIVER_HIGH_SPEED_SUPPORT_ENABLED)) {
+		config->base->PORTSC1 |= USB_PORTSC1_PFSC_MASK;
+	}
 
 	/* enable USB interrupt */
 	config->irq_enable_func(dev);
@@ -713,14 +784,14 @@ static int udc_hpm_shutdown(const struct device *dev)
 	return 0;
 }
 
-static int udc_hpm_lock(const struct device *dev)
+static void udc_hpm_lock(const struct device *dev)
 {
-	return udc_lock_internal(dev, K_FOREVER);
+	udc_lock_internal(dev, K_FOREVER);
 }
 
-static int udc_hpm_unlock(const struct device *dev)
+static void udc_hpm_unlock(const struct device *dev)
 {
-	return udc_unlock_internal(dev);
+	udc_unlock_internal(dev);
 }
 
 static int udc_hpm_driver_preinit(const struct device *dev)
@@ -732,6 +803,8 @@ static int udc_hpm_driver_preinit(const struct device *dev)
 	int err;
 
 	k_mutex_init(&data->mutex);
+	k_fifo_init(&priv->fifo);
+	k_work_init(&priv->work, udc_hpm_work_handler);
 
 	for (int i = 0; i < config->num_of_eps; i++) {
 		config->ep_cfg_out[i].caps.out = 1;
@@ -742,6 +815,7 @@ static int udc_hpm_driver_preinit(const struct device *dev)
 			config->ep_cfg_out[i].caps.bulk = 1;
 			config->ep_cfg_out[i].caps.interrupt = 1;
 			config->ep_cfg_out[i].caps.iso = 1;
+			config->ep_cfg_out[i].caps.high_bandwidth = 1;
 			config->ep_cfg_out[i].caps.mps = 1024;
 		}
 
@@ -762,6 +836,7 @@ static int udc_hpm_driver_preinit(const struct device *dev)
 			config->ep_cfg_in[i].caps.bulk = 1;
 			config->ep_cfg_in[i].caps.interrupt = 1;
 			config->ep_cfg_in[i].caps.iso = 1;
+			config->ep_cfg_in[i].caps.high_bandwidth = 1;
 			config->ep_cfg_in[i].caps.mps = 1024;
 		}
 
@@ -773,15 +848,14 @@ static int udc_hpm_driver_preinit(const struct device *dev)
 		}
 	}
 
-	/* Requires udc_hpm_host_wakeup() implementation */
-	data->caps.rwup = false;
+	data->caps.rwup = true;
 	data->caps.mps0 = USB_HPM_MPS0;
 	data->caps.hs = true;
 
 	handle->regs = config->base;
 	handle->dcd_data = config->dcd_data;
 
-	clock_add_to_group(config->clock_name, 0);
+	clock_enable_name(config->clock_name);
 
 	pinctrl_apply_state(config->pincfg, PINCTRL_STATE_DEFAULT);
 
@@ -828,7 +902,7 @@ static const struct udc_api udc_hpm_api = {
 	static struct udc_ep_config							\
 		ep_cfg_in##n[DT_INST_PROP(n, num_bidir_endpoints)];			\
 											\
-	static __attribute__((__section__(".nocache"))) ATTR_ALIGN(USB_SOC_DCD_DATA_RAM_ADDRESS_ALIGNMENT) dcd_data_t _dcd_data##n;	\
+	static USB_HPM_DCD_DATA_SECTION ATTR_ALIGN(USB_SOC_DCD_DATA_RAM_ADDRESS_ALIGNMENT) dcd_data_t _dcd_data##n;	\
 											\
 	PINCTRL_DT_INST_DEFINE(n);							\
 											\
@@ -842,6 +916,9 @@ static const struct udc_api udc_hpm_api = {
 		.ep_cfg_out = ep_cfg_out##n,						\
 		.dcd_data = &_dcd_data##n,						\
 		.pincfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n),				\
+		.use_internal_vbus = DT_INST_PROP(n, use_internal_vbus),		\
+		.power_active_high = DT_INST_PROP(n, power_active_high),		\
+		.power_stable_delay_ms = DT_INST_PROP(n, power_stable_delay_ms),	\
 	};										\
 											\
 	static struct udc_hpm_data priv_data_##n = {					\

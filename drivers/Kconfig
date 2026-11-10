@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2025 HPMicro
+# Copyright (c) 2023-2026 HPMicro
 # SPDX-License-Identifier: BSD-3-Clause
 
 menu "Device Drivers"
@@ -20,4 +20,8 @@ rsource "usb/udc/Kconfig.hpmicro"
 rsource "usb/cherryusb/Kconfig.hpmicro"
 rsource "ethernet/Kconfig.hpmicro"
 rsource "flash/Kconfig.hpmicro"
+rsource "counter/Kconfig.hpmicro"
+rsource "watchdog/Kconfig.hpmicro"
+rsource "hwinfo/Kconfig.hpmicro"
+rsource "entropy/Kconfig.hpmicro"
 endmenu

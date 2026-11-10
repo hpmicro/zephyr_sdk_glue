@@ -1,0 +1,22 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: HPMicro Subsys Sd Mmc test
+tests:
+  hpmicro.test.subsys.sd.mmc:
+    min_ram: 32
+    harness: ztest
+    tags:
+    - hpmicro_verified
+    - sdhc
+    depends_on:
+    - sdhc
+    filter: dt_alias_exists("sdhc0") and dt_compat_enabled("zephyr,mmc-disk")
+    required_snippets:
+    - sdhc
+    platform_allow: &platforms
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    integration_platforms: *platforms

@@ -1,0 +1,29 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  description: Hello World sample, the simplest Zephyr application
+  name: hello world
+tests:
+  hpmicro.sample.hello_world:
+    min_ram: 2
+    min_flash: 16
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+      - Hello World! (.*)
+    tags:
+    - hpmicro_verified
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5301evklite
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

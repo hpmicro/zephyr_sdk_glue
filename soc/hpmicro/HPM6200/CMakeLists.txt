@@ -5,6 +5,7 @@ zephyr_include_directories(.)
 zephyr_sources(
   start.S
   soc.c
+  ../../../../sdk_env/hpm_sdk/soc/HPM6200/HPM6280/hpm_otp_drv.c
 )
 
 if(CONFIG_SOC_ANDES_V5_HWDSP)

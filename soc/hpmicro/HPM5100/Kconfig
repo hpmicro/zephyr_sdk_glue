@@ -1,0 +1,61 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HPM5100
+	select RISCV
+	select RISCV_PRIVILEGED
+	select RISCV_HAS_PLIC
+	select RISCV_MACHINE_TIMER
+	select RISCV_SOC_HAS_GP_RELATIVE_ADDRESSING
+	select DYNAMIC_INTERRUPTS
+	help
+	  Enable support for HPMicro HPM5151 SoCs.
+
+config SOC_HPM51_COMMON
+	bool
+	select ATOMIC_OPERATIONS_C
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+	select RISCV_ISA_EXT_C
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+	select CPU_HAS_DCACHE
+	select CPU_HAS_ICACHE
+	select RISCV_PMP if !MCUBOOT
+	select ARCH_HAS_NOCACHE_MEMORY_SUPPORT
+
+config SOC_HPM5151
+	bool
+	select SOC_HPM51_COMMON
+
+if SOC_SERIES_HPM5100
+
+choice
+	prompt "Base CPU ISA options"
+	default HPM51_RV32I
+
+config HPM51_RV32I
+	bool "RISCV32 CPU ISA"
+	select RISCV_ISA_RV32I
+
+config HPM51_RV32E
+	bool "RISCV32E CPU ISA"
+	select RISCV_ISA_RV32E
+
+endchoice
+
+choice
+	prompt "FPU options"
+	default HPM51_NO_FPU
+
+config HPM51_NO_FPU
+	bool "No FPU"
+
+config HPM51_SINGLE_PRECISION_FPU
+	bool "Single precision FPU"
+	select CPU_HAS_FPU
+
+endchoice
+
+endif # SOC_SERIES_HPM5100

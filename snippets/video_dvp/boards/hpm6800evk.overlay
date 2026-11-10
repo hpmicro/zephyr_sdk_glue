@@ -1,33 +1,30 @@
 /*
- * Copyright 2024 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright 2024-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 / {
-    chosen {
-        zephyr,display = &panel_mc10128007;
-        zephyr,camera = &video1;
-    };
+	chosen {
+		zephyr,display = &panel_mc10128007;
+		zephyr,camera = &video1;
+	};
 };
 
 &adc0 {
 	status = "disabled";
+	vref-mv = <3300>;
 };
-
 
 &i2c0 {
 	status = "okay";
 	pinctrl-0 = <&pinmux_i2c0>;
 	pinctrl-names = "default";
-
 	ov7725: ov7725@21 {
 		compatible = "ovti,ov7725";
 		reg = <0x21>;
 		status = "okay";
-
 		reset-gpios = <&gpioa 22 GPIO_ACTIVE_HIGH>;
 	};
-
 };
 
 &camera0 {
@@ -35,6 +32,7 @@
 	interface = "dvp";
 	pinctrl-0 = <&pinmux_dvp0>;
 	pinctrl-names = "default";
+	clocks = <&clk CLOCK_CAMERA0 CLK_SRC_OSC24M 1>;
 	pixclk_sampling_falling = <0>;
 	hsync_active_low = <1>;
 	vsync_active_low = <1>;
@@ -45,6 +43,10 @@
 	video_count = <1>;
 	sensor = <&ov7725>;
 	camera = <&camera0>;
+};
+
+&pixelmux {
+	status = "okay";
 };
 
 &lcdc0 {

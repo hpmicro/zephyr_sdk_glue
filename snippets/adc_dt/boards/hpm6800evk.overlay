@@ -1,0 +1,40 @@
+/*
+ * Copyright (c) 2026 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * ADC0 channel 8 (PE16, ADC0.IN8, 丝印 J19[15])
+ * 与 HPM_SDK 板级文档/README 一致；SDK pinmux.c 的 PE24(ADC0.IN12) 与其 board.h
+ * 的通道 8 不一致，以 DS 引脚表和板级 README 为准。
+ */
+
+#include "dt-bindings/pinctrl/hpmicro-pinctrl-common.h"
+
+/ {
+	zephyr,user {
+		io-channels = <&adc0 8>;
+	};
+};
+
+&pinctrl {
+	pinmux_adc0_in8: pinmux_adc0_in8 {
+		group0 {
+			pinmux = <HPMICRO_PINMUX(HPMICRO_PIN(HPMICRO_PORTE, 16), IOC_TYPE_IOC, 1, 0)>;
+		};
+	};
+};
+
+&adc0 {
+	status = "okay";
+	pinctrl-0 = <&pinmux_adc0_in8>;
+	pinctrl-names = "default";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@8 {
+		reg = <8>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <0>;
+		zephyr,resolution = <16>;
+	};
+};

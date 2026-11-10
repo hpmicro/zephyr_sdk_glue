@@ -20,6 +20,7 @@
 #include "hpm_clock_drv.h"
 #include "hpm_usb_drv.h"
 #include "usb_glue_hpm.h"
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 struct cherryusb_hpm_config {
 	void (*irq_enable_func)(void);
@@ -27,6 +28,9 @@ struct cherryusb_hpm_config {
 	uint32_t reg_base;
 	uint32_t clock_name;
 	const struct pinctrl_dev_config *pincfg;
+	bool use_internal_vbus;
+	bool power_active_high;
+	uint32_t power_stable_delay_ms;
 };
 
 static void cherryusb_hpm_isr(uint32_t base)
@@ -44,13 +48,21 @@ static int cherryusb_hpm_driver_preinit(const struct device *dev)
 {
 	const struct cherryusb_hpm_config *config = dev->config;
 
-	clock_add_to_group((clock_name_t)(config->clock_name), 0);
+	clock_enable_name((clock_name_t)config->clock_name);
 
 	pinctrl_apply_state(config->pincfg, PINCTRL_STATE_DEFAULT);
 
-	usb_hcd_set_power_ctrl_polarity((USB_Type *)config->reg_base, true);
+	if (config->power_active_high) {
+		usb_hcd_set_power_ctrl_polarity((USB_Type *)config->reg_base, true);
+	}
 
-	k_sleep(K_MSEC(100));
+	if (config->power_stable_delay_ms != 0U) {
+		k_sleep(K_MSEC(config->power_stable_delay_ms));
+	}
+
+	if (config->use_internal_vbus) {
+		usb_phy_using_internal_vbus((USB_Type *)config->reg_base);
+	}
 
 	return 0;
 }
@@ -121,6 +133,9 @@ void hpm_usb_isr_disable(uint32_t base)
 		.irq_enable_func = cherryusb_irq_enable_func##n,			\
 		.irq_disable_func = cherryusb_irq_disable_func##n,			\
 		.pincfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n),				\
+		.use_internal_vbus = DT_INST_PROP(n, use_internal_vbus),			\
+		.power_active_high = DT_INST_PROP(n, power_active_high),		\
+		.power_stable_delay_ms = DT_INST_PROP(n, power_stable_delay_ms),	\
 	};																\
 																	\
 	DEVICE_DT_INST_DEFINE(n, cherryusb_hpm_driver_preinit, NULL,		\

@@ -1,0 +1,28 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: Blinky Sample
+tests:
+  hpmicro.sample.basic.blinky:
+    harness: led
+    tags:
+    - hpmicro_verified
+    - gpio
+    depends_on:
+    - gpio
+    filter: dt_enabled_alias_with_parent_compat("led0", "gpio-leds")
+    required_snippets:
+    - blinky
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5301evklite
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

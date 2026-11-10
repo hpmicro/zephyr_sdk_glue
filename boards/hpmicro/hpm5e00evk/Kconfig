@@ -1,0 +1,23 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_HPM5E00EVK
+
+config INIT_EXT_RAM
+    bool "Initialize external RAM(SDRAM or DDR)"
+    default n
+    select HAS_HPMSDK_FEMC
+
+config HPMICRO_BOARD_SUPPORT_EMMC
+    bool "SUPPORT EMMC"
+    default n
+    help
+      SUPPORT EMMC
+
+config HPMICRO_BOARD_SUPPORT_SD_DETECT
+    bool "SUPPORT SD DETECT"
+    default n
+    help
+        SUPPORT SD DETECT
+
+endif #BOARD_HPM5E00EVK

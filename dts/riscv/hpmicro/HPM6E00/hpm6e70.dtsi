@@ -1,0 +1,295 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <dt-bindings/clock/hpm6e80-clocks.h>
+#include <hpmicro/HPM6E00/hpm6exx.dtsi>
+#include <hpmicro/HPM6E00/hpm6exx_dualcore.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm6e70", "hpmicro,hpm6exx";
+		spi7: spi@f01bc000 {
+			compatible = "hpmicro,hpm-spi";
+			reg = <0xf01bc000 DT_SIZE_K(16)>;
+			clocks = <&clk CLOCK_SPI7 CLK_SRC_PLL1_CLK0 10>;
+			interrupts = <89 1>;
+			interrupt-parent = <&plic>;
+			status = "disabled";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			cs-sck-delay = <3>;
+			cs-minimum-high-time = <11>;
+		};
+
+		adc3: adc@f010C000 {
+			compatible = "hpmicro,hpm-adc16";
+			reg = <0xf010C000 DT_SIZE_K(16)>;
+			interrupts = <61 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_ADC3 CLK_ADC_SRC_AHB0 1>,
+				<&clk CLOCK_AHB0 CLK_SRC_PLL1_CLK0 4>;
+			adc-clk-div = <4>;
+			sample-time = <20>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
+
+		mcan4: can@f0310000 {
+			compatible = "hpmicro,hpm-mcan";
+			reg = <0xf0310000 DT_SIZE_K(16)>;
+			interrupts = <94 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN4 CLK_SRC_PLL1_CLK0 10>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		mcan5: can@f0314000 {
+			compatible = "hpmicro,hpm-mcan";
+			reg = <0xf0314000 DT_SIZE_K(16)>;
+			interrupts = <95 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN5 CLK_SRC_PLL1_CLK0 10>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		mcan6: can@f0318000 {
+			compatible = "hpmicro,hpm-mcan";
+			reg = <0xf0318000 DT_SIZE_K(16)>;
+			interrupts = <96 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN6 CLK_SRC_PLL1_CLK0 10>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		mcan7: can@f031C000 {
+			compatible = "hpmicro,hpm-mcan";
+			reg = <0xf031C000 DT_SIZE_K(16)>;
+			interrupts = <97 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN7 CLK_SRC_PLL1_CLK0 10>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		ewdg2: ewdg@f00b8000 {
+			compatible = "hpmicro,hpm-ewdg";
+			reg = <0xf00b8000 0x4000>;
+			interrupts = <54 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_WATCHDOG2 CLK_WDG_SRC_OSC32K 1>;
+			reset_none_intr;
+			status = "disabled";
+		};
+
+		ewdg3: ewdg@f00bc000 {
+			compatible = "hpmicro,hpm-ewdg";
+			reg = <0xf00bc000 0x4000>;
+			interrupts = <55 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_WATCHDOG3 CLK_WDG_SRC_OSC32K 1>;
+			reset_none_intr;
+			status = "disabled";
+		};
+
+		gpt4: gpt@f0010000 {
+			compatible = "hpmicro,hpm-gptimer";
+			reg = <0xf0010000 0x4000>;
+			interrupts = <27 1>;
+			interrupt-parent = <&plic>;
+			gptfreq = <100000000>;
+			clocks = <&clk CLOCK_GPTMR4 CLK_SRC_PLL1_CLK0 8>;
+			status = "disabled";
+		};
+
+		gpt5: gpt@f0014000 {
+			compatible = "hpmicro,hpm-gptimer";
+			reg = <0xf0014000 0x4000>;
+			interrupts = <28 1>;
+			interrupt-parent = <&plic>;
+			gptfreq = <100000000>;
+			clocks = <&clk CLOCK_GPTMR5 CLK_SRC_PLL1_CLK0 8>;
+			status = "disabled";
+		};
+
+		gpt6: gpt@f0018000 {
+			compatible = "hpmicro,hpm-gptimer";
+			reg = <0xf0018000 0x4000>;
+			interrupts = <29 1>;
+			interrupt-parent = <&plic>;
+			gptfreq = <100000000>;
+			clocks = <&clk CLOCK_GPTMR6 CLK_SRC_PLL1_CLK0 8>;
+			status = "disabled";
+		};
+
+		gpt7: gpt@f001c000 {
+			compatible = "hpmicro,hpm-gptimer";
+			reg = <0xf001c000 0x4000>;
+			interrupts = <30 1>;
+			interrupt-parent = <&plic>;
+			gptfreq = <100000000>;
+			clocks = <&clk CLOCK_GPTMR7 CLK_SRC_PLL1_CLK0 8>;
+			status = "disabled";
+		};
+
+		acmp2: acmp@f0138000 {
+			reg = <0xf0138000 0x4000>;
+			clocks = <&clk CLOCK_ACMP2 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		acmp3: acmp@f013c000 {
+			reg = <0xf013c000 0x4000>;
+			clocks = <&clk CLOCK_ACMP3 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		uart8: serial@f0180000 {
+			reg = <0xf0180000 0x4000>;
+			clocks = <&clk CLOCK_UART8 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		uart9: serial@f0184000 {
+			reg = <0xf0184000 0x4000>;
+			clocks = <&clk CLOCK_UART9 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		uart10: serial@f0188000 {
+			reg = <0xf0188000 0x4000>;
+			clocks = <&clk CLOCK_UART10 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		uart11: serial@f018c000 {
+			reg = <0xf018c000 0x4000>;
+			clocks = <&clk CLOCK_UART11 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		uart12: serial@f0190000 {
+			reg = <0xf0190000 0x4000>;
+			clocks = <&clk CLOCK_UART12 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		uart13: serial@f0194000 {
+			reg = <0xf0194000 0x4000>;
+			clocks = <&clk CLOCK_UART13 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		uart14: serial@f0198000 {
+			reg = <0xf0198000 0x4000>;
+			clocks = <&clk CLOCK_UART14 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		uart15: serial@f019c000 {
+			reg = <0xf019c000 0x4000>;
+			clocks = <&clk CLOCK_UART15 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		i2c4: i2c@f01a0000 {
+			reg = <0xf01a0000 0x4000>;
+			clocks = <&clk CLOCK_I2C4 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		i2c5: i2c@f01a4000 {
+			reg = <0xf01a4000 0x4000>;
+			clocks = <&clk CLOCK_I2C5 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		i2c6: i2c@f01a8000 {
+			reg = <0xf01a8000 0x4000>;
+			clocks = <&clk CLOCK_I2C6 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		i2c7: i2c@f01ac000 {
+			reg = <0xf01ac000 0x4000>;
+			clocks = <&clk CLOCK_I2C7 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		spi4: spi@f01b0000 {
+			reg = <0xf01b0000 0x4000>;
+			clocks = <&clk CLOCK_SPI4 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		spi5: spi@f01b4000 {
+			reg = <0xf01b4000 0x4000>;
+			clocks = <&clk CLOCK_SPI5 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		spi6: spi@f01b8000 {
+			reg = <0xf01b8000 0x4000>;
+			clocks = <&clk CLOCK_SPI6 CLK_SRC_PLL1_CLK0 10>;
+			status = "disabled";
+		};
+
+		qei2: qei@f0408000 {
+			reg = <0xf0408000 0x4000>;
+			clocks = <&clk CLOCK_QEI2 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		qei3: qei@f040c000 {
+			reg = <0xf040c000 0x4000>;
+			clocks = <&clk CLOCK_QEI3 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		qeo2: qeo@f0418000 {
+			reg = <0xf0418000 0x4000>;
+			clocks = <&clk CLOCK_QEO2 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		qeo3: qeo@f041c000 {
+			reg = <0xf041c000 0x4000>;
+			clocks = <&clk CLOCK_QEO3 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		rdc1: rdc1@f0444000 {
+			reg = <0xf0444000 0x4000>;
+			clocks = <&clk CLOCK_RDC1 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		sdm1: sdm1@f0454000 {
+			reg = <0xf0454000 0x4000>;
+			clocks = <&clk CLOCK_SDM1 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		mtg1: mtg1@f0494000 {
+			reg = <0xf0494000 0x4000>;
+			clocks = <&clk CLOCK_MTG1 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		vsc1: vsc1@f04a4000 {
+			reg = <0xf04a4000 0x4000>;
+			clocks = <&clk CLOCK_VSC1 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		clc1: clc1@f04b4000 {
+			reg = <0xf04b4000 0x4000>;
+			clocks = <&clk CLOCK_CLC1 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+	};
+};

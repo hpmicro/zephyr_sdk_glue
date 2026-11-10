@@ -1,4 +1,4 @@
-# Copyright (c) 2024 HPMicro
+# Copyright (c) 2024-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 name: sdhc
@@ -6,6 +6,9 @@ append:
   EXTRA_CONF_FILE: sdhc.conf
 
 boards:
+  hpm6300evk/hpm6360:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm6300evk.overlay
   hpm6750evk2/hpm6750:
     append:
       EXTRA_DTC_OVERLAY_FILE: boards/hpm6750evk2.overlay

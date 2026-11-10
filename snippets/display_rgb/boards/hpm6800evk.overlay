@@ -1,46 +1,50 @@
 /*
- * Copyright 2024 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright 2024-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 / {
-    chosen {
-        zephyr,display = &panel_tm070rdh13;
-    };
+	chosen {
+		zephyr,display = &panel_tm070rdh13;
+	};
 
-    lvgl_pointer {
+	lvgl_pointer {
 		compatible = "zephyr,lvgl-pointer-input";
 		input = <&touch_rgb>;
 	};
 };
 
 &lcdc1 {
-    status = "okay";
+	status = "okay";
+};
+
+&pixelmux {
+	status = "okay";
 };
 
 &rgb0 {
-    status = "okay";
+	status = "okay";
 };
 
 &panel_tm070rdh13 {
-    status = "okay";
+	status = "okay";
 };
 
 /*
- * backlight control
- */
+* backlight control
+*/
 &gpioa {
-    status = "okay";
+	status = "okay";
 };
 
 &gpioy {
-    status = "okay";
+	status = "okay";
 };
 
 &i2c0 {
-    status = "okay";
+	status = "okay";
 };
 
 &touch_rgb {
-    status = "okay";
+	status = "okay";
 };

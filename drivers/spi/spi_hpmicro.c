@@ -14,6 +14,7 @@
 #include <hpm_common.h>
 #include <hpm_spi_drv.h>
 #include <hpm_clock_drv.h>
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 #ifdef CONFIG_SPI_HPM_SPI_DMA
 #include <zephyr/drivers/dma.h>
@@ -673,6 +674,11 @@ static int spi_hpm_init(const struct device *dev)
 	int err;
 	const struct spi_hpm_config *config = dev->config;
 	struct spi_hpm_data *data = dev->data;
+	const struct hpm_clock_dt_spec clock = {
+		.name = (clock_name_t)config->clock_name,
+		.src = (clk_src_t)config->clock_src,
+		.div = config->clock_div,
+	};
 
 	config->irq_config_func(dev);
 
@@ -702,8 +708,7 @@ static int spi_hpm_init(const struct device *dev)
 		return err;
 	}
 
-	clock_set_source_divider(config->clock_name, config->clock_src, config->clock_div);
-	clock_add_to_group(config->clock_name, 0);
+	clock_configure_enable(&clock);
 
 	spi_context_unlock_unconditionally(&data->ctx);
 

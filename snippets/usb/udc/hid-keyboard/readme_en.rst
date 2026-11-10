@@ -1,26 +1,44 @@
-.. _hid_keyboard:
+.. _usb_udc_hid-keyboard_en:
 
-hid_keyboard
-=============
-`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/subsys/usb/hid-keyboard/README.html>`_
+USB HID Keyboard
+=================
 
-Path
+Overview
+---------
+
+This sample uses the HPMicro USB device controller to emulate a HID keyboard from the board's input buttons.
+
+* `Zephyr 4.4.0 USB HID Keyboard sample <https://docs.zephyrproject.org/4.4.0/samples/subsys/usb/hid-keyboard/README.html>`_
+
+Application paths
+------------------
+
+.. code-block:: text
+
+   zephyr/samples/subsys/usb/hid-keyboard
+
+Hardware setup
 ---------------
 
-.. code-block::
+Connect the board's configured USB device port to a host computer. Keep the debug console connection available for logs.
 
-    zephyr/samples/subsys/usb/hid-keyboard
+Building
+---------
 
-Build Cmd
-------------
-
-As hpm6750evk2 for example:
+Run from the west workspace root. The following commands use ``hpm6750evk2`` as an example:
 
 .. code-block:: console
 
-    west build -p always -b hpm6750evk2 -S hid-keyboard samples/subsys/usb/hid-keyboard -T sample.usbd.hid-keyboard 
+   west build -p always -b hpm6750evk2 -S hid-keyboard zephyr/samples/subsys/usb/hid-keyboard
 
-Known Issues
--------------
+Expected behavior
+------------------
 
-- As hpm6750/hpm6800 gpio don't support `GPIO_INT_EDGE_BOTH` interrupt, so gpio-keys function is not supported.
+After flashing and reconnecting USB, the device enumerates a keyboard. Pressing the board's first user button sends the Num Lock key; the host changes its Num Lock state and ``led0`` follows that state, so the LED toggles on successive presses. If the board exposes more input keys, the next keys send Caps Lock, Scroll Lock, and ``Right Alt+1+2+3`` respectively.
+
+Notes
+------
+
+.. note::
+
+   Use the USB connector selected by the board overlay; a power-only cable cannot enumerate the device.

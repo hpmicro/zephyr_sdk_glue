@@ -1,0 +1,14 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <dt-bindings/clock/hpm6750-clocks.h>
+#include <hpmicro/HPM6700/hpm67xx.dtsi>
+#include <hpmicro/HPM6700/hpm67xx_dualcore.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm6730", "hpmicro,hpm67xx";
+	};
+};

@@ -1,4 +1,4 @@
-# Copyright (c) 2024 HPMicro
+# Copyright (c) 2024-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 description: |
@@ -15,11 +15,13 @@ include: [clock-controller.yaml, base.yaml]
 properties:
   pll-frequency:
     type: int
+    required: true
     description: |
       PLL frequency Hz
 
   pll-index:
     type: int
+    required: true
     description: |
       PLL index
     enum:
@@ -29,13 +31,17 @@ properties:
       - 3
       - 4
 
+  integer-mode:
+    type: boolean
+    description: Use integer division mode instead of fractional division mode.
+
   "#clock-cells":
     const: 2
 
 clock-cells:
-  - pll-index
+  - clk-index
   - div
-  
+
 child-binding:
   description: |
     PLL division
@@ -43,15 +49,18 @@ child-binding:
   properties:
     src-name:
       type: int
+      required: true
       description: |
         PLL divider node index
 
     div-i:
       type: int
+      required: true
       description: |
         PLL divider index
 
     div-p:
       type: int
+      required: true
       description: |
         PLL divider prescaler

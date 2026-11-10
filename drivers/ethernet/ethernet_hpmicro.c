@@ -37,6 +37,7 @@ LOG_MODULE_REGISTER(ethernet_hpm_eth);
 
 #include "hpm_enet_drv.h"
 #include "hpm_clock_drv.h"
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 #if defined(CONFIG_ETH_PHY) && CONFIG_ETH_PHY
 #if defined(CONFIG_ETH_PHY_RTL8211) && CONFIG_ETH_PHY_RTL8211
@@ -511,6 +512,11 @@ static int hpm_eth_init(const struct device *dev)
 
 	__ASSERT_NO_MSG(data != NULL);
 	__ASSERT_NO_MSG(cfg != NULL);
+	const struct hpm_clock_dt_spec clock = {
+		.name = cfg->clock_name,
+		.src = (clk_src_t)cfg->clock_src,
+		.div = cfg->clock_div,
+	};
 
 	/* Configure Pinmux */
 	res = pinctrl_apply_state(cfg->pincfg, PINCTRL_STATE_DEFAULT);
@@ -523,10 +529,8 @@ static int hpm_eth_init(const struct device *dev)
 	eth_reset_phy(dev);
 
 	/* Configure Clock */
-	clock_set_source_divider(cfg->clock_name, cfg->clock_src, cfg->clock_div);
-	clock_add_to_group(cfg->clock_name, 0);
-
-	clock_add_to_group(clock_eth0, 0);
+	clock_configure_enable(&clock);
+	clock_enable_name((clock_name_t)cfg->clock_name);
 
 #if defined(CONFIG_ETH_HPM_RGMII) && CONFIG_ETH_HPM_RGMII
 	/* Set RGMII clock delay */
@@ -606,9 +610,9 @@ static enum ethernet_hw_caps eth_get_capabilities(const struct device *dev)
 {
 	ARG_UNUSED(dev);
 
-	return ETHERNET_LINK_10BASE_T | ETHERNET_LINK_100BASE_T
+	return ETHERNET_LINK_10BASE | ETHERNET_LINK_100BASE
 #if defined(CONFIG_ETH_HPM_RGMII)
-		| ETHERNET_LINK_1000BASE_T
+		| ETHERNET_LINK_1000BASE
 #endif
 #if defined(CONFIG_ETH_HPM_PROMISCUOUS_MODE)
         | ETHERNET_PROMISC_MODE

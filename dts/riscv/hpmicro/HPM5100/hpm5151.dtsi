@@ -1,0 +1,12 @@
+/*
+* Copyright 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <hpmicro/HPM5100/hpm51xx.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm5151", "hpmicro,hpm51xx";
+	};
+};

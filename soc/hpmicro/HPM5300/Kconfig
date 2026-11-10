@@ -1,0 +1,77 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HPM5300
+	select RISCV
+	select RISCV_PRIVILEGED
+	select RISCV_HAS_PLIC
+	select RISCV_MACHINE_TIMER
+	select RISCV_SOC_HAS_GP_RELATIVE_ADDRESSING
+	select DYNAMIC_INTERRUPTS
+	help
+	  Enable support for HPMicro HPM5361 SoCs.
+
+config SOC_HPM53_COMMON
+	bool
+	select ATOMIC_OPERATIONS_C
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+	select RISCV_ISA_EXT_C
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+	select CPU_HAS_DCACHE
+	select CPU_HAS_ICACHE
+	select RISCV_PMP if !MCUBOOT
+	select ARCH_HAS_NOCACHE_MEMORY_SUPPORT
+
+config SOC_HPM5361
+	bool
+	select SOC_HPM53_COMMON
+
+config SOC_HPM5301
+	bool
+	select SOC_HPM53_COMMON
+
+config SOC_HPM5321
+	bool
+	select SOC_HPM53_COMMON
+
+config SOC_HPM5331
+	bool
+	select SOC_HPM53_COMMON
+
+if SOC_SERIES_HPM5300
+
+choice
+	prompt "Base CPU ISA options"
+	default HPM53_RV32I
+
+config HPM53_RV32I
+	bool "RISCV32 CPU ISA"
+	select RISCV_ISA_RV32I
+
+config HPM53_RV32E
+	bool "RISCV32E CPU ISA"
+	select RISCV_ISA_RV32E
+
+endchoice
+
+choice
+	prompt "FPU options"
+	default HPM53_NO_FPU
+
+config HPM53_NO_FPU
+	bool "No FPU"
+
+config HPM53_SINGLE_PRECISION_FPU
+	bool "Single precision FPU"
+	select CPU_HAS_FPU
+
+config HPM53_DOUBLE_PRECISION_FPU
+	bool "Double precision FPU"
+	select CPU_HAS_FPU_DOUBLE_PRECISION
+
+endchoice
+
+endif # SOC_SERIES_HPM5300

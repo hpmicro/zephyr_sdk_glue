@@ -1,0 +1,13 @@
+diff --git a/drivers/inc/hpm_display_common.h b/drivers/inc/hpm_display_common.h
+index 0e576e25c..2503bf11c 100644
+--- a/drivers/inc/hpm_display_common.h
++++ b/drivers/inc/hpm_display_common.h
+@@ -42,7 +42,7 @@ typedef enum display_alphablend_mode {
+ /**
+  * @brief display pixel format
+  */
+-typedef enum display_pixel_format {
++typedef enum hpm_display_pixel_format {
+     display_pixel_format_argb8888,
+     display_pixel_format_rgb565,
+     display_pixel_format_rgb555,

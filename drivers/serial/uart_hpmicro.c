@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2022-2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,10 +17,15 @@
 #ifdef CONFIG_UART_ASYNC_API
 #include <hpm_trgmmux_src.h>
 #include <hpm_trgm_drv.h>
+#ifdef CONFIG_SOC_SERIES_HPM5100
+#include <hpm_gptmrv2_drv.h>
+#else
 #include <hpm_gptmr_drv.h>
+#endif
 #endif
 #include <zephyr/drivers/dma.h>
 #include <zephyr/logging/log.h>
+#include <drivers/clock_control/hpmicro_clock_control.h>
 LOG_MODULE_REGISTER(uart_hpmicro);
 #ifdef CONFIG_UART_ASYNC_API
 
@@ -77,6 +82,7 @@ struct uart_hpm_cfg {
 	UART_Type *base;
 	uint32_t clock_name;
 	uint32_t clock_src;
+	uint32_t clock_div;
 	uint32_t parity;
 	uint32_t baud_rate;
 	uint8_t flow_ctrl;
@@ -237,6 +243,11 @@ static int uart_hpm_configure_init(const struct device *dev, const struct uart_c
 	hpm_stat_t stat = status_success;
 	uart_config_t uart_config = {0};
 	UART_Type * base = (UART_Type *)config->base;
+	const struct hpm_clock_dt_spec clock = {
+		.name = (clock_name_t)config->clock_name,
+		.src = (clk_src_t)config->clock_src,
+		.div = config->clock_div,
+	};
 
 #ifdef CONFIG_UART_ASYNC_API
 	// if (!device_is_ready(data->dma_tx.dma_dev)) {
@@ -249,8 +260,7 @@ static int uart_hpm_configure_init(const struct device *dev, const struct uart_c
 	// 	return -ENODEV;
 	// }
 #endif
-	clock_set_source_divider(config->clock_name, config->clock_src, 1U);
-	clock_add_to_group(config->clock_name, 0);
+	clock_configure_enable(&clock);
 
 	uart_default_config(base, &uart_config);
 	uart_config.src_freq_in_hz =	 clock_get_frequency(config->clock_name);
@@ -1026,6 +1036,7 @@ static const struct uart_driver_api uart_hpm_driver_api = {
 			.base = (UART_Type *)DT_INST_REG_ADDR(n),	\
 			.clock_name = DT_INST_CLOCKS_CELL(n, name),	\
 			.clock_src = DT_INST_CLOCKS_CELL(n, src),	\
+			.clock_div = DT_INST_CLOCKS_CELL(n, div),	\
 			.parity = DT_INST_ENUM_IDX_OR(n, parity, UART_CFG_PARITY_NONE),	\
 			.loopback_en = DT_INST_PROP(n, loopback),				\
 			.baud_rate = DT_INST_PROP(n, current_speed),	\

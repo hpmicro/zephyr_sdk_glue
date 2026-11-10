@@ -1,4 +1,4 @@
-# Copyright 2024 HPMicro
+# Copyright 2024, 2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 description: HPMicro HPM MIPI CSI
@@ -11,8 +11,8 @@ properties:
   reg:
     required: true
 
-  mipi_csi_phy_reg:
-    type:  array
+  mipi_csi_phy:
+    type: phandle
     required: true
 
   interrupts:

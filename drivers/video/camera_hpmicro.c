@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2024 HPMicro
+ * Copyright (c) 2024, 2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  */
 
 #define DT_DRV_COMPAT hpmicro_hpm_camera
-
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/pinctrl.h>
@@ -17,6 +16,7 @@
 #include <hpm_cam_drv.h>
 #include <hpm_clock_drv.h>
 #include <hpm_l1c_drv.h>
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 #ifdef CONFIG_MIPI_CSI_HPMICRO
 #include <mipi_csi_hpmicro.h>
@@ -51,146 +51,122 @@ struct hpmicro_cam_config {
 };
 
 struct hpmicro_cam_data {
-	struct k_sem cam_eof_sem;
 	struct k_mutex mutex;
+	struct k_spinlock lock;
 	struct k_fifo fifo_in;
 	struct k_fifo fifo_out;
+	atomic_t pending_bufs;
 	cam_config_t cam_config;
 	camera_interface_e camera_interface;
 	uint32_t pitch;
 	uint32_t pixelformat;
 	struct k_poll_signal *signal;
-	struct video_buffer *cam_buffer;
-	uint8_t cam_dmafb_index;
+	/* Driver-owned spare buffer: always a valid DMA target */
+	struct video_buffer *spare;
+	/* Sample buffer currently armed on DMASA_FB1/FB2 (or the spare) */
+	struct video_buffer *fb_vbuf[2];
 };
 
-// #define HPMICRO_CAM_ENABLE_EOF  1
-
 #define DEV_BASE(dev) (((struct hpmicro_cam_config *)(dev->config))->base)
+
+/*
+ * Arm a pending video buffer on one DMA frame buffer (fb: 0 = FB1, 1 = FB2).
+ * The caller must hold data->lock while updating the DMASA registers and
+ * fb_vbuf[] ownership.
+ * If no usable buffer is pending, the driver-owned spare buffer stays armed
+ * so the CAM always writes to a valid, non-consumed address.
+ */
+static void hpmicro_cam_arm_fb(const struct device *dev, int fb)
+{
+	struct hpmicro_cam_data *data = dev->data;
+	const struct hpmicro_cam_config *config = dev->config;
+	struct video_buffer *vbuf;
+
+	/* A FB holding a deliverable sample buffer must not be touched */
+	if (data->fb_vbuf[fb] != data->spare && data->fb_vbuf[fb] != NULL) {
+		return;
+	}
+
+	vbuf = k_fifo_get(&data->fifo_in, K_NO_WAIT);
+	if (vbuf == NULL || vbuf == data->fb_vbuf[1 - fb]) {
+		if (vbuf != NULL) {
+			k_fifo_put(&data->fifo_in, vbuf);
+		}
+		/* No usable buffer: point this FB at the spare (safe target) */
+		if (fb == 0) {
+			cam_update_buffer(config->base, (uint32_t)data->spare->buffer);
+		} else {
+			cam_update_buffer2(config->base, (uint32_t)data->spare->buffer);
+		}
+		data->fb_vbuf[fb] = data->spare;
+		return;
+	}
+
+	if (fb == 0) {
+		cam_update_buffer(config->base, (uint32_t)vbuf->buffer);
+	} else {
+		cam_update_buffer2(config->base, (uint32_t)vbuf->buffer);
+	}
+	data->fb_vbuf[fb] = vbuf;
+}
 
 __attribute__((section(".isr"))) static void hpmicro_cam_isr(const struct device *dev)
 {
 	const struct hpmicro_cam_config *cfg = dev->config;
 	struct hpmicro_cam_data *data = dev->data;
-	enum video_signal_result result = VIDEO_BUF_DONE;
-	struct video_buffer *vbuf, *vbuf_first = NULL;
-	uint32_t fifo_index = 0, buffer_addr = 0;
-#ifdef HPMICRO_CAM_ENABLE_EOF
-	if ((cam_check_status(cfg->base, cam_status_end_of_frame) == true) &&
-			(cfg->base->INT_EN & cam_irq_end_of_frame)) {
-			cam_clear_status(cfg->base, cam_status_end_of_frame);
-			cam_stop(cfg->base);
-			k_sem_give(&data->cam_eof_sem);
-	}
-#endif
+	k_spinlock_key_t key;
+	bool delivered = false;
+	bool done[2] = {false, false};
 
-	if ((cam_check_status(cfg->base, cam_status_start_of_frame) == true) &&
-			(cfg->base->INT_EN & cam_irq_start_of_frame)) {
-			cam_clear_status(cfg->base, cam_status_start_of_frame);
-			if (data->cam_buffer == NULL) {
-				while ((vbuf = k_fifo_get(&data->fifo_in, K_NO_WAIT))) {
-					if ((((uint32_t)vbuf->buffer) != cfg->base->DMASA_FB1) && (data->cam_dmafb_index == 0)) {
-							cam_update_buffer(cfg->base, (uint32_t)vbuf->buffer);
-							k_fifo_put(&data->fifo_in, vbuf);
-							break;
-					} else if ((((uint32_t)vbuf->buffer) != cfg->base->DMASA_FB2) && (data->cam_dmafb_index == 1)) {
-							cam_update_buffer2(cfg->base, (uint32_t)vbuf->buffer);
-							k_fifo_put(&data->fifo_in, vbuf);
-							break;
-					}
-					k_fifo_put(&data->fifo_in, vbuf);
-					fifo_index++;
-					if (fifo_index == 1) {
-						vbuf_first = vbuf;
-					} else {
-						if (vbuf_first == vbuf) {
-							break;
-						}
-					}
-				}
-			}
-	}
-
+	key = k_spin_lock(&data->lock);
 	if ((cam_check_status(cfg->base, cam_status_fb1_dma_transfer_done) == true) &&
 			(cfg->base->INT_EN & cam_irq_fb1_dma_transfer_done)) {
 			cam_clear_status(cfg->base, cam_status_fb1_dma_transfer_done);
-			buffer_addr = cfg->base->DMASA_FB1;
-			if ((uint32_t)data->cam_buffer->buffer == buffer_addr) {
-				if (data->cam_buffer != NULL) {
-					video_buffer_release(data->cam_buffer);
-					data->cam_buffer = NULL;
-				}
-				return;
-			}
-			buffer_addr = cfg->base->DMASA_FB1;
-			data->cam_dmafb_index = 0;
-			goto done;
+			done[0] = true;
 	}
 	if ((cam_check_status(cfg->base, cam_status_fb2_dma_transfer_done) == true) &&
 			(cfg->base->INT_EN & cam_irq_fb2_dma_transfer_done)) {
 			cam_clear_status(cfg->base, cam_status_fb2_dma_transfer_done);
-			buffer_addr = cfg->base->DMASA_FB2;
-			if ((uint32_t)data->cam_buffer->buffer == buffer_addr) {
-				if (data->cam_buffer != NULL) {
-					video_buffer_release(data->cam_buffer);
-					data->cam_buffer = NULL;
-				}
-				return;
-			}
-			buffer_addr = cfg->base->DMASA_FB2;
-			data->cam_dmafb_index = 1;
-			goto done;
+			done[1] = true;
 	}
 
-done:
-	vbuf_first = NULL;
-	/* Get matching vbuf by addr */
-	while ((vbuf = k_fifo_get(&data->fifo_in, K_NO_WAIT))) {
-			if ((uint32_t)vbuf->buffer == buffer_addr) {
-				break;
-		}
-		/* should never happen on ordered stream, except on capture
-			* start/restart, requeue the frame and continue looking for
-			* the right buffer.
-		*/
-		k_fifo_put(&data->fifo_in, vbuf);
+	for (int fb = 0; fb < 2; fb++) {
+		struct video_buffer *vbuf;
 
-		/* prevent infinite loop */
-		if (vbuf_first == NULL) {
-			vbuf_first = vbuf;
-		} else if (vbuf_first == vbuf) {
-			vbuf = NULL;
-			break;
+		if (!done[fb]) {
+			continue;
 		}
-	}
-	if (vbuf == NULL) {
-		result = VIDEO_BUF_ERROR;
-	} else {
+		vbuf = data->fb_vbuf[fb];
+		data->fb_vbuf[fb] = NULL;
+
+		if (vbuf == NULL || vbuf == data->spare) {
+			/* Spare frame: discard, keep a valid target armed */
+			hpmicro_cam_arm_fb(dev, fb);
+			continue;
+		}
+
 		vbuf->timestamp = k_uptime_get_32();
-#if 1
-		if (l1c_dc_is_enabled()) {
-				uint32_t aligned_start = HPM_L1C_CACHELINE_ALIGN_DOWN((uint32_t)vbuf->buffer);
-				uint32_t aligned_end = HPM_L1C_CACHELINE_ALIGN_UP((uint32_t)vbuf->buffer + vbuf->bytesused);
-				uint32_t aligned_size = aligned_end - aligned_start;
-				l1c_dc_invalidate(aligned_start, aligned_size);
-		}
-#endif
 		k_fifo_put(&data->fifo_out, vbuf);
-	}
+		atomic_dec(&data->pending_bufs);
+		delivered = true;
 
-	/* Trigger Event */
-	if (IS_ENABLED(CONFIG_POLL) && data->signal) {
-		k_poll_signal_raise(data->signal, VIDEO_BUF_ERROR);
+		/* Re-arm with the next pending buffer, or fall back to the spare */
+		hpmicro_cam_arm_fb(dev, fb);
+	}
+	k_spin_unlock(&data->lock, key);
+
+	if (delivered && IS_ENABLED(CONFIG_POLL) && data->signal) {
+		k_poll_signal_raise(data->signal, VIDEO_BUF_DONE);
 	}
 }
 
 static inline uint32_t hpmicro_get_video_pixel_format(uint32_t pixelformat)
 {
 	switch (pixelformat) {
-	case VIDEO_PIX_FMT_BGGR8:
-	case VIDEO_PIX_FMT_GBRG8:
-	case VIDEO_PIX_FMT_GRBG8:
-	case VIDEO_PIX_FMT_RGGB8:
+	case VIDEO_PIX_FMT_SBGGR8:
+	case VIDEO_PIX_FMT_SGBRG8:
+	case VIDEO_PIX_FMT_SGRBG8:
+	case VIDEO_PIX_FMT_SRGGB8:
 		return CAM_COLOR_FORMAT_RAW8;
 	case VIDEO_PIX_FMT_RGB565:
 		return CAM_COLOR_FORMAT_RGB565;
@@ -201,15 +177,17 @@ static inline uint32_t hpmicro_get_video_pixel_format(uint32_t pixelformat)
 	}
 }
 
-static int hpmicro_cam_set_fmt(const struct device *dev,
-				  enum video_endpoint_id ep,
-				  struct video_format *fmt)
+static int hpmicro_cam_set_fmt(const struct device *dev, struct video_format *fmt)
 {
 	const struct hpmicro_cam_config *config = dev->config;
 	struct hpmicro_cam_data *data = dev->data;
+	struct video_buffer *old_spare = data->spare;
+	struct video_buffer *new_spare = old_spare;
+	size_t frame_size;
+	int ret;
 	uint32_t bpp = hpmicro_get_video_pixel_format(fmt->pixelformat);
 
-	if (!bpp || ep != VIDEO_EP_OUT || (data->camera_interface == camera_interface_none)) {
+	if (!bpp || (data->camera_interface == camera_interface_none)) {
 		return -EINVAL;
 	}
 	cam_get_default_config(config->base, &data->cam_config, display_pixel_format_rgb565);
@@ -227,204 +205,271 @@ static int hpmicro_cam_set_fmt(const struct device *dev,
 		data->cam_config.sensor_bitwidth = CAM_SENSOR_BITWIDTH_24BITS; /* For MIPI-CSI2 */
 		data->pitch = 4 * data->cam_config.width;
 		fmt->pitch = data->pitch;
+		fmt->size = fmt->height * fmt->pitch;
 	} else {
 		data->pitch = fmt->pitch;
+		fmt->size = fmt->height * fmt->pitch;
 	}
 	data->pixelformat = fmt->pixelformat;
-	if (!data->cam_buffer) {
-		data->cam_buffer = video_buffer_alloc(fmt->pitch * fmt->height);
+	frame_size = (size_t)data->pitch * data->cam_config.height;
+	/*
+	 * Keep a driver-owned spare buffer as a permanent, valid DMA target so
+	 * the CAM never writes to a stale/consumed address, and use it as the
+	 * initial address for both frame buffers.
+	 */
+	if (!new_spare || new_spare->size < frame_size) {
+		new_spare = video_buffer_alloc(frame_size, K_NO_WAIT);
+		if (!new_spare) {
+			LOG_ERR("Failed to allocate camera spare buffer (%zu bytes)", frame_size);
+			return -ENOMEM;
+		}
 	}
-	data->cam_config.buffer1 = (uint32_t)data->cam_buffer->buffer;
+	data->cam_config.buffer1 = (uint32_t)new_spare->buffer;
+	data->cam_config.buffer2 = (uint32_t)new_spare->buffer;
 
 #ifdef CONFIG_MIPI_CSI_HPMICRO
-	const struct hpmicro_mipi_csi_driver_api *mipi_csi_api =
-		(const struct hpmicro_mipi_csi_driver_api *)config->mipi_csi_phy->api;
-	if ((data->camera_interface == camera_interface_mipi_csi) && (config->mipi_csi_phy)
-				&& (mipi_csi_api->set_pixel_format(config->mipi_csi_phy, fmt->pixelformat) < 0)) {
-		return -EIO;
+	if ((data->camera_interface == camera_interface_mipi_csi) && (config->mipi_csi_phy)) {
+		const struct hpmicro_mipi_csi_driver_api *mipi_csi_api =
+			(const struct hpmicro_mipi_csi_driver_api *)config->mipi_csi_phy->api;
+		if (mipi_csi_api->set_pixel_format(config->mipi_csi_phy, fmt->pixelformat) < 0) {
+			ret = -EIO;
+			goto fail_spare;
+		}
 	}
 #endif
 
 	if (cam_init(config->base, &data->cam_config) != status_success) {
-		return -EIO;
+		ret = -EIO;
+		goto fail_spare;
+	}
+
+	data->spare = new_spare;
+	data->fb_vbuf[0] = new_spare;
+	data->fb_vbuf[1] = new_spare;
+	if (new_spare != old_spare && old_spare != NULL) {
+		if (video_buffer_release(old_spare) < 0) {
+			LOG_WRN("Failed to release previous camera spare buffer");
+		}
 	}
 
 	cam_enable_irq(config->base, cam_irq_fb1_dma_transfer_done | cam_irq_fb2_dma_transfer_done);
-#ifndef HPMICRO_CAM_ENABLE_EOF
-	cam_enable_irq(config->base, cam_irq_start_of_frame);
-#endif
 
 	return 0;
+
+fail_spare:
+	if (new_spare != old_spare) {
+		(void)video_buffer_release(new_spare);
+	}
+	data->cam_config.buffer1 = old_spare ? (uint32_t)old_spare->buffer : 0;
+	data->cam_config.buffer2 = data->cam_config.buffer1;
+	return ret;
 }
 
-static int hpmicro_cam_get_fmt(const struct device *dev,
-				  enum video_endpoint_id ep,
-				  struct video_format *fmt)
+static int hpmicro_cam_get_fmt(const struct device *dev, struct video_format *fmt)
 {
 	struct hpmicro_cam_data *data = dev->data;
-	if (fmt == NULL || ep != VIDEO_EP_OUT) {
+
+	if (fmt == NULL) {
 		return -EINVAL;
 	}
 	if (data->camera_interface == camera_interface_mipi_csi) {
 		/* mipi csi only support ARGB8888*/
-		fmt->pixelformat = VIDEO_PIX_FMT_XRGB32;
+		fmt->pixelformat = VIDEO_PIX_FMT_BGRX32;
 	} else {
 		fmt->pixelformat = data->pixelformat;
 	}
 	fmt->height = data->cam_config.height;
 	fmt->width = data->cam_config.width;
 	fmt->pitch = data->pitch;
+	fmt->size = fmt->height * fmt->pitch;
 
 	return 0;
 }
 
-static int hpmicro_cam_stream_start(const struct device *dev)
+static int hpmicro_cam_set_stream(const struct device *dev, bool enable,
+				  enum video_buf_type type)
 {
 	const struct hpmicro_cam_config *config = dev->config;
-	cam_start(config->base);
-	return 0;
-}
-
-static int hpmicro_cam_stream_stop(const struct device *dev)
-{
-	const struct hpmicro_cam_config *config = dev->config;
-	cam_stop_safely(config->base);
-	return 0;
-}
-
-static int hpmicro_cam_flush(const struct device *dev,
-				enum video_endpoint_id ep,
-				bool cancel)
-{
 	struct hpmicro_cam_data *data = dev->data;
-	struct video_buf *vbuf;
+	k_spinlock_key_t key;
+
+	if (enable) {
+		key = k_spin_lock(&data->lock);
+		hpmicro_cam_arm_fb(dev, 0);
+		hpmicro_cam_arm_fb(dev, 1);
+		cam_start(config->base);
+		k_spin_unlock(&data->lock, key);
+	} else {
+		cam_stop_safely(config->base);
+	}
+
+	return 0;
+}
+
+static int hpmicro_cam_flush(const struct device *dev, bool cancel)
+{
+	const struct hpmicro_cam_config *config = dev->config;
+	struct hpmicro_cam_data *data = dev->data;
+	struct video_buffer *active_vbuf[2] = {NULL, NULL};
+	struct video_buffer *vbuf;
+	k_spinlock_key_t key;
+	uint32_t enabled_irqs;
+	bool aborted = false;
+
+	k_mutex_lock(&data->mutex, K_FOREVER);
 
 	if (!cancel) {
-		/* wait for all buffer to be processed */
-		do {
+		/* Wait until queued and DMA-owned buffers reach fifo_out. */
+		while (atomic_get(&data->pending_bufs) != 0) {
 			k_sleep(K_MSEC(1));
-		} while (!k_fifo_is_empty(&data->fifo_in));
+		}
 	} else {
-		while ((vbuf = k_fifo_get(&data->fifo_in, K_NO_WAIT))) {
-			k_fifo_put(&data->fifo_out, vbuf);
-			if (IS_ENABLED(CONFIG_POLL) && data->signal) {
-				k_poll_signal_raise(data->signal,
-						    VIDEO_BUF_ABORTED);
+		key = k_spin_lock(&data->lock);
+		enabled_irqs = config->base->INT_EN &
+			       (cam_irq_fb1_dma_transfer_done | cam_irq_fb2_dma_transfer_done);
+		cam_disable_irq(config->base,
+				cam_irq_fb1_dma_transfer_done | cam_irq_fb2_dma_transfer_done);
+		cam_stop_safely(config->base);
+		cam_clear_status(config->base,
+				 cam_status_fb1_dma_transfer_done | cam_status_fb2_dma_transfer_done);
+
+		for (int fb = 0; fb < 2; fb++) {
+			if (data->fb_vbuf[fb] != NULL && data->fb_vbuf[fb] != data->spare) {
+				active_vbuf[fb] = data->fb_vbuf[fb];
 			}
+			data->fb_vbuf[fb] = data->spare;
+		}
+		if (data->spare != NULL) {
+			cam_update_buffer(config->base, (uint32_t)data->spare->buffer);
+			cam_update_buffer2(config->base, (uint32_t)data->spare->buffer);
+		}
+		if (enabled_irqs != 0U) {
+			cam_enable_irq(config->base, enabled_irqs);
+		}
+		k_spin_unlock(&data->lock, key);
+
+		for (int fb = 0; fb < 2; fb++) {
+			vbuf = active_vbuf[fb];
+			if (vbuf == NULL) {
+				continue;
+			}
+			vbuf->bytesused = 0;
+			vbuf->timestamp = 0;
+			k_fifo_put(&data->fifo_out, vbuf);
+			atomic_dec(&data->pending_bufs);
+			aborted = true;
+		}
+
+		while ((vbuf = k_fifo_get(&data->fifo_in, K_NO_WAIT))) {
+			vbuf->bytesused = 0;
+			vbuf->timestamp = 0;
+			k_fifo_put(&data->fifo_out, vbuf);
+			atomic_dec(&data->pending_bufs);
+			aborted = true;
+		}
+
+		if (aborted && IS_ENABLED(CONFIG_POLL) && data->signal) {
+			k_poll_signal_raise(data->signal, VIDEO_BUF_ABORTED);
 		}
 	}
+	k_mutex_unlock(&data->mutex);
 
 	return 0;
 }
 
-static int hpmicro_cam_enqueue(const struct device *dev,
-				  enum video_endpoint_id ep,
-				  struct video_buffer *vbuf)
+static int hpmicro_cam_enqueue(const struct device *dev, struct video_buffer *vbuf)
 {
 	struct hpmicro_cam_data *data = dev->data;
-	if (ep != VIDEO_EP_OUT) {
-		return -EINVAL;
-	}
-	k_sleep(K_MSEC(1));
 
-#ifdef HPMICRO_CAM_ENABLE_EOF
-	const struct hpmicro_cam_config *config = dev->config;
-	if ((uint32_t)data->cam_buffer->buffer == data->cam_config.buffer1) {
-		video_buffer_release(data->cam_buffer);
-		data->cam_buffer = NULL;
-	}
-	if ((config->base->CR18 & CAM_CR18_CAM_ENABLE_MASK) == CAM_CR18_CAM_ENABLE_MASK) {
-		cam_clear_status(config->base, cam_status_end_of_frame);
-		cam_enable_irq(config->base, cam_irq_end_of_frame);
-		k_sem_take(&data->cam_eof_sem, K_FOREVER);
-		cam_disable_irq(config->base, cam_irq_end_of_frame);
-		cam_update_buffer(config->base, (uint32_t)vbuf->buffer);
-		cam_update_buffer2(config->base, (uint32_t)vbuf->buffer);
-	}
-#endif
+	k_mutex_lock(&data->mutex, K_FOREVER);
 	vbuf->bytesused = data->cam_config.height * data->pitch;
+	vbuf->line_offset = 0;
 
-#ifdef HPMICRO_CAM_ENABLE_EOF
-	cam_start(config->base);
-#endif
+	atomic_inc(&data->pending_bufs);
 	k_fifo_put(&data->fifo_in, vbuf);
+	k_mutex_unlock(&data->mutex);
 
 	return 0;
 }
 
-static int hpmicro_cam_dequeue(const struct device *dev,
-				  enum video_endpoint_id ep,
-				  struct video_buffer **vbuf,
-				  k_timeout_t timeout)
+static int hpmicro_cam_dequeue(const struct device *dev, struct video_buffer **vbuf,
+			       k_timeout_t timeout)
 {
 	struct hpmicro_cam_data *data = dev->data;
-	if (ep != VIDEO_EP_OUT) {
-		return -EINVAL;
-	}
 
 	*vbuf = k_fifo_get(&data->fifo_out, timeout);
 	if (*vbuf == NULL) {
 		return -EAGAIN;
 	}
+	if (l1c_dc_is_enabled() && ((*vbuf)->bytesused != 0U)) {
+		uint32_t aligned_start = HPM_L1C_CACHELINE_ALIGN_DOWN((uint32_t)(*vbuf)->buffer);
+		uint32_t aligned_end = HPM_L1C_CACHELINE_ALIGN_UP((uint32_t)(*vbuf)->buffer +
+								  (*vbuf)->bytesused);
+
+		l1c_dc_invalidate(aligned_start, aligned_end - aligned_start);
+	}
 
 	return 0;
 }
 
-static inline int hpmicro_cam_set_ctrl(const struct device *dev,
-					  unsigned int cid,
-					  void *value)
+static const struct video_format_cap cam_fmts[] = {
+	{
+		.pixelformat = VIDEO_PIX_FMT_RGB565,
+		.width_min = 32,
+		.width_max = 1920,
+		.height_min = 32,
+		.height_max = 1080,
+		.width_step = 1,
+		.height_step = 1,
+	},
+	{
+		.pixelformat = VIDEO_PIX_FMT_YUYV,
+		.width_min = 32,
+		.width_max = 1920,
+		.height_min = 32,
+		.height_max = 1080,
+		.width_step = 1,
+		.height_step = 1,
+	},
+	{
+		.pixelformat = VIDEO_PIX_FMT_XRGB32,
+		.width_min = 32,
+		.width_max = 1920,
+		.height_min = 32,
+		.height_max = 1080,
+		.width_step = 1,
+		.height_step = 1,
+	},
+	{0},
+};
+
+static int hpmicro_cam_get_caps(const struct device *dev, struct video_caps *caps)
 {
-	(void)dev;
-	(void)cid;
-	(void)value;
-
-	return 0;
-}
-
-static inline int hpmicro_cam_get_ctrl(const struct device *dev,
-					  unsigned int cid,
-					  void *value)
-{
-	(void)dev;
-	(void)cid;
-	(void)value;
-
-	return 0;
-}
-
-static int hpmicro_cam_get_caps(const struct device *dev,
-				   enum video_endpoint_id ep,
-				   struct video_caps *caps)
-{
-	int err = 0;
-
-	if (ep != VIDEO_EP_OUT) {
+	if (caps == NULL) {
 		return -EINVAL;
 	}
 
+	caps->format_caps = cam_fmts;
 	caps->min_vbuf_count = 2;
+	caps->buf_align = 0;
 
-	/* no sensor dev */
-	return err;
+	return 0;
 }
 
 #ifdef CONFIG_POLL
-static int hpmicro_cam_set_signal(const struct device *dev,
-				     enum video_endpoint_id ep,
-				     struct k_poll_signal *signal)
+static int hpmicro_cam_set_signal(const struct device *dev, struct k_poll_signal *sig)
 {
 	struct hpmicro_cam_data *data = dev->data;
 
-	if (data->signal && signal != NULL) {
+	if (data->signal && sig != NULL) {
 		return -EALREADY;
 	}
 
-	data->signal = signal;
+	data->signal = sig;
 
 	return 0;
 }
 #endif
-
 
 static int hpmicro_cam_init(const struct device *dev)
 {
@@ -438,7 +483,7 @@ static int hpmicro_cam_init(const struct device *dev)
 
 	k_fifo_init(&data->fifo_in);
 	k_fifo_init(&data->fifo_out);
-	data->cam_buffer = NULL;
+	atomic_set(&data->pending_bufs, 0);
 	err = pinctrl_apply_state(cfg->pincfg, PINCTRL_STATE_DEFAULT);
 	if (err) {
 		return err;
@@ -477,32 +522,32 @@ static int hpmicro_cam_init(const struct device *dev)
 		LOG_ERR("interface node is not set in dts");
 	}
 
-	clock_set_source_divider(cfg->clock_name, cfg->clock_src, cfg->clock_div);
-	clock_add_to_group(cfg->clock_name, 0);
+	const struct hpm_clock_dt_spec clock = {
+		.name = (clock_name_t)cfg->clock_name,
+		.src = (clk_src_t)cfg->clock_src,
+		.div = cfg->clock_div,
+	};
+
+	clock_configure_enable(&clock);
 
 	LOG_INF("hpmicro cam driver interface: %s\n", cfg->interface_name);
 
 
-	/* Initialize mutex and semaphore */
+	/* Initialize mutex */
 	k_mutex_init(&data->mutex);
-	k_sem_init(&data->cam_eof_sem, 0, 1);
 
 	/* Configure IRQ */
 	cfg->irq_config_func(dev);
 	return 0;
 }
 
-
-static const struct video_driver_api video_cam_driver_api = {
+static DEVICE_API(video, video_cam_driver_api) = {
 	.set_format = hpmicro_cam_set_fmt,
 	.get_format = hpmicro_cam_get_fmt,
-	.stream_start = hpmicro_cam_stream_start,
-	.stream_stop = hpmicro_cam_stream_stop,
+	.set_stream = hpmicro_cam_set_stream,
 	.flush = hpmicro_cam_flush,
 	.enqueue = hpmicro_cam_enqueue,
 	.dequeue = hpmicro_cam_dequeue,
-	.set_ctrl = hpmicro_cam_set_ctrl,
-	.get_ctrl = hpmicro_cam_get_ctrl,
 	.get_caps = hpmicro_cam_get_caps,
 #ifdef CONFIG_POLL
 	.set_signal = hpmicro_cam_set_signal,

@@ -1,4 +1,4 @@
-# Copyright (c) 2024 HPMicro
+# Copyright (c) 2024-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 set(HPM_ZEPHYR_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "hpmicro zephyr root directory")
@@ -32,6 +32,22 @@ execute_process(
 
 zephyr_include_directories(${generated_version_path})
 zephyr_include_directories(include)
+
+# Supply declarations missing from the libc headers bundled with ZCC 4.1.5.
+if(ZEPHYR_TOOLCHAIN_VARIANT STREQUAL "zcc")
+  zephyr_compile_options(
+    "SHELL:$<$<COMPILE_LANGUAGE:C,CXX>:$<TARGET_PROPERTY:compiler,include_file> ${HPM_ZEPHYR_DIR}/cmake/compiler/zcc/zcc_newlib_compat.h>"
+  )
+
+  if(CONFIG_EXTERNAL_LIBC)
+    # Supply Zephyr system-call hooks missing from the ZCC Newlib.
+    zephyr_sources(cmake/compiler/zcc/zcc_newlib_hooks.c)
+  elseif(CONFIG_MINIMAL_LIBC)
+    # ZCC provides the math routines absent from Zephyr's minimal libc in
+    # libc.a; its libm.a is an empty compatibility archive.
+    zephyr_link_libraries(c)
+  endif()
+endif()
 
 add_subdirectory(modules)
 add_subdirectory(drivers)

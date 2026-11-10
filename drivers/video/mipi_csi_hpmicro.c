@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 HPMicro
+ * Copyright (c) 2024, 2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -20,6 +20,7 @@
 #include <hpm_mipi_csi_phy_drv.h>
 #include <hpm_pixelmux_drv.h>
 #include <mipi_csi_hpmicro.h>
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 struct hpmicro_mipi_csi_config {
 	MIPI_CSI_Type *base;
@@ -47,9 +48,13 @@ static int hpmicro_mipi_csi_init(const struct device *dev, uint8_t cam_index)
 {
 	const struct hpmicro_mipi_csi_config *cfg = dev->config;
 	struct hpmicro_mipi_csi_data *data = dev->data;
+	const struct hpm_clock_dt_spec clock = {
+		.name = (clock_name_t)cfg->clock_name,
+		.src = (clk_src_t)cfg->clock_src,
+		.div = cfg->clock_div,
+	};
 
-	clock_set_source_divider(cfg->clock_name, cfg->clock_src, cfg->clock_div);
-	clock_add_to_group(cfg->clock_name, 0);
+	clock_configure_enable(&clock);
 	uint32_t freq = clock_get_frequency(cfg->clock_name);
 	printk("mipi csi clk freq: %u Hz\n", freq);
 	if (cam_index == CAM0_DEVICE) {
@@ -157,7 +162,7 @@ static void hpmicro_mipi_csi_config_##idx(const struct device *dev);	      \
 									      \
 static const struct hpmicro_mipi_csi_config mipi_csi_cfg_##idx = {		      \
 	.base =	 (MIPI_CSI_Type *) DT_INST_REG_ADDR(idx),		      \
-	.phy_base = (MIPI_CSI_PHY_Type *)DT_INST_PROP_BY_IDX(idx, mipi_csi_phy_reg, 0), \
+	.phy_base = (MIPI_CSI_PHY_Type *)DT_REG_ADDR(DT_INST_PHANDLE(idx, mipi_csi_phy)), \
 	.irq_config_func = hpmicro_mipi_csi_config_##idx,		      \
 	.clock_name = DT_INST_CLOCKS_CELL(idx, name),	\
 	.clock_src = DT_INST_CLOCKS_CELL(idx, src),	\

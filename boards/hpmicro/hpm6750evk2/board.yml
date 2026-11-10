@@ -1,5 +1,6 @@
 board:
   name: hpm6750evk2
+  full_name: hpm6750evk2
   vendor: hpmicro
   socs:
     - name: hpm6750

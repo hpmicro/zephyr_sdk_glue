@@ -1,0 +1,21 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: HPMicro Drivers Disk Disk Access test
+tests:
+  hpmicro.test.drivers.disk.disk_access:
+    harness: ztest
+    tags:
+    - hpmicro_verified
+    - sdhc
+    depends_on:
+    - sdhc
+    filter: CONFIG_SDHC
+    required_snippets:
+    - sdhc
+    platform_allow: &platforms
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    integration_platforms: *platforms

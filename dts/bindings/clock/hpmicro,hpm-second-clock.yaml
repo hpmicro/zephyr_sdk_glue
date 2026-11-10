@@ -1,8 +1,8 @@
-# Copyright (c) 2024 HPMicro
+# Copyright (c) 2024-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 description: |
-  HPMicro second clock description.
+  HPMicro derived clock. The parent clock identifies the upstream clock node.
 
 compatible: "hpmicro,hpm-second-clock"
 
@@ -13,11 +13,11 @@ properties:
     type: int
     required: true
     description: |
-      second clock node name
+      HPM SDK clock_name_t value for this derived clock node.
+
+  clocks:
+    required: true
+    description: Parent PLL output and functional clock divider.
 
   "#clock-cells":
-    const: 2
-
-clock-cells:
-  - end-node
-  - group
+    const: 0

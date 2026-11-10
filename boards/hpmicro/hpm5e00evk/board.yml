@@ -1,0 +1,9 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+board:
+  name: hpm5e00evk
+  full_name: hpm5e00evk
+  vendor: hpmicro
+  socs:
+    - name: hpm5e31

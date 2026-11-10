@@ -1,14 +1,14 @@
-# Copyright 2022-2025 HPMicro
+# Copyright 2022-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 identifier: hpm6750evk2
 name: HPMicro HPM6750EVK2
 type: mcu
-arch: riscv32
+arch: riscv
 toolchain:
   - zephyr
-  - cross-compile
-ram: 1024
+  - zcc
+ram: 32768
 flash: 16384
 supported:
   - gpio
@@ -17,14 +17,26 @@ supported:
   - spi
   - dma
   - pwm
-  - adc12
-  - adc16
+  - adc
+  - acmp
   - can
-  - cam
-  - sdxc
+  - video
+  - display
+  - sdhc
   - usbd
-  - cherryusb
-  - enet
+  - usbh
+  - ethernet
+  - femc
+  - i2s
+  - pdm
+  - dao
+  - vad
+  - qei
+  - hall
+  - tamper
+  - counter
+  - watchdog
+  - entropy
 testing:
   ignore_tags:
     - bluetooth

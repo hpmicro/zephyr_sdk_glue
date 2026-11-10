@@ -1,4 +1,4 @@
-# Copyright (c) 2025 HPMicro
+# Copyright (c) 2025-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 name: mass
@@ -6,16 +6,33 @@ append:
   EXTRA_CONF_FILE: mass.conf
 
 boards:
+  hpm6p00evk/hpm6p81:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm6p00evk.overlay
+  hpm5e00evk/hpm5e31:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm5e00evk.overlay
+  hpm5301evklite/hpm5301:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm5301evklite.overlay
+  hpm5100evk/hpm5151:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm5100evk.overlay
+  hpm5300evk/hpm5361:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm5300evk.overlay
   hpm6750evk2/hpm6750:
     append:
       EXTRA_DTC_OVERLAY_FILE: boards/hpm6750evk2.overlay
   hpm6800evk/hpm6880:
     append:
       EXTRA_DTC_OVERLAY_FILE: boards/hpm6800evk.overlay
+  hpm6300evk/hpm6360:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: boards/hpm6300evk.overlay
   hpm6200evk/hpm6280:
     append:
       EXTRA_DTC_OVERLAY_FILE: boards/hpm6200evk.overlay
   hpm6e00evk/hpm6e80:
     append:
       EXTRA_DTC_OVERLAY_FILE: boards/hpm6e00evk.overlay
-

@@ -1,0 +1,10 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+DT_COMPAT_HPM_UART := hpmicro,hpm-hwinfo
+
+config HWINFO_HPMICRO
+    bool "HPMICRO PPOR driver"
+    default y
+    depends on DT_HAS_HPMICRO_HPM_HWINFO_ENABLED
+    help
+      This option enables the PPOR driver for HPM SoC family.

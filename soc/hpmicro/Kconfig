@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 config SOC_FAMILY_HPM
 	select ZEPHYR_HPM_SDK_MODULE	
+	select LINKER_USE_PINNED_SECTION
 
 if SOC_FAMILY_HPM
 
@@ -43,6 +44,9 @@ config APP_LOAD_ADDR_OFFSET
 	default 0x3000
 	help
 	  HPMicro app image start offset
+
+config ROM_START_OFFSET
+	default APP_LOAD_ADDR_OFFSET if HPM_BOOT_HEADER
 
 if BOOTLOADER_MCUBOOT
 

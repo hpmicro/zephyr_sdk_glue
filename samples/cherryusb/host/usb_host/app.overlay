@@ -1,0 +1,9 @@
+/*
+ * Copyright (c) 2026 HPMicro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+cherryusb_usb0: &usb0 {
+	compatible = "hpmicro,hpm-cherryusb";
+	status = "okay";
+};

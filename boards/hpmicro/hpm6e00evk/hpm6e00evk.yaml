@@ -1,14 +1,14 @@
-# Copyright 2025 HPMicro
+# Copyright 2025-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 identifier: hpm6e00evk
 name: HPMicro HPM6E00EVK
 type: mcu
-arch: riscv32
+arch: riscv
 toolchain:
   - zephyr
-  - cross-compile
-ram: 1024
+  - zcc
+ram: 32768
 flash: 16384
 supported:
   - gpio
@@ -17,11 +17,29 @@ supported:
   - spi
   - dma
   - pwm
-  - adc16
-  - mcan
+  - adc
+  - acmp
+  - can
   - usbd
-  - cherryusb
-  - enet
+  - usbh
+  - ethernet
+  - ethercat
+  - tsn
+  - femc
+  - ppi
+  - i2s
+  - pdm
+  - dao
+  - qei
+  - qeo
+  - sei
+  - rdc
+  - sdm
+  - plb
+  - tamper
+  - counter
+  - watchdog
+  - entropy
 testing:
   ignore_tags:
     - bluetooth

@@ -6,24 +6,17 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import os
-import os.path
-import sys
 import datetime
-from pathlib import Path
 
-HPM_ZSG_BASE = Path(__file__).resolve().parents[3]
 project = 'Zephyr SDK Glue'
 copyright = '2024-%s, HPMicro' % datetime.date.today().year
 author = 'HPMicro Software Team'
-sys.path.insert(0, str(HPM_ZSG_BASE / "docs" / "_ext"))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
     'sphinx_rtd_theme',
-    "external_content",
     'myst_parser',
 ]
 
@@ -37,18 +30,16 @@ html_show_sphinx = False
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
+html_theme_options = {
+    'collapse_navigation': False,
+    'sticky_navigation': True,
+    'navigation_depth': 4,
+}
 html_static_path = ['_static']
 html_css_files = ['custom.css']
+html_js_files = ['sidebar-state.js']
 
 source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown',
 }
-
-external_content_contents = [
-    (HPM_ZSG_BASE, "CHANGELOG.md"),
-    (HPM_ZSG_BASE, "samples/**/*_en.rst",),
-    (HPM_ZSG_BASE, "snippets/**/*_en.rst",),
-    (HPM_ZSG_BASE / "docs/source/en", "[!_]*"),
-    (HPM_ZSG_BASE / "docs/source/en", "_static/**"),
-]

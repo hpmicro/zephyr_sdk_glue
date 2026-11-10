@@ -17,6 +17,7 @@
 #include <soc.h>
 
 #include <hpm_gpio_drv.h>
+#include <hpm_soc.h>
 LOG_MODULE_REGISTER(hpmicro_hpm_gpio, CONFIG_GPIO_LOG_LEVEL);
 struct gpio_hpm_config {
 	struct gpio_driver_config common;
@@ -32,6 +33,7 @@ struct gpio_hpm_data {
 	struct gpio_driver_data common;
 	/* port ISR callback routine address */
 	sys_slist_t callbacks;
+	uint32_t both_edges;
 };
 
 static int gpio_hpm_configure(const struct device *dev,
@@ -67,7 +69,6 @@ static int gpio_hpm_configure(const struct device *dev,
 	 * Start with the GPIO module and set up the pin direction register.
 	 * 0 - pin is input, 1 - pin is output
 	 */
-
 	switch (flags & GPIO_DIR_MASK) {
 	case GPIO_DISCONNECTED:
 	case GPIO_INPUT:
@@ -156,9 +157,11 @@ static int gpio_hpm_pin_interrupt_configure(const struct device *dev,
 						 enum gpio_int_trig trig)
 {
 	const struct gpio_hpm_config *config = dev->config;
+	struct gpio_hpm_data *data = dev->data;
 	GPIO_Type *gpio_base = config->gpio_base;
 	uint32_t port_base = config->port_base;
 	gpio_interrupt_trigger_t trigger = 0;
+	bool both_edges = false;
 
 	if (mode == GPIO_INT_MODE_LEVEL) {
 		switch (trig) {
@@ -182,7 +185,15 @@ static int gpio_hpm_pin_interrupt_configure(const struct device *dev,
 			trigger = gpio_interrupt_trigger_edge_rising;
 			break;
 		case GPIO_INT_TRIG_BOTH:
-			return -ENOTSUP;
+#if defined(GPIO_SOC_HAS_EDGE_BOTH_INTERRUPT) && (GPIO_SOC_HAS_EDGE_BOTH_INTERRUPT == 1)
+			trigger = gpio_interrupt_trigger_edge_both;
+#else
+			both_edges = true;
+			trigger = gpio_read_pin(gpio_base, port_base, pin) ?
+				gpio_interrupt_trigger_edge_falling :
+				gpio_interrupt_trigger_edge_rising;
+#endif
+			break;
 		default:
 			return -ENOTSUP;
 		}
@@ -190,7 +201,13 @@ static int gpio_hpm_pin_interrupt_configure(const struct device *dev,
 
 	if (mode == GPIO_INT_MODE_DISABLED) {
 		gpio_disable_pin_interrupt(gpio_base, port_base, pin);
+		data->both_edges &= ~BIT(pin);
 	} else {
+		if (both_edges) {
+			data->both_edges |= BIT(pin);
+		} else {
+			data->both_edges &= ~BIT(pin);
+		}
 		gpio_config_pin_interrupt(gpio_base, port_base,
 						   pin, trigger);
 		gpio_enable_pin_interrupt(gpio_base, port_base,
@@ -215,10 +232,23 @@ __attribute__((section(".isr")))static void gpio_hpm_port_isr(const struct devic
 	GPIO_Type *gpio_base = config->gpio_base;
 	uint32_t port_base = config->port_base;
 	uint32_t int_status;
+	uint32_t both_edges_status;
 	int_status = gpio_base->IF[port_base].VALUE;
 
 	/* Clear the port interrupts */
 	gpio_base->IF[port_base].VALUE = int_status;
+
+	both_edges_status = int_status & data->both_edges;
+	while (both_edges_status != 0) {
+		uint32_t pin = find_lsb_set(both_edges_status) - 1;
+		gpio_interrupt_trigger_t trigger;
+
+		trigger = gpio_read_pin(gpio_base, port_base, pin) ?
+			gpio_interrupt_trigger_edge_falling :
+			gpio_interrupt_trigger_edge_rising;
+		gpio_config_pin_interrupt(gpio_base, port_base, pin, trigger);
+		both_edges_status &= ~BIT(pin);
+	}
 
 	gpio_fire_callbacks(&data->callbacks, dev, int_status);
 }

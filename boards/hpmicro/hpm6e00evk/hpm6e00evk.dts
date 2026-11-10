@@ -1,18 +1,17 @@
 /*
- * Copyright 2025 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright 2025-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 /dts-v1/;
 
-#include <hpmicro/hpm6e80.dtsi>
+#include <hpmicro/HPM6E00/hpm6e80.dtsi>
 #include "hpm6e00evk-pinctrl.dtsi"
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
 / {
 	model = "HPMicro HPM6E00EVK";
 	compatible = "HPMicro,hpm6e00evk";
-
 	aliases {
 		led0 = &led_r;
 		led1 = &led_g;
@@ -43,10 +42,12 @@
 			gpios = <&gpioe 14 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDR";
 		};
+
 		led_g: led_g {
 			gpios = <&gpioe 15 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDG";
 		};
+
 		led_b: led_b {
 			gpios = <&gpioe 4 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "LEDB";
@@ -59,6 +60,7 @@
 			gpios = <&gpiob 24 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			zephyr,code = <INPUT_KEY_0>;
 		};
+
 		wbutn: wbutn {
 			gpios = <&gpiob 25 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			zephyr,code = <INPUT_KEY_1>;
@@ -95,8 +97,6 @@
 };
 
 &gpioe {
-	pinctrl-0 = <&pinmux_gpioe>;
-	pinctrl-names = "default";
 	status = "okay";
 };
 
@@ -118,11 +118,17 @@
 	status = "okay";
 };
 
+&uart1 {
+	status = "disabled";
+	current-speed = <115200>;
+	pinctrl-0 = <&pinmux_uart1>;
+	pinctrl-names = "default";
+};
+
 &i2c1 {
 	status = "disabled";
-	pinctrl-0 = <&pinmux_i2c1>;
+	pinctrl-0 = <&pinmux_esc_eeprom_as_i2c>;
 	pinctrl-names = "default";
-
 	eeprom: eeprom@50 {
 		compatible = "atmel,at24";
 		status = "disabled";
@@ -133,15 +139,17 @@
 		pagesize = <64>;
 	};
 };
+
 &spi7 {
 	status = "disabled";
 	pinctrl-0 = <&pinmux_spi7>;
 	pinctrl-names = "default";
 	cs-gpios = <&gpiof 27 GPIO_ACTIVE_LOW>;
-	/* HDMA channels 0 and 1, muxed to SPI2 RX and TX */
-	dmas = <&hdma 0 4>, <&hdma 1 5>;
+	/* HDMA channels 0 and 1, muxed to SPI7 RX and TX */
+	dmas = <&hdma 0 34>, <&hdma 1 35>;
 	dma-names = "rx", "tx";
 };
+
 &hdma {
 	status = "okay";
 };
@@ -159,14 +167,12 @@
 		erase-block-size = <4096>;
 		write-block-size = <1>;
 		nor-cfg-opt-hdr = <0xfcf90001>;
-		nor-cfg-opt-opt0 = <0x05>;
-		nor-cfg-opt-opt1 = <0x1000>;
-
+		nor-cfg-opt-opt0 = <0x07>;
+		nor-cfg-opt-opt1 = <0x00>;
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
-
 			boot_partition: partition@0 {
 				label = "mcuboot";
 				reg = <0x3000 0x40000>;
@@ -203,12 +209,67 @@
 zephyr_udc0: &usb0 {
 	compatible = "hpmicro,hpm-udc";
 	status = "disabled";
+	power-active-high;
+	power-stable-delay-ms = <100>;
 };
 
 &eth0 {
-    pinctrl-0 = <&pinmux_eth_rgmii>;
-    pinctrl-names = "default";
+	pinctrl-0 = <&pinmux_eth_rgmii>;
+	pinctrl-names = "default";
 	phy-addr = <2>; /* rtl8211e */
-	reset-gpios = <&gpioa 14 GPIO_ACTIVE_LOW>;
-    status = "disabled";
+		reset-gpios = <&gpioa 14 GPIO_ACTIVE_LOW>;
+	status = "disabled";
+};
+
+&mcan4 {
+	status = "disabled";
+	pinctrl-0 = <&pinmux_mcan4>;
+	pinctrl-names = "default";
+	can-transceiver {
+		max-bitrate = <5000000>;
+	};
+};
+
+&adc0 {
+	vref-mv = <3300>;
+};
+
+&adc1 {
+	vref-mv = <3300>;
+};
+
+&adc2 {
+	vref-mv = <3300>;
+};
+
+&adc3 {
+	vref-mv = <3300>;
+};
+
+&rng0 {
+	status = "disabled";
+};
+
+&gpt2 {
+	status = "disabled";
+};
+
+&ewdg0 {
+	status = "disabled";
+};
+
+&hwinfo0 {
+	status = "disabled";
+};
+
+&pll0 {
+	status = "okay";
+};
+
+&clk_cpu0 {
+	status = "okay";
+};
+
+&clk_cpu1 {
+	status = "okay";
 };

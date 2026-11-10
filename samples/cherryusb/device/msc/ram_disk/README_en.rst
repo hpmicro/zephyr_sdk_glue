@@ -24,7 +24,7 @@ Build Cmd
 
     .. code-block:: console
 
-        west build -p always -b hpm6750evk2 samples/cherryusb/device/msc/ram_disk/
+        west build -p always -b hpm6750evk2 samples/cherryusb/device/msc/ram_disk
 
 Running the example
 -------------------

@@ -1,4 +1,4 @@
-# Copyright (c) 2025 HPMicro
+# Copyright (c) 2025-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 # Those are flags not to test for CXX compiler.
@@ -216,6 +216,10 @@ set_property(TARGET compiler-cpp PROPERTY no_threadsafe_statics "-fno-threadsafe
 # Required ASM flags when using gcc
 set_property(TARGET asm PROPERTY required "-xassembler-with-cpp")
 
+# Zephyr applies generated configuration headers to assembler sources through
+# the ASM target, so it needs its own implicit-macro include option.
+set_property(TARGET asm PROPERTY imacros "-imacros")
+
 # gcc flag for colourful diagnostic messages
 if (NOT COMPILER STREQUAL "xcc")
 set_compiler_property(PROPERTY diagnostic -fdiagnostics-color=always)
@@ -237,5 +241,14 @@ set_compiler_property(PROPERTY warning_shadow_variables -Wshadow)
 
 set_compiler_property(PROPERTY no_builtin -fno-builtin)
 set_compiler_property(PROPERTY no_builtin_malloc -fno-builtin-malloc)
+
+# Compiler flag for not placing functions in their own sections.
+set_compiler_property(PROPERTY no_function_sections "-fno-function-sections")
+
+# Compiler flag for not placing variables in their own sections.
+set_compiler_property(PROPERTY no_data_sections "-fno-data-sections")
+
 check_set_compiler_property(APPEND PROPERTY warning_base -fomit-frame-pointer)
-check_set_compiler_property(APPEND PROPERTY warning_base -mtune=andes-kavalan)
+
+# Flag used by Zephyr to force-include compiler compatibility headers.
+set_compiler_property(PROPERTY include_file -include)

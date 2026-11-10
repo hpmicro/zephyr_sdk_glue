@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 HPMicro
+ * Copyright (c) 2022-2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -21,9 +21,15 @@
 #include "hpm_common.h"
 #include "hpm_mcan_drv.h"
 #include "hpm_clock_drv.h"
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
-#define HPM_CAN_EXT_FILTER_NUM_MAX (64U)
-#define HPM_CAN_STD_FILTER_NUM_MAX (128U)
+/* Max filter elements are limited by the message RAM layout configured in
+ * hpm_mcan_init() (mcan_get_default_ram_config with the CAN FD preset allocates
+ * 16 standard and 16 extended filter elements). Keep these in sync with that
+ * layout, otherwise mcan_init() fails once the list exceeds the configured area.
+ */
+#define HPM_CAN_EXT_FILTER_NUM_MAX (16U)
+#define HPM_CAN_STD_FILTER_NUM_MAX (16U)
 #define HPM_MCAN_BITRATE_MAX (1000000UL) /* 1Mbps */
 #define HPM_MCAN_FD_BITRATE_MAX (8000000UL) /* 8Mbps */
 
@@ -66,6 +72,11 @@ struct hpm_mcan_data {
     struct can_driver_data common;
     /* MCAN configuration */
     mcan_config_t config;
+    /* Filter IDs returned to the caller are unique across standard and
+     * extended filters (mirrors hpm_canopen_mcan.c). The per-type arrays
+     * are indexed by their own per-type count.
+     */
+    uint32_t next_filter_id;
     uint32_t ext_filter_count;
     uint16_t ext_filters_index[HPM_CAN_EXT_FILTER_NUM_MAX];
     mcan_filter_elem_t ext_filters[HPM_CAN_EXT_FILTER_NUM_MAX];
@@ -73,8 +84,13 @@ struct hpm_mcan_data {
     uint16_t std_filters_index[HPM_CAN_STD_FILTER_NUM_MAX];
     mcan_filter_elem_t std_filters[HPM_CAN_STD_FILTER_NUM_MAX];
 
-    uint32_t filter_rtr;
-    uint32_t filter_rtr_mask;
+    /* Per-type RTR tracking (bit position = per-type index, no collision
+     * between standard and extended filters)
+     */
+    uint32_t filter_rtr_ext;
+    uint32_t filter_rtr_mask_ext;
+    uint32_t filter_rtr_std;
+    uint32_t filter_rtr_mask_std;
 
     /* RTOS misc. */
     struct k_mutex inst_mutex;
@@ -122,7 +138,7 @@ static uint32_t hpm_mcan_get_first_filter_index(const mcan_rx_message_t *buf,
     if (buf->use_ext_id) {
         for (uint32_t i = 0; i < ext_filter_count; i++) {
             const mcan_filter_elem_t *filter = &data->ext_filters[i];
-            if ((buf->ext_id | filter->filter_mask) == (filter->filter_id | filter->filter_mask)) {
+            if ((buf->ext_id & filter->filter_mask) == (filter->filter_id & filter->filter_mask)) {
                 filter_index = i;
                 break;
             }
@@ -130,7 +146,7 @@ static uint32_t hpm_mcan_get_first_filter_index(const mcan_rx_message_t *buf,
     } else {
         for (uint32_t i = 0; i < std_filter_count; i++) {
             const mcan_filter_elem_t *filter = &data->std_filters[i];
-            if ((buf->std_id | filter->filter_mask) == (filter->filter_id | filter->filter_mask)) {
+            if ((buf->std_id & filter->filter_mask) == (filter->filter_id & filter->filter_mask)) {
                 filter_index = i;
                 break;
             }
@@ -181,8 +197,10 @@ static void hpm_mcan_get_message_from_rxbuf(const struct device *dev, uint32_t b
     /* Handle RX filter callback */
     if (filter_index != -EINVAL) {
         /* If RTR bit does not match filter RTR mask and bit, drop current frame */
-        bool rtr_filter_mask = (data->filter_rtr_mask & BIT(filter_index)) != 0;
-        bool rtr_filter = (data->filter_rtr & BIT(filter_index)) != 0;
+        uint32_t rtr_reg = s_can_rx_buf.use_ext_id ? data->filter_rtr_ext : data->filter_rtr_std;
+        uint32_t rtr_mask_reg = s_can_rx_buf.use_ext_id ? data->filter_rtr_mask_ext : data->filter_rtr_mask_std;
+        bool rtr_filter_mask = (rtr_mask_reg & BIT(filter_index)) != 0;
+        bool rtr_filter = (rtr_reg & BIT(filter_index)) != 0;
         bool rtr_in_frame = (frame.flags & CAN_FRAME_RTR);
         if ((rtr_filter_mask != rtr_in_frame) || (rtr_filter != rtr_in_frame)) {
             return;
@@ -246,8 +264,10 @@ static void hpm_mcan_get_message_from_rxfifo(const struct device *dev, uint32_t 
     /* Handle RX filter callback */
     if (filter_index != -EINVAL) {
         /* If RTR bit does not match filter RTR mask and bit, drop current frame */
-        bool rtr_filter_mask = (data->filter_rtr_mask & BIT(filter_index)) != 0;
-        bool rtr_filter = (data->filter_rtr & BIT(filter_index)) != 0;
+        uint32_t rtr_reg = s_can_rx_buf.use_ext_id ? data->filter_rtr_ext : data->filter_rtr_std;
+        uint32_t rtr_mask_reg = s_can_rx_buf.use_ext_id ? data->filter_rtr_mask_ext : data->filter_rtr_mask_std;
+        bool rtr_filter_mask = (rtr_mask_reg & BIT(filter_index)) != 0;
+        bool rtr_filter = (rtr_reg & BIT(filter_index)) != 0;
         bool rtr_in_frame = (frame.flags & CAN_FRAME_RTR);
         if ((rtr_filter_mask != rtr_in_frame) || (rtr_filter != rtr_in_frame)) {
             return;
@@ -276,11 +296,15 @@ __attribute__((section(".isr")))static void hpm_mcan_isr(const struct device *de
     uint32_t flags = mcan_get_interrupt_flags(can);
     /* New message is available in RXFIFO0 */
     if ((flags & MCAN_INT_RXFIFO0_NEW_MSG) != 0) {
-        hpm_mcan_get_message_from_rxfifo(dev, 0);
+        while (mcan_get_rxfifo_fill_level(can, 0) != 0U) {
+            hpm_mcan_get_message_from_rxfifo(dev, 0);
+        }
     }
     /* New message is available in RXFIFO1 */
     if ((flags & MCAN_INT_RXFIFO1_NEW_MSG) != 0U) {
-        hpm_mcan_get_message_from_rxfifo(dev, 1);
+        while (mcan_get_rxfifo_fill_level(can, 1) != 0U) {
+            hpm_mcan_get_message_from_rxfifo(dev, 1);
+        }
     }
     /* New message is available in RXBUF */
     if ((flags & MCAN_INT_MSG_STORE_TO_RXBUF) != 0U) {
@@ -316,6 +340,11 @@ static int hpm_mcan_init(const struct device *dev)
     struct hpm_mcan_data *data = dev->data;
     mcan_config_t *config = &data->config;
     MCAN_Type *can = cfg->base;
+    const struct hpm_clock_dt_spec clock = {
+        .name = (clock_name_t)cfg->clock_name,
+        .src = (clk_src_t)cfg->clock_src,
+        .div = cfg->clock_div,
+    };
     hpm_stat_t status;
 
     k_mutex_init(&data->inst_mutex);
@@ -323,11 +352,14 @@ static int hpm_mcan_init(const struct device *dev)
     k_sem_init(&data->tx_sem, HPM_MCAN_NUM_TX_BUF_ELEMENTS, HPM_MCAN_NUM_TX_BUF_ELEMENTS);
 
     for (uint32_t i= 0; i < ARRAY_SIZE(data->tx_fin_sem); i++) {
-        k_sem_init(&data->tx_fin_sem[i], 1, 1);
+        k_sem_init(&data->tx_fin_sem[i], 0, 1);
     }
 
-    data->filter_rtr = 0;
-    data->filter_rtr_mask = 0;
+    data->next_filter_id = 0;
+    data->filter_rtr_ext = 0;
+    data->filter_rtr_mask_ext = 0;
+    data->filter_rtr_std = 0;
+    data->filter_rtr_mask_std = 0;
     has_sent_out = true;
 
     /* Configure dt provided device signals when available */
@@ -347,9 +379,23 @@ static int hpm_mcan_init(const struct device *dev)
 
     mcan_get_default_config(can, config);
 
-    clock_add_to_group(cfg->clock_name, 0);
+    /* Initialize low-level timing parameters to valid values. mcan_get_default_config()
+     * zeroes these fields, but mcan_init() validates both the nominal and the data phase
+     * timing whenever CAN FD mode is enabled, so the defaults must be valid up front.
+     */
+    config->use_lowlevel_timing_setting = true;
+    config->can_timing.prescaler = 2U;
+    config->can_timing.num_seg1 = 29U;
+    config->can_timing.num_seg2 = 10U;
+    config->can_timing.num_sjw = 2U;
+    config->can_timing.enable_tdc = false;
+    config->canfd_timing.prescaler = 1U;
+    config->canfd_timing.num_seg1 = 8U;
+    config->canfd_timing.num_seg2 = 4U;
+    config->canfd_timing.num_sjw = 2U;
+    config->canfd_timing.enable_tdc = false;
 
-    clock_set_source_divider(cfg->clock_name, cfg->clock_src, cfg->clock_div);
+    clock_configure_enable(&clock);
 
     /* Set Interrupt Enable Mask */
     uint32_t interrupt_mask = MCAN_EVENT_RECEIVE | MCAN_EVENT_TRANSMIT | MCAN_EVENT_ERROR;
@@ -409,9 +455,7 @@ static int hpm_mcan_set_mode(const struct device *dev, can_mode_t mode)
     }
 
 #ifdef CONFIG_CAN_FD_MODE
-    if ((mode & CAN_MODE_FD)!=0) {
-        config->enable_canfd = 1;
-    }
+    config->enable_canfd = (mode & CAN_MODE_FD) != 0;
 #endif /* CONFIG_CAN_FD_MODE */
 
     common->mode = mode;
@@ -430,7 +474,6 @@ static int hpm_mcan_set_timing(const struct device *dev, const struct can_timing
     const struct hpm_mcan_config *cfg = dev->config;
     struct hpm_mcan_data *data = dev->data;
     MCAN_Type *mcan = cfg->base;
-    uint32_t bitrate =0;
 
     if (data->started) {
 		return -EBUSY;
@@ -440,9 +483,12 @@ static int hpm_mcan_set_timing(const struct device *dev, const struct can_timing
 
     uint32_t mcan_clk_freq = clock_get_frequency(cfg->clock_name);
 
-    bitrate = mcan_clk_freq / (timing->prescaler * (1 + timing->prop_seg + timing->phase_seg1 + timing->phase_seg2));
-
-    config ->baudrate = bitrate;
+    config->use_lowlevel_timing_setting = true;
+    config->can_timing.prescaler = timing->prescaler;
+    config->can_timing.num_seg1 = timing->prop_seg + timing->phase_seg1;
+    config->can_timing.num_seg2 = timing->phase_seg2;
+    config->can_timing.num_sjw = timing->sjw;
+    config->can_timing.enable_tdc = false;
 
     hpm_stat_t status = mcan_init(mcan, config, mcan_clk_freq);
     if (status != status_success) {
@@ -565,7 +611,10 @@ static int hpm_mcan_send(const struct device *dev,
 
     if (callback == NULL) {
         LOG_DBG("Waiting for TX complete");
-        k_sem_take(&data->tx_fin_sem[0], K_FOREVER);
+        ret = k_sem_take(&data->tx_fin_sem[0], timeout);
+        if (ret != 0) {
+            return -EAGAIN;
+        }
     }
 
 
@@ -580,49 +629,80 @@ static int hpm_mcan_add_rx_filter_ext(const struct device *dev,
     const struct hpm_mcan_config *cfg = dev->config;
     struct hpm_mcan_data *data = dev->data;
     MCAN_Type *can = cfg->base;
-    uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
     int filter_id = -ENOSPC;
+    hpm_stat_t status;
 
     if (callback == NULL) {
         return -EINVAL;
     }
 
     k_mutex_lock(&data->inst_mutex, K_FOREVER);
-    if (data->ext_filter_count < HPM_CAN_EXT_FILTER_NUM_MAX) {
-        filter_id = data->ext_filter_count;
-        data->ext_filter_count++;
-    } else {
+    if (data->ext_filter_count >= HPM_CAN_EXT_FILTER_NUM_MAX) {
+        k_mutex_unlock(&data->inst_mutex);
         return -ENOSPC;
     }
 
+    uint32_t idx = data->ext_filter_count;
+    filter_id = (int)data->next_filter_id;
+    data->next_filter_id++;
+    data->ext_filter_count++;
+
     mcan_config_t *can_config = &data->config;
-    mcan_filter_elem_t *filter_ext = &data->ext_filters[filter_id];
-    data->ext_filters_index[filter_id] = filter_id;
+    mcan_filter_elem_t *filter_ext = &data->ext_filters[idx];
+    data->ext_filters_index[idx] = (uint16_t)filter_id;
     filter_ext->filter_type = MCAN_FILTER_TYPE_CLASSIC_FILTER;
     filter_ext->filter_config = MCAN_FILTER_ELEM_CFG_STORE_IN_RX_FIFO0_IF_MATCH;
     filter_ext->can_id_type = MCAN_CAN_ID_TYPE_EXTENDED;
     filter_ext->filter_id = filter->id;
-    filter_ext->filter_mask = ~filter->mask;
+    filter_ext->filter_mask = filter->mask;
 
     can_config->all_filters_config.ext_id_filter_list.mcan_filter_elem_count = data->ext_filter_count;
     can_config->all_filters_config.ext_id_filter_list.filter_elem_list = data->ext_filters;
 
+    /* Per-type RTR tracking (bit position = per-type index, no collision) */
     if ((filter->flags & CAN_FRAME_RTR) != 0) {
-		data->filter_rtr |= (1U << filter_id);
-	} else {
-		data->filter_rtr &= ~(1U << filter_id);
-	}
+        data->filter_rtr_ext |= (1U << idx);
+        data->filter_rtr_mask_ext |= (1U << idx);
+    } else {
+        data->filter_rtr_ext &= ~(1U << idx);
+        data->filter_rtr_mask_ext &= ~(1U << idx);
+    }
 
-	if ((filter->flags & CAN_FRAME_RTR) != 0) {
-		data->filter_rtr_mask |= (1U << filter_id);
-	} else {
-		data->filter_rtr_mask &= ~(1U << filter_id);
-	}
+    if (data->started) {
+        /* Controller running: program the element at runtime via the
+         * protected reconfiguration window. */
+        status = mcan_begin_reconfig(can);
+        if (status != status_success) {
+            data->ext_filter_count--;
+            k_mutex_unlock(&data->inst_mutex);
+            return -EAGAIN;
+        }
+        status = mcan_set_filter_element(can, filter_ext, idx);
+        if (status != status_success) {
+            (void) mcan_end_reconfig(can);
+            data->ext_filter_count--;
+            k_mutex_unlock(&data->inst_mutex);
+            return -EAGAIN;
+        }
+        status = mcan_end_reconfig(can);
+        if (status != status_success) {
+            LOG_ERR("mcan_end_reconfig failed, error code: %d", status);
+        }
+    } else {
+        /* Controller stopped: mcan_deinit() cleared the RAM layout registers
+         * (SIDFC/XIDFC/RXF0C), so runtime reconfig has no list to write into.
+         * Re-initialize the whole controller with the updated filter list. */
+        uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
+        status = mcan_init(can, can_config, can_clk_freq);
+        if (status != status_success) {
+            data->ext_filter_count--;
+            k_mutex_unlock(&data->inst_mutex);
+            return -EAGAIN;
+        }
+    }
 
-    (void) mcan_init(can, can_config, can_clk_freq);
-
-    data->rx_cb_ext[filter_id] = callback;
-    data->rx_cb_arg_ext[filter_id] = user_data;
+    data->rx_cb_ext[idx] = callback;
+    data->rx_cb_arg_ext[idx] = user_data;
 
     k_mutex_unlock(&data->inst_mutex);
 
@@ -637,49 +717,80 @@ static int hpm_mcan_add_rx_filter_std(const struct device *dev,
     const struct hpm_mcan_config *cfg = dev->config;
     struct hpm_mcan_data *data = dev->data;
     MCAN_Type *can = cfg->base;
-    uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
     int filter_id = -ENOSPC;
+    hpm_stat_t status;
 
     if (callback == NULL) {
         return -EINVAL;
     }
 
     k_mutex_lock(&data->inst_mutex, K_FOREVER);
-    if (data->std_filter_count < HPM_CAN_STD_FILTER_NUM_MAX) {
-        filter_id = data->std_filter_count;
-        data->std_filter_count++;
-    } else {
+    if (data->std_filter_count >= HPM_CAN_STD_FILTER_NUM_MAX) {
+        k_mutex_unlock(&data->inst_mutex);
         return -ENOSPC;
     }
 
+    uint32_t idx = data->std_filter_count;
+    filter_id = (int)data->next_filter_id;
+    data->next_filter_id++;
+    data->std_filter_count++;
+
     mcan_config_t *can_config = &data->config;
-    mcan_filter_elem_t *filter_std = &data->std_filters[filter_id];
-    data->std_filters_index[filter_id] = filter_id;
+    mcan_filter_elem_t *filter_std = &data->std_filters[idx];
+    data->std_filters_index[idx] = (uint16_t)filter_id;
     filter_std->filter_type = MCAN_FILTER_TYPE_CLASSIC_FILTER;
     filter_std->filter_config = MCAN_FILTER_ELEM_CFG_STORE_IN_RX_FIFO0_IF_MATCH;
     filter_std->can_id_type = MCAN_CAN_ID_TYPE_STANDARD;
     filter_std->filter_id = filter->id;
-    filter_std->filter_mask = ~filter->mask;
+    filter_std->filter_mask = filter->mask;
 
     can_config->all_filters_config.std_id_filter_list.mcan_filter_elem_count = data->std_filter_count;
     can_config->all_filters_config.std_id_filter_list.filter_elem_list = data->std_filters;
 
+    /* Per-type RTR tracking (bit position = per-type index, no collision) */
     if ((filter->flags & CAN_FRAME_RTR) != 0) {
-		data->filter_rtr |= (1U << filter_id);
-	} else {
-		data->filter_rtr &= ~(1U << filter_id);
-	}
+        data->filter_rtr_std |= (1U << idx);
+        data->filter_rtr_mask_std |= (1U << idx);
+    } else {
+        data->filter_rtr_std &= ~(1U << idx);
+        data->filter_rtr_mask_std &= ~(1U << idx);
+    }
 
-	if ((filter->flags & CAN_FRAME_RTR) != 0) {
-		data->filter_rtr_mask |= (1U << filter_id);
-	} else {
-		data->filter_rtr_mask &= ~(1U << filter_id);
-	}
+    if (data->started) {
+        /* Controller running: program the element at runtime via the
+         * protected reconfiguration window. */
+        status = mcan_begin_reconfig(can);
+        if (status != status_success) {
+            data->std_filter_count--;
+            k_mutex_unlock(&data->inst_mutex);
+            return -EAGAIN;
+        }
+        status = mcan_set_filter_element(can, filter_std, idx);
+        if (status != status_success) {
+            (void) mcan_end_reconfig(can);
+            data->std_filter_count--;
+            k_mutex_unlock(&data->inst_mutex);
+            return -EAGAIN;
+        }
+        status = mcan_end_reconfig(can);
+        if (status != status_success) {
+            LOG_ERR("mcan_end_reconfig failed, error code: %d", status);
+        }
+    } else {
+        /* Controller stopped: mcan_deinit() cleared the RAM layout registers
+         * (SIDFC/XIDFC/RXF0C), so runtime reconfig has no list to write into.
+         * Re-initialize the whole controller with the updated filter list. */
+        uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
+        status = mcan_init(can, can_config, can_clk_freq);
+        if (status != status_success) {
+            data->std_filter_count--;
+            k_mutex_unlock(&data->inst_mutex);
+            return -EAGAIN;
+        }
+    }
 
-    (void) mcan_init(can, can_config, can_clk_freq);
-
-    data->rx_cb_std[filter_id] = callback;
-    data->rx_cb_arg_std[filter_id] = user_data;
+    data->rx_cb_std[idx] = callback;
+    data->rx_cb_arg_std[idx] = user_data;
 
     k_mutex_unlock(&data->inst_mutex);
 
@@ -688,8 +799,8 @@ static int hpm_mcan_add_rx_filter_std(const struct device *dev,
 
 /*
  *  NOTE:
- *  MCAN_CTRL doesn't support change the MCAN filter at runtime
- *  Software need to re-initialize the MCAN controller if the changes to filter needs to be made.
+ *  Filters are programmed at runtime via mcan_begin_reconfig()/mcan_set_filter_element()/
+ *  mcan_end_reconfig(), so add/remove do not require a full controller re-initialization.
  */
 static int hpm_mcan_add_rx_filter(const struct device *dev,
                             can_rx_callback_t callback,
@@ -715,67 +826,140 @@ static int hpm_mcan_add_rx_filter(const struct device *dev,
 
 /*
  *  NOTE:
- *  MCAN_CTRL doesn't support change the MCAN filter at runtime
- *  Software need to re-initialize the MCAN controller if the changes to filter needs to be made.
+ *  Filters are programmed at runtime via mcan_begin_reconfig()/mcan_set_filter_element()/
+ *  mcan_end_reconfig(), so add/remove do not require a full controller re-initialization.
  */
-static void hpm_mcan_remove_rx_filter(const struct device *dev, int filter_id)
+static bool hpm_mcan_remove_filter(const struct device *dev, bool is_ext, uint32_t filter_id)
 {
     const struct hpm_mcan_config *cfg = dev->config;
     struct hpm_mcan_data *data = dev->data;
     MCAN_Type *can = cfg->base;
+    hpm_stat_t status;
 
-    mcan_config_t *config = &data->config;
-    k_mutex_lock(&data->inst_mutex, K_FOREVER);
+    uint32_t count = is_ext ? data->ext_filter_count : data->std_filter_count;
+    uint16_t *filters_index = is_ext ? data->ext_filters_index : data->std_filters_index;
+    mcan_filter_elem_t *filters = is_ext ? data->ext_filters : data->std_filters;
+    uint32_t *rtr = is_ext ? &data->filter_rtr_ext : &data->filter_rtr_std;
+    uint32_t *rtr_mask = is_ext ? &data->filter_rtr_mask_ext : &data->filter_rtr_mask_std;
+    can_rx_callback_t *rx_cb = is_ext ? data->rx_cb_ext : data->rx_cb_std;
+    void **rx_cb_arg = is_ext ? data->rx_cb_arg_ext : data->rx_cb_arg_std;
 
-    if (data->ext_filter_count > 0) {
-        uint16_t last_filter_index = data->ext_filters_index[data->ext_filter_count -1];
-        mcan_filter_elem_t *last_filter_elem = &data->ext_filters[data->ext_filter_count -1];
-        for (uint32_t i = 0; i < data->ext_filter_count; i++) {
-            if (data->ext_filters_index[i] == filter_id) {
-                if (i != data->ext_filter_count - 1U) {
-                    mcan_filter_elem_t *current_filter_elem = &data->ext_filters[i];
-                    data->ext_filters_index[i] = last_filter_index;
-                    current_filter_elem->filter_id = last_filter_elem->filter_id;
-                    current_filter_elem->filter_mask = last_filter_elem->filter_mask;
-                    current_filter_elem->filter_type = last_filter_elem->filter_type;
-                    current_filter_elem->filter_config = last_filter_elem->filter_config;
-                    current_filter_elem->can_id_type = last_filter_elem->can_id_type;
-                }
-                data->ext_filter_count -=1;
-                uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
-                config->all_filters_config.ext_id_filter_list.filter_elem_list = data->ext_filters;
-                config->all_filters_config.ext_id_filter_list.mcan_filter_elem_count = data->ext_filter_count;
-                (void) mcan_init(can, config, can_clk_freq);
-                break;
-            }
+    uint32_t found_idx = count;
+    for (uint32_t i = 0; i < count; i++) {
+        if (filters_index[i] == filter_id) {
+            found_idx = i;
+            break;
+        }
+    }
+    if (found_idx >= count) {
+        return false;
+    }
+
+    uint32_t last_idx = count - 1;
+    if (found_idx != last_idx) {
+        /* Move the last filter element to the vacated position */
+        filters_index[found_idx] = filters_index[last_idx];
+        filters[found_idx] = filters[last_idx];
+
+        /* Move the callback and RTR filter flags along with the element */
+        rx_cb[found_idx] = rx_cb[last_idx];
+        rx_cb_arg[found_idx] = rx_cb_arg[last_idx];
+        if ((*rtr & BIT(last_idx)) != 0) {
+            *rtr |= BIT(found_idx);
+        } else {
+            *rtr &= ~BIT(found_idx);
+        }
+        if ((*rtr_mask & BIT(last_idx)) != 0) {
+            *rtr_mask |= BIT(found_idx);
+        } else {
+            *rtr_mask &= ~BIT(found_idx);
         }
     }
 
-    if (data->std_filter_count > 0) {
-        uint16_t last_filter_index = data->std_filters_index[data->std_filter_count -1];
-        mcan_filter_elem_t *last_filter_elem = &data->std_filters[data->std_filter_count -1];
-        for (uint32_t i = 0; i < data->std_filter_count; i++) {
-            if (data->std_filters_index[i] == filter_id) {
-                if (i != data->std_filter_count - 1U) {
-                    mcan_filter_elem_t *current_filter_elem = &data->std_filters[i];
-                    data->std_filters_index[i] = last_filter_index;
-                    current_filter_elem->filter_id = last_filter_elem->filter_id;
-                    current_filter_elem->filter_mask = last_filter_elem->filter_mask;
-                    current_filter_elem->filter_type = last_filter_elem->filter_type;
-                    current_filter_elem->filter_config = last_filter_elem->filter_config;
-                    current_filter_elem->can_id_type = last_filter_elem->can_id_type;
-                }
-                data->std_filter_count -=1;
-                uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
-                config->all_filters_config.std_id_filter_list.filter_elem_list = data->std_filters;
-                config->all_filters_config.std_id_filter_list.mcan_filter_elem_count = data->std_filter_count;
-                (void) mcan_init(can, config, can_clk_freq);
-                break;
-            }
+    /* Clear the RTR flags and callback of the (now free) last slot */
+    filters_index[last_idx] = 0;
+    *rtr &= ~BIT(last_idx);
+    *rtr_mask &= ~BIT(last_idx);
+    rx_cb[last_idx] = NULL;
+    rx_cb_arg[last_idx] = NULL;
+
+    if (data->started) {
+        /* Controller running: update the element at runtime via the
+         * protected reconfiguration window. */
+        status = mcan_begin_reconfig(can);
+        if (status != status_success) {
+            return false;
         }
+
+        /* Write the (possibly moved) filter to HW at the vacated per-type index */
+        status = mcan_set_filter_element(can, &filters[found_idx], found_idx);
+        if (status != status_success) {
+            (void) mcan_end_reconfig(can);
+            return false;
+        }
+        if (found_idx != last_idx) {
+            /* Clear the old last slot in HW */
+            mcan_filter_elem_t empty;
+            memset(&empty, 0, sizeof(empty));
+            empty.can_id_type = is_ext ? MCAN_CAN_ID_TYPE_EXTENDED : MCAN_CAN_ID_TYPE_STANDARD;
+            (void) mcan_set_filter_element(can, &empty, last_idx);
+        }
+        status = mcan_end_reconfig(can);
+        if (status != status_success) {
+            LOG_ERR("mcan_end_reconfig failed, error code: %d", status);
+        }
+    } else {
+        /* Controller stopped: mcan_deinit() cleared the RAM layout registers
+         * (SIDFC/XIDFC/RXF0C), so runtime reconfig has no list to write into.
+         * Re-initialize the whole controller with the updated filter list. */
+        uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
+        status = mcan_init(can, &data->config, can_clk_freq);
+        if (status != status_success) {
+            return false;
+        }
+    }
+
+    if (is_ext) {
+        data->ext_filter_count--;
+        data->config.all_filters_config.ext_id_filter_list.mcan_filter_elem_count = data->ext_filter_count;
+    } else {
+        data->std_filter_count--;
+        data->config.all_filters_config.std_id_filter_list.mcan_filter_elem_count = data->std_filter_count;
+    }
+
+    return true;
+}
+
+/*
+ *  NOTE:
+ *  Filters are programmed at runtime via mcan_begin_reconfig()/mcan_set_filter_element()/
+ *  mcan_end_reconfig(), so add/remove do not require a full controller re-initialization.
+ */
+static void hpm_mcan_remove_rx_filter(const struct device *dev, int filter_id)
+{
+    struct hpm_mcan_data *data = dev->data;
+    bool removed = false;
+
+    if (filter_id < 0) {
+        LOG_ERR("filter ID %d out of bounds", filter_id);
+        return;
+    }
+
+    k_mutex_lock(&data->inst_mutex, K_FOREVER);
+
+    if (data->std_filter_count > 0) {
+        removed = hpm_mcan_remove_filter(dev, false, (uint32_t)filter_id);
+    }
+
+    if (!removed && (data->ext_filter_count > 0)) {
+        removed = hpm_mcan_remove_filter(dev, true, (uint32_t)filter_id);
     }
 
     k_mutex_unlock(&data->inst_mutex);
+
+    if (!removed) {
+        LOG_ERR("cannot find matched filter-id %d", filter_id);
+    }
 }
 
 
@@ -906,7 +1090,6 @@ static int hpm_mcan_set_timing_data(const struct device *dev, const struct can_t
     struct hpm_mcan_data *data = dev->data;
     mcan_config_t *config = &data->config;
     MCAN_Type *can = cfg->base;
-    uint32_t bitrate =0;
 
     if (data->started) {
 		return -EBUSY;
@@ -914,12 +1097,14 @@ static int hpm_mcan_set_timing_data(const struct device *dev, const struct can_t
 
     uint32_t mcan_clk_freq = clock_get_frequency(cfg->clock_name);
 
-    bitrate = mcan_clk_freq / (timing->prescaler * (1 + timing->prop_seg + timing->phase_seg1 + timing->phase_seg2));
+    config->use_lowlevel_timing_setting = true;
+    config->canfd_timing.prescaler = timing->prescaler;
+    config->canfd_timing.num_seg1 = timing->prop_seg + timing->phase_seg1;
+    config->canfd_timing.num_seg2 = timing->phase_seg2;
+    config->canfd_timing.num_sjw = timing->sjw;
+    config->canfd_timing.enable_tdc = false;
 
-    config ->baudrate_fd = bitrate;
-
-    uint32_t can_clk_freq = clock_get_frequency(cfg->clock_name);
-    hpm_stat_t status = mcan_init(can, config, can_clk_freq);
+    hpm_stat_t status = mcan_init(can, config, mcan_clk_freq);
 
     if (status != status_success) {
         ret = -EAGAIN;
@@ -941,7 +1126,10 @@ static int hpm_mcan_start(const struct device *dev)
     }
 
     uint32_t can_clk_freq = clock_get_frequency(config->clock_name);
-    mcan_init(can, can_config, can_clk_freq);
+    hpm_stat_t status = mcan_init(can, can_config, can_clk_freq);
+    if (status != status_success) {
+        return -EAGAIN;
+    }
 
     data->started = true;
 
@@ -1024,7 +1212,7 @@ static const struct can_driver_api hpm_mcan_driver_api = {
     .timing_data_max = {
         .sjw = 16,
         .prop_seg = 0,
-        .phase_seg1 = 32,
+        .phase_seg1 = 31,
         .phase_seg2 = 16,
         .prescaler = 32,
     }
@@ -1037,11 +1225,11 @@ static const struct can_driver_api hpm_mcan_driver_api = {
         static void hpm_mcan_irq_config_func##n(const struct device *dev); \
     \
     static const struct hpm_mcan_config hpm_mcan_cfg_##n = { \
-        .common = CAN_DT_DRIVER_CONFIG_INST_GET(inst, 0, 1000000), \
+        .common = CAN_DT_DRIVER_CONFIG_INST_GET(n, 0, 1000000), \
         .base = (MCAN_Type*)DT_INST_REG_ADDR(n), \
-        .clock_name = (clock_name_t)DT_INST_PROP(n, clk_name), \
-        .clock_src = (clk_src_t)DT_INST_PROP(n, clk_source), \
-        .clock_div = DT_INST_PROP(n, clk_divider), \
+        .clock_name = DT_INST_CLOCKS_CELL(n, name),	\
+        .clock_src = DT_INST_CLOCKS_CELL(n, src),	\
+        .clock_div = DT_INST_CLOCKS_CELL(n, div),	\
         .irq_config_func = hpm_mcan_irq_config_func##n, \
         .pincfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n), \
     }; \

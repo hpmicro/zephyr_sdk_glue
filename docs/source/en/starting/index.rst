@@ -12,8 +12,8 @@ HPMicro Zephyr supports multiple toolchains. You can choose based on your needs:
 
    * - Toolchain
      - Description
-   * - **Zephyr SDK**
-     - Official Zephyr SDK with full functionality and best compatibility. Slower download speed
+   * - **Zephyr SDK 1.0.1**
+     - Recommended toolchain with full functionality and best compatibility
    * - **ZCC Toolchain**
      - LLVM/Clang-based toolchain with fast download and excellent performance
    * - **GNU Cross-Compile Toolchain**
@@ -21,7 +21,7 @@ HPMicro Zephyr supports multiple toolchains. You can choose based on your needs:
 
 .. note::
 
-   | Toolchain installation is **optional**. You can choose any one of them.
+   | Zephyr SDK 1.0.1 is the default recommended toolchain. You may select another supported toolchain when needed.
    | For detailed toolchain configuration and switching methods, refer to the :doc:`toolchain` section.
 
 .. toctree::

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 HPMicro
+ * Copyright (c) 2024, 2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -7,201 +7,206 @@
 
 #define DT_DRV_COMPAT hpmicro_hpm_video
 
-
-
+#include <zephyr/kernel.h>
 #include <zephyr/drivers/video.h>
-
 
 struct hpmicro_video_config {
 	const struct device *sensor_dev;
-  const struct device *camera_dev;
+	const struct device *camera_dev;
 };
 
 struct hpmicro_video_data {
 	uint8_t cam_dmafb_index;
 };
 
-
-static int hpmicro_video_set_fmt(const struct device *dev,
-				  enum video_endpoint_id ep,
-				  struct video_format *fmt)
+static int hpmicro_video_set_fmt(const struct device *dev, struct video_format *fmt)
 {
 	const struct hpmicro_video_config *config = dev->config;
-	if (config->camera_dev && video_set_format(config->camera_dev, ep, fmt)) {
-		return -EIO;
-	}
-	if (config->sensor_dev && video_set_format(config->sensor_dev, ep, fmt)) {
-		return -EIO;
-	}
-	if (config->camera_dev && video_get_format(config->camera_dev, ep, fmt)) {
-		return -EIO;
-	}
-	return 0;
-}
 
-static int hpmicro_video_get_fmt(const struct device *dev,
-				  enum video_endpoint_id ep,
-				  struct video_format *fmt)
-{
-	const struct hpmicro_video_config *config = dev->config;
-	struct video_caps caps;
-	int err;
-	if (fmt == NULL || ep != VIDEO_EP_OUT) {
+	if (fmt == NULL) {
 		return -EINVAL;
 	}
 
-	if (config->sensor_dev && !video_get_format(config->sensor_dev, ep, fmt)) {
-		if ((fmt->pixelformat == 0) || (fmt->height == 0) || (fmt->pitch == 0) || (fmt->width == 0)) {
+	if (config->camera_dev && video_set_format(config->camera_dev, fmt)) {
+		return -EIO;
+	}
+	if (config->sensor_dev && video_set_format(config->sensor_dev, fmt)) {
+		return -EIO;
+	}
+	if (config->camera_dev && video_get_format(config->camera_dev, fmt)) {
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static int hpmicro_video_get_fmt(const struct device *dev, struct video_format *fmt)
+{
+	const struct hpmicro_video_config *config = dev->config;
+
+	if (fmt == NULL) {
+		return -EINVAL;
+	}
+
+	if (config->sensor_dev && !video_get_format(config->sensor_dev, fmt)) {
+		if ((fmt->pixelformat == 0) || (fmt->height == 0) || (fmt->pitch == 0) ||
+		    (fmt->width == 0)) {
 			/* set fmt default */
-			err = video_get_caps(config->sensor_dev, ep, &caps);
+			struct video_caps caps = {
+				.type = VIDEO_BUF_TYPE_OUTPUT,
+			};
+			int err = video_get_caps(config->sensor_dev, &caps);
+
 			if (err < 0) {
 				return err;
 			}
-			fmt->height = caps.format_caps[2].height_max;
-			fmt->width = caps.format_caps[2].width_max;
-			fmt->pixelformat = caps.format_caps[2].pixelformat;
-			fmt->pitch = fmt->width * 2;
+			if (caps.format_caps && caps.format_caps[0].pixelformat) {
+				fmt->height = caps.format_caps[0].height_max;
+				fmt->width = caps.format_caps[0].width_max;
+				fmt->pixelformat = caps.format_caps[0].pixelformat;
+			}
 		}
-		return hpmicro_video_set_fmt(dev, ep, fmt);
+		/* Fill in fmt->size (and normalize pitch) */
+		return video_estimate_fmt_size(fmt);
 	}
-	if (config->camera_dev && video_get_format(config->camera_dev, ep, fmt)) {
+	if (config->camera_dev && !video_get_format(config->camera_dev, fmt)) {
+		return video_estimate_fmt_size(fmt);
+	}
+
+	return -EIO;
+}
+
+static int hpmicro_video_set_stream(const struct device *dev, bool enable,
+				    enum video_buf_type type)
+{
+	const struct hpmicro_video_config *config = dev->config;
+
+	if (enable) {
+		if (config->camera_dev && video_stream_start(config->camera_dev, type)) {
+			return -EIO;
+		}
+		if (config->sensor_dev && video_stream_start(config->sensor_dev, type)) {
+			return -EIO;
+		}
+	} else {
+		if (config->sensor_dev && video_stream_stop(config->sensor_dev, type)) {
+			return -EIO;
+		}
+		if (config->camera_dev && video_stream_stop(config->camera_dev, type)) {
+			return -EIO;
+		}
+	}
+
+	return 0;
+}
+
+static int hpmicro_video_flush(const struct device *dev, bool cancel)
+{
+	const struct hpmicro_video_config *config = dev->config;
+
+	if (config->camera_dev && video_flush(config->camera_dev, cancel)) {
 		return -EIO;
 	}
 
 	return 0;
 }
 
-static int hpmicro_video_stream_start(const struct device *dev)
-{
-	const struct hpmicro_video_config *config = dev->config;
-	if (config->camera_dev && video_stream_start(config->camera_dev)) {
-		return -EIO;
-	}
-
-	if (config->sensor_dev && video_stream_start(config->sensor_dev)) {
-		return -EIO;
-	}
-
-	return 0;
-}
-
-static int hpmicro_video_stream_stop(const struct device *dev)
+static int hpmicro_video_enqueue(const struct device *dev, struct video_buffer *vbuf)
 {
 	const struct hpmicro_video_config *config = dev->config;
 
-	if (config->sensor_dev && video_stream_stop(config->sensor_dev)) {
-		return -EIO;
-	}
-
-	if (config->camera_dev && video_stream_stop(config->camera_dev)) {
+	if (config->camera_dev && video_enqueue(config->camera_dev, vbuf)) {
 		return -EIO;
 	}
 
 	return 0;
 }
 
-static int hpmicro_video_flush(const struct device *dev,
-				enum video_endpoint_id ep,
-				bool cancel)
+static int hpmicro_video_dequeue(const struct device *dev, struct video_buffer **vbuf,
+				 k_timeout_t timeout)
 {
 	const struct hpmicro_video_config *config = dev->config;
-	if (config->camera_dev && video_flush(config->camera_dev, ep, cancel)) {
-		return -EIO;
-	}
-	return 0;
-}
 
-static int hpmicro_video_enqueue(const struct device *dev,
-				  enum video_endpoint_id ep,
-				  struct video_buffer *vbuf)
-{
-	const struct hpmicro_video_config *config = dev->config;
-	if (config->camera_dev && video_enqueue(config->camera_dev, ep, vbuf)) {
+	if (config->camera_dev && video_dequeue(config->camera_dev, vbuf, timeout)) {
 		return -EIO;
 	}
 
 	return 0;
 }
 
-static int hpmicro_video_dequeue(const struct device *dev,
-				  enum video_endpoint_id ep,
-				  struct video_buffer **vbuf,
-				  k_timeout_t timeout)
-{
-	const struct hpmicro_video_config *config = dev->config;
-	if (config->camera_dev && video_dequeue(config->camera_dev, ep, vbuf, timeout)) {
-		return -EIO;
-	}
-	return 0;
-}
-
-static inline int hpmicro_video_set_ctrl(const struct device *dev,
-					  unsigned int cid,
-					  void *value)
-{
-	const struct hpmicro_video_config *config = dev->config;
-	int ret = -ENOTSUP;
-
-	/* Forward to sensor dev if any */
-	if (config->sensor_dev) {
-		ret = video_set_ctrl(config->sensor_dev, cid, value);
-	}
-
-	return ret;
-}
-
-static inline int hpmicro_video_get_ctrl(const struct device *dev,
-					  unsigned int cid,
-					  void *value)
-{
-	const struct hpmicro_video_config *config = dev->config;
-	int ret = -ENOTSUP;
-
-	/* Forward to sensor dev if any */
-	if (config->sensor_dev) {
-		ret = video_get_ctrl(config->sensor_dev, cid, value);
-	}
-
-	return ret;
-}
-
-static int hpmicro_video_get_caps(const struct device *dev,
-				   enum video_endpoint_id ep,
-				   struct video_caps *caps)
+static int hpmicro_video_get_caps(const struct device *dev, struct video_caps *caps)
 {
 	const struct hpmicro_video_config *config = dev->config;
 	int err = -ENODEV;
 
-	if (ep != VIDEO_EP_OUT) {
+	if (caps == NULL) {
 		return -EINVAL;
 	}
 
-	/* Just forward to sensor dev for now */
+	/* Forward the sensor format capabilities */
 	if (config->sensor_dev) {
-		err = video_get_caps(config->sensor_dev, ep, caps);
+		err = video_get_caps(config->sensor_dev, caps);
 	}
 
-	if (config->camera_dev && video_get_caps(config->camera_dev, ep, caps)) {
-		return -EIO;
+	/* Overwrite the buffer count requirement from the camera interface */
+	if (config->camera_dev) {
+		struct video_caps cam_caps = {
+			.type = caps->type,
+		};
+
+		if (video_get_caps(config->camera_dev, &cam_caps) == 0) {
+			caps->min_vbuf_count = cam_caps.min_vbuf_count;
+		}
 	}
-	/* no sensor dev */
+
 	return err;
 }
 
-#ifdef CONFIG_POLL
-static int hpmicro_video_set_signal(const struct device *dev,
-				     enum video_endpoint_id ep,
-				     struct k_poll_signal *signal)
+static int hpmicro_video_set_frmival(const struct device *dev, struct video_frmival *frmival)
 {
 	const struct hpmicro_video_config *config = dev->config;
-	if (config->camera_dev && video_set_signal(config->camera_dev, ep, signal)) {
+
+	if (config->sensor_dev) {
+		return video_set_frmival(config->sensor_dev, frmival);
+	}
+
+	return -ENOSYS;
+}
+
+static int hpmicro_video_get_frmival(const struct device *dev, struct video_frmival *frmival)
+{
+	const struct hpmicro_video_config *config = dev->config;
+
+	if (config->sensor_dev) {
+		return video_get_frmival(config->sensor_dev, frmival);
+	}
+
+	return -ENOSYS;
+}
+
+static int hpmicro_video_enum_frmival(const struct device *dev, struct video_frmival_enum *fie)
+{
+	const struct hpmicro_video_config *config = dev->config;
+
+	if (config->sensor_dev) {
+		return video_enum_frmival(config->sensor_dev, fie);
+	}
+
+	return -ENOSYS;
+}
+
+#ifdef CONFIG_POLL
+static int hpmicro_video_set_signal(const struct device *dev, struct k_poll_signal *sig)
+{
+	const struct hpmicro_video_config *config = dev->config;
+
+	if (config->camera_dev && video_set_signal(config->camera_dev, sig)) {
 		return -EIO;
 	}
 
 	return 0;
 }
 #endif
-
 
 static int hpmicro_video_init(const struct device *dev)
 {
@@ -209,23 +214,21 @@ static int hpmicro_video_init(const struct device *dev)
 	return 0;
 }
 
-
-static const struct video_driver_api hpm_video_driver_api = {
+static DEVICE_API(video, hpm_video_driver_api) = {
 	.set_format = hpmicro_video_set_fmt,
 	.get_format = hpmicro_video_get_fmt,
-	.stream_start = hpmicro_video_stream_start,
-	.stream_stop = hpmicro_video_stream_stop,
+	.set_stream = hpmicro_video_set_stream,
 	.flush = hpmicro_video_flush,
 	.enqueue = hpmicro_video_enqueue,
 	.dequeue = hpmicro_video_dequeue,
-	.set_ctrl = hpmicro_video_set_ctrl,
-	.get_ctrl = hpmicro_video_get_ctrl,
 	.get_caps = hpmicro_video_get_caps,
+	.set_frmival = hpmicro_video_set_frmival,
+	.get_frmival = hpmicro_video_get_frmival,
+	.enum_frmival = hpmicro_video_enum_frmival,
 #ifdef CONFIG_POLL
 	.set_signal = hpmicro_video_set_signal,
 #endif
 };
-
 
 #define HPM_VIDEO_INIT(idx)						      \
 									      \
@@ -233,12 +236,12 @@ static const struct hpmicro_video_config video_cfg_##idx = {		      \
 	.sensor_dev = DEVICE_DT_GET_OR_NULL(DT_INST_PHANDLE(idx, sensor)), \
 	.camera_dev = DEVICE_DT_GET_OR_NULL(DT_INST_PHANDLE(idx, camera)), \
 };									      \
-										\
+									      \
 DEVICE_DT_INST_DEFINE(idx,						      \
 		    hpmicro_video_init,					      \
 		    NULL,						      \
-		    NULL, &video_cfg_##idx,			      \
-		    POST_KERNEL, CONFIG_VIDEO_HPMICRO_INIT_PRIORITY,		      \
+		    NULL, &video_cfg_##idx,				      \
+		    POST_KERNEL, CONFIG_VIDEO_HPMICRO_INIT_PRIORITY,	      \
 		    &hpm_video_driver_api);
 
 DT_INST_FOREACH_STATUS_OKAY(HPM_VIDEO_INIT);

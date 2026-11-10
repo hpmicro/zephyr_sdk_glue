@@ -2,352 +2,225 @@
 Docker Environment Configuration Guide
 =========================================
 
-Using **Docker** is the fastest way to set up the Zephyr development environment for HPMicro. No need to install dependencies manually - everything is pre-configured in the container.
+The Docker image provides the dependencies and tools required for HPMicro Zephyr
+development. The current image includes:
+
+- ZCC 4.1.5
+- Zephyr SDK 1.0.1 (the default toolchain)
+- HPMicro OpenOCD
+- Scripts for switching between ZCC and the Zephyr SDK
+
+Source code is no longer packaged in the image. The host ``zephyr``,
+``sdk_glue``, ``sdk_env``, ``modules``, and ``bootloader`` directories are
+mounted separately into the container. Host source changes are therefore
+immediately visible inside the container without rebuilding the image.
 
 Prerequisites
---------------
+=============
 
-Before starting, ensure you have:
+- Docker and Docker Compose installed on a Linux host
+- A complete ZSG workspace with all module directories at the same level
+- A connected USB debugger, such as CMSIS-DAP, when flashing or debugging
 
-- Docker installed on your system
-- (Optional) Docker Compose for easier container management
-- USB access for flashing (Linux recommended)
+Workspace Layout
+================
+
+The ``docker-compose.yaml`` file is located in ``sdk_glue``. Before starting the
+container, the workspace must contain at least:
+
+.. code-block:: text
+
+    ZSG/
+    |-- zephyr/
+    |-- sdk_glue/
+    |   `-- docker-compose.yaml
+    `-- sdk_env/hpm_sdk
+
+.. note::
+
+   Paths in the Compose file are relative to the ``sdk_glue`` directory. Run
+   ``docker compose`` from that directory, or use ``-f`` to specify the Compose
+   file explicitly.
 
 Getting the Docker Image
---------------------------
+========================
 
-You can pull the Docker image from **DockerHub**, or download the image package and load it using ``docker load``.
-
-From DockerHub
-~~~~~~~~~~~~~~~
+The current Compose configuration uses ``zephyr_hpmicro:v0.8.0``. Load the
+released image package with:
 
 .. code-block:: console
 
-    docker pull swhpmicro/zephyr-hpmicro:latest
+    docker load -i zephyr_hpmicro-v0.8.0.tar
+    docker image ls zephyr_hpmicro
 
-Loading from Image Package (Recommended for users in China)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The image package is available from:
 
-Users in China are recommended to download the image package and load it locally for faster and more stable speeds.
+- `zephyr_hpmicro-v0.8.0.tar <https://resource.hpmicro.com/zephyr_hpmicro-v0.8.0.tar>`_
 
-#. Download the image package
+If pulling from a registry produces a repository-qualified image name, tag it
+with the name expected by Compose:
 
-   Download the image package from the following address:
+.. code-block:: console
 
-   - `docker <https://resource.hpmicro.com/zephyr-hpmicro-latest.tar.gz>`_
-   - obtain the ``zephyr-hpmicro-latest.tar.gz`` file from other distribution channels
+    docker pull swhpmicro/zephyr_hpmicro:v0.8.0
+    docker tag swhpmicro/zephyr_hpmicro:v0.8.0 zephyr_hpmicro:v0.8.0
 
-#. Load the image
+Starting and Managing the Container
+===================================
+
+#. Enter the ``sdk_glue`` directory and start the container:
 
    .. code-block:: console
 
-       docker load -i zephyr-hpmicro-latest.tar.gz
+       cd /path/to/ZSG/sdk_glue
+       docker compose up -d
 
-#. Verify the image is loaded
+#. Enter the container:
 
    .. code-block:: console
 
-       docker images | grep zephyr-hpmicro
+       docker compose exec zephyr bash
 
-   You should see output similar to:
+#. Stop and remove the container when finished:
 
-   .. code-block:: text
+   .. code-block:: console
 
-       swhpmicro/zephyr-hpmicro    latest    xxxxxxxxxx    xx days ago    xxGB
+       docker compose down
 
-Configuring Toolchain
------------------------
+``docker compose down`` does not remove source code on the host. Run
+``docker compose up -d`` again to recreate the container.
 
-The Zephyr SDK is large and not included in the Docker image.
+Source Mounts
+=============
 
-Zephyr SDK
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compose maps each host workspace module into ``/home/User/zephyr_space``:
 
-Official Zephyr SDK with full functionality and best compatibility.
+.. list-table:: Source directory mappings
+   :header-rows: 1
 
-.. code-block:: console
+   * - Host path
+     - Container path
+   * - ``../zephyr``
+     - ``/home/User/zephyr_space/zephyr``
+   * - ``.`` (``sdk_glue``)
+     - ``/home/User/zephyr_space/sdk_glue``
+   * - ``../sdk_env``
+     - ``/home/User/zephyr_space/sdk_env``
+   * - ``../modules``
+     - ``/home/User/zephyr_space/modules``
+   * - ``../bootloader``
+     - ``/home/User/zephyr_space/bootloader``
 
-    mkdir ~/zephyr-hpmicro && cd ~/zephyr-hpmicro
-    wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/zephyr-sdk-0.16.5_linux-x86_64.tar.xz
-    tar xvf zephyr-sdk-0.16.5_linux-x86_64.tar.xz
-    cd zephyr-sdk-0.16.5 && ./setup.sh -t all -h -c && cd ..
+The default container working directory is ``/home/User/zephyr_space``. Because
+these are bind mounts, changes made to source files inside the container are
+also written directly to the host.
 
+Toolchains
+==========
 
-Method 1: Using Docker Run
-----------------------------
+The image contains both Zephyr SDK 1.0.1 and ZCC 4.1.5. No host toolchain mount
+or additional toolchain installation is required.
 
-This method is suitable for quick testing or one-time use.
+Zephyr SDK 1.0.1
+----------------
 
-Basic Usage
-~~~~~~~~~~~~
-
-.. code-block:: console
-
-    docker run -it --rm \
-        -v ~/zephyr-hpmicro/zephyr-sdk-0.16.5:/home/zephyr/zephyr_space/zephyr-sdk-0.16.5 \
-        swhpmicro/zephyr-hpmicro:latest \
-        bash
-
-With USB Device Access (for Flashing)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To flash firmware to your board, you need USB device access:
-
-.. code-block:: console
-
-    docker run -it --rm \
-        --privileged \
-        -v /dev/bus/usb:/dev/bus/usb \
-        -v ~/zephyr-hpmicro/zephyr-sdk-0.16.5:/home/zephyr/zephyr_space/zephyr-sdk-0.16.5 \
-        swhpmicro/zephyr-hpmicro:latest \
-        bash
-
-With Custom Project Directory
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To mount your own project directory:
+The Zephyr SDK is the default toolchain and is installed at
+``/opt/toolchains/zephyr-sdk-1.0.1``. Check the active configuration with:
 
 .. code-block:: console
 
-    docker run -it --rm \
-        --privileged \
-        -v /dev/bus/usb:/dev/bus/usb \
-        -v ~/zephyr-hpmicro/zephyr-sdk-0.16.5:/home/zephyr/zephyr_space/zephyr-sdk-0.16.5 \
-        -v ~/my_projects:/home/zephyr/zephyr_space/my_projects \
-        swhpmicro/zephyr-hpmicro:latest \
-        bash
+    echo $ZEPHYR_TOOLCHAIN_VARIANT
+    echo $ZEPHYR_SDK_INSTALL_DIR
 
-Running with Locally Loaded Image
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The default values are ``zephyr`` and ``/opt/toolchains/zephyr-sdk-1.0.1``.
 
-If you loaded the image package using ``docker load``, the run command is the same as above, using the same image name:
+ZCC 4.1.5
+---------
+
+Switch to ZCC using the script included in the image:
 
 .. code-block:: console
 
-    docker run -it --rm \
-        --privileged \
-        -v /dev/bus/usb:/dev/bus/usb \
-        -v ~/zephyr-hpmicro/zephyr-sdk-0.16.5:/home/zephyr/zephyr_space/zephyr-sdk-0.16.5 \
-        swhpmicro/zephyr-hpmicro:latest \
-        bash
+    source ~/zephyr_space/use-zcc.sh
+
+Switch back to the Zephyr SDK with:
+
+.. code-block:: console
+
+    source ~/zephyr_space/use-zephyr-sdk.sh
 
 .. note::
 
-    Whether you pull from DockerHub or load from an image package, the image name is ``swhpmicro/zephyr-hpmicro:latest``, and the usage is exactly the same.
+   Run these scripts with ``source`` so that they update the current shell.
+   Each new shell starts with the default values from Compose; run the ZCC
+   switch script again when ZCC is required.
 
+OpenOCD, Building, and Flashing
+===============================
 
-Method 2: Using Docker Compose
---------------------------------
-
-Docker Compose provides a more convenient way to manage the container with persistent configuration.
-
-Step 1: Extract docker-compose.yaml
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method 1: Using docker run
+HPMicro OpenOCD is packaged in the image, so it does not need to be installed
+on the host or mounted into the container. Build, flash, and debug directly
+after entering the container:
 
 .. code-block:: console
 
-    cd ~/zephyr-hpmicro
-    docker run --rm swhpmicro/zephyr-hpmicro:latest cat /home/zephyr/zephyr_space/sdk_glue/docker-compose.yaml > docker-compose.yaml
+    cd /home/User/zephyr_space/zephyr
+    west build -p always -b hpm6750evk2 -S blinky samples/basic/blinky
+    west flash
+    west debug
 
-.. note::
+Compose enables ``privileged: true`` and mounts ``/dev/bus/usb`` so OpenOCD can
+access USB debuggers.
 
-    Note: Do not use ``-t`` or ``-it`` options, as they may cause terminal escape sequences in the output.
+Using docker run
+================
 
-Method 2: Using docker cp
-
-If Method 1 produces a file with terminal symbols, use the following method:
-
-.. code-block:: console
-
-    cd ~/zephyr-hpmicro
-    docker create --name temp_container zephyr-hpmicro:latest
-    docker cp temp_container:/home/zephyr/zephyr_space/sdk_glue/docker-compose.yaml ./docker-compose.yaml
-    docker rm temp_container
-
-.. note::
-
-    Whether you pull from DockerHub or load from an image package, the extraction commands are the same.
-
-Step 2: Start the Container
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compose is recommended because it avoids missing source or USB mounts. The
+equivalent ``docker run`` command is:
 
 .. code-block:: console
 
-    docker compose up -d
+    docker run -it --rm --privileged --hostname docker \
+        -v /path/to/ZSG/zephyr:/home/User/zephyr_space/zephyr \
+        -v /path/to/ZSG/sdk_glue:/home/User/zephyr_space/sdk_glue \
+        -v /path/to/ZSG/sdk_env:/home/User/zephyr_space/sdk_env \
+        -v /path/to/ZSG/modules:/home/User/zephyr_space/modules \
+        -v /path/to/ZSG/bootloader:/home/User/zephyr_space/bootloader \
+        -v /dev/bus/usb:/dev/bus/usb \
+        -w /home/User/zephyr_space \
+        zephyr_hpmicro:v0.8.0
 
-Step 3: Enter the Container
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: console
-
-    docker compose exec zephyr-dev bash
-
-Step 4: Stop the Container
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: console
-
-    docker compose down
-
-
-Directory Structure
----------------------
-
-After setup, your working directory should look like this:
-
-.. code-block:: text
-
-    ~/zephyr-hpmicro/
-    ├── docker-compose.yaml      # Docker Compose configuration
-    ├── zephyr-sdk-0.16.5/       # Zephyr SDK (downloaded)
-    │   ├── setup.sh
-    │   ├── sdk_version
-    │   └── ...
-    └── my_projects/             # Optional: Your custom projects
-
-Inside the container:
-
-.. code-block:: text
-
-    /home/zephyr/zephyr_space/
-    ├── bootloader/              # (embedded in image)
-    ├── modules/                 # (embedded in image)
-    ├── sdk_env/                 # HPMicro SDK (embedded)
-    ├── sdk_glue/                # (embedded in image)
-    ├── zephyr/                  # Zephyr source (embedded)
-    │   └── samples/             # Sample projects to build
-    ├── zephyr-sdk-0.16.5/       # (mounted from host)
-    └── my_projects/             # (optional, mounted from host)
-
-
-Building and Flashing
------------------------
-
-Once inside the container, you can build and flash samples:
-
-#. Build a sample
-
-    .. code-block:: console
-
-        cd /home/zephyr/zephyr_space/zephyr
-        west build -p always -b hpm6750evk2 -S blinky samples/basic/blinky
-
-#. Flash to target (connect your board first)
-
-    .. code-block:: console
-
-        west flash
-
-#. Debug
-
-    .. code-block:: console
-
-        west debug
-
-Available Boards
-~~~~~~~~~~~~~~~~~~
-
-.. code-block:: console
-
-    west boards | grep hpm
-
-Common boards include:
-
-- ``hpm6750evk2``
-- ``hpm6800evk``
-- ``hpm6200evk``
-- ``hpm6e00evk``
-
+Replace ``/path/to/ZSG`` with the absolute path to the workspace on the host.
 
 Troubleshooting
------------------
+===============
 
-Zephyr SDK Not Found
-~~~~~~~~~~~~~~~~~~~~~
+Source Code Is Missing in the Container
+---------------------------------------
 
-Make sure the ``zephyr-sdk-0.16.5`` folder is correctly mounted and you ran ``setup.sh`` inside it:
-
-.. code-block:: console
-
-    cd ~/zephyr-hpmicro/zephyr-sdk-0.16.5
-    ./setup.sh -t all -h -c
-
-Cannot Flash - Device Not Found
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-#. Check if debugger is connected:
-
-    .. code-block:: console
-
-        lsusb | grep -i xxx
-
-#. Ensure ``--privileged`` flag is used (docker run) or ``privileged: true`` is set (docker-compose)
-
-#. Verify ``/dev/bus/usb`` is mounted
-
-Permission Denied on Serial Device
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Method 1: Add to dialout group (for standard serial devices)
-
-Add your user to the dialout group on the host:
+Confirm that all five module directories are next to ``sdk_glue`` and that
+Compose was started from ``sdk_glue``. Inspect the resolved mounts with:
 
 .. code-block:: console
 
-    sudo usermod -aG dialout $USER
+    docker compose config
+    docker compose exec zephyr ls /home/User/zephyr_space
 
-Then logout and login again.
+Toolchain Not Found
+-------------------
 
-Method 2: Configure udev rules
-
-If Method 1 still doesn't allow access to the serial port, especially when using USB debuggers (such as CMSIS-DAP, OpenOCD, etc.), you need to configure udev rules.
-
-Some USB debugger devices are not standard serial devices, and simply adding to the ``dialout`` group may not be sufficient. By configuring udev rules, you can set the correct permissions for these devices.
-
-#. Create a udev rules file (on host):
-
-   .. code-block:: console
-
-       sudo nano /etc/udev/rules.d/99-openocd.rules
-
-#. Add the following rule content (select according to your debugger type):
-
-   .. code-block:: text
-
-       # Allow all users to access USB debuggers
-       SUBSYSTEM=="usb", ATTR{idVendor}=="0d28", MODE="0666"
-       KERNEL=="ttyACM*", MODE="0666"
-       KERNEL=="ttyUSB*", MODE="0666"
-
-#. Reload udev rules:
-
-   .. code-block:: console
-
-       sudo udevadm control --reload-rules
-       sudo udevadm trigger
-
-#. Reconnect the USB device, or restart the system.
-
-.. note::
-
-    If your debugger is not in the list above, you can check the device's ``idVendor`` and ``idProduct`` using the following command:
-
-    .. code-block:: console
-
-        lsusb
-
-    Then create the corresponding udev rules based on the actual ``idVendor`` and ``idProduct``.
-
-Using a Different SDK Version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Set the environment variable before starting:
+Both the Zephyr SDK and ZCC are stored in the image; do not mount a host SDK.
+Switch to the default toolchain and inspect its environment variables:
 
 .. code-block:: console
 
-    export ZEPHYR_SDK_PATH=./zephyr-sdk-0.17.0
-    docker compose up -d
+    source ~/zephyr_space/use-zephyr-sdk.sh
+    echo $ZEPHYR_TOOLCHAIN_VARIANT
+    echo $ZEPHYR_SDK_INSTALL_DIR
 
+OpenOCD Cannot Find the USB Device
+----------------------------------
 
+#. Run ``lsusb`` on the host and verify that the debugger is connected.
+#. Keep ``privileged: true`` and ``/dev/bus/usb:/dev/bus/usb`` in Compose.
+#. Reconnect the debugger and recreate the container.

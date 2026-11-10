@@ -1,19 +1,18 @@
 /*
- * Copyright 2024 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
- 
+* Copyright 2024-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
 / {
-    aliases {
-        eeprom-0 = &eeprom;
-    };
+	aliases {
+		eeprom-0 = &eeprom;
+	};
 };
 
 &i2c0 {
 	status = "okay";
 	pinctrl-0 = <&pinmux_i2c0>;
 	pinctrl-names = "default";
-
 	eeprom: eeprom@50 {
 		compatible = "atmel,at24";
 		status = "okay";

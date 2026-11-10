@@ -1,10 +1,11 @@
-# Copyright (c) 2023 HPMicro
+# Copyright (c) 2023 - 2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 zephyr_include_directories(.)
 zephyr_sources(
   start.S
   soc.c
+  ../../../../sdk_env/hpm_sdk/soc/HPM6700/HPM6750/hpm_otp_drv.c
 )
 
 if(CONFIG_SOC_ANDES_V5_HWDSP)

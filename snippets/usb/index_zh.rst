@@ -1,9 +1,10 @@
 .. _USB:
 
 USB
-=======
+====
 
 .. toctree::
-    :maxdepth: 1
+   :maxdepth: 3
+   :glob:
 
-    udc/index_zh.rst
+   **/*_zh

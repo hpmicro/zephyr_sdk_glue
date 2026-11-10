@@ -19,3 +19,39 @@ properties:
     required: true
     description: USB clock name
 
+  use-internal-vbus:
+    type: boolean
+    description: |
+      Use the USB PHY internal VBUS/session-valid override for this controller
+      instance.
+
+      This is needed on board/package combinations where the USB controller is
+      used in device mode but the SoC package or board wiring does not provide
+      a usable external VBUS sense signal to the USB PHY. Without a valid VBUS
+      indication the software stack may enable the controller successfully, but
+      the device will not respond to host enumeration. Do not enable this
+      property on boards that have a real VBUS sense path and rely on hardware
+      VBUS detection.
+
+  power-active-high:
+    type: boolean
+    description: |
+      Configure the USB port power-control output as active high.
+
+      This describes the board-level polarity of the USB power-enable signal
+      associated with the controller. It is typically used on boards where the
+      USB_PWR pin drives an external VBUS power switch with active-high enable
+      polarity. Leave this property absent if the default hardware polarity is
+      correct for the board.
+
+  power-stable-delay-ms:
+    type: int
+    default: 0
+    description: |
+      Delay, in milliseconds, after applying USB port power-control settings
+      and before completing controller initialization.
+
+      Board designs with an external VBUS power switch may need a short delay
+      so the switched VBUS rail and its decoupling capacitors settle before the
+      USB PHY/controller starts device operation. Use 0 when no stabilization
+      delay is required.

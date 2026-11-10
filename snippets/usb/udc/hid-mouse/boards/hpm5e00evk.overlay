@@ -1,0 +1,12 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+&zephyr_udc0 {
+	status = "okay";
+};
+
+&hwinfo0 {
+	status = "okay";
+};

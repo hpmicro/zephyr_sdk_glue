@@ -1,4 +1,4 @@
-# Copyright (c) 2025 HPMicro
+# Copyright (c) 2025-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 set_property(TARGET linker PROPERTY devices_start_symbol "_device_list_start")
@@ -100,6 +100,7 @@ macro(configure_linker_script linker_script_gen linker_pass_define)
       -MD -MF ${linker_script_gen}.dep -MT ${linker_script_gen}
       -D_LINKER
       -D_ASMLANGUAGE
+      -D__LLD_LINKER_CMD__
       -imacros ${AUTOCONF_H}
       ${current_includes}
       ${soc_linker_script_includes}
@@ -169,6 +170,28 @@ function(toolchain_ld_link_elf)
     ${TOOLCHAIN_LD_LINK_ELF_DEPENDENCIES}
   )
 endfunction(toolchain_ld_link_elf)
+
+# Append the standard and compiler runtime libraries after Zephyr archives so
+# symbols such as 64-bit division helpers are resolved in the correct order.
+macro(toolchain_linker_finalize)
+  get_property(zephyr_std_libs TARGET linker PROPERTY lib_include_dir)
+  get_property(link_order TARGET linker PROPERTY link_order_library)
+  foreach(lib ${link_order})
+    get_property(link_flag TARGET linker PROPERTY ${lib}_library)
+    list(APPEND zephyr_std_libs "${link_flag}")
+  endforeach()
+  string(REPLACE ";" " " zephyr_std_libs "${zephyr_std_libs}")
+
+  set(common_link "<LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES> ${zephyr_std_libs}")
+  set(CMAKE_ASM_LINK_EXECUTABLE "<CMAKE_ASM_COMPILER> <FLAGS> <CMAKE_ASM_LINK_FLAGS> ${common_link}")
+  set(CMAKE_C_LINK_EXECUTABLE   "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LINK_FLAGS> ${common_link}")
+  set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER> <FLAGS> <CMAKE_CXX_LINK_FLAGS> ${common_link}")
+endmacro()
+
+# ZCC drives LLD through compiler-driver options.
+function(toolchain_linker_add_compiler_options)
+  add_link_options(${ARGV})
+endfunction()
 
 # Load toolchain_ld-family macros
 include(${TOOLCHAIN_ROOT}/cmake/linker/${LINKER}/target_base.cmake)

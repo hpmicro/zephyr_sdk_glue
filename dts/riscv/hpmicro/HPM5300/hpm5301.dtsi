@@ -1,0 +1,13 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <dt-bindings/clock/hpm5301-clocks.h>
+#include <hpmicro/HPM5300/hpm53xx.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm5301", "hpmicro,hpm53xx";
+	};
+};

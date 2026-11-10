@@ -5,11 +5,13 @@ config SOC_SERIES_HPM6E00
 	select RISCV
 	select RISCV_PRIVILEGED
 	select RISCV_HAS_PLIC
+	select RISCV_MACHINE_TIMER
+	select RISCV_SOC_HAS_GP_RELATIVE_ADDRESSING
 	select DYNAMIC_INTERRUPTS
 	help
 	  Enable support for HPMicro HPM6E series SoC
 
-config SOC_HPM6E80
+config SOC_HPM6E_COMMON
 	bool
 	select ATOMIC_OPERATIONS_C
 	select INCLUDE_RESET_VECTOR
@@ -21,6 +23,34 @@ config SOC_HPM6E80
 	select CPU_HAS_DCACHE
 	select CPU_HAS_ICACHE
 	select RISCV_PMP if !MCUBOOT
+
+config SOC_HPM6E50
+	bool
+	select SOC_HPM6E_COMMON
+
+config SOC_HPM6E60
+	bool
+	select SOC_HPM6E_COMMON
+
+config SOC_HPM6E6Y
+	bool
+	select SOC_HPM6E_COMMON
+
+config SOC_HPM6E70
+	bool
+	select SOC_HPM6E_COMMON
+
+config SOC_HPM6E80
+	bool
+	select SOC_HPM6E_COMMON
+
+config SOC_HPM6E84
+	bool
+	select SOC_HPM6E_COMMON
+
+config SOC_HPM6E8Y
+	bool
+	select SOC_HPM6E_COMMON
 if SOC_SERIES_HPM6E00
 
 choice

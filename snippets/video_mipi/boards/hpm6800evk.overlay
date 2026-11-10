@@ -1,40 +1,36 @@
 /*
- * Copyright 2024 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
- 
+* Copyright 2024-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
 / {
-    chosen {
-        zephyr,display = &panel_mc10128007;
-        zephyr,camera = &video0;
-    };
+	chosen {
+		zephyr,display = &panel_mc10128007;
+		zephyr,camera = &video0;
+	};
 };
 
 &adc0 {
 	status = "disabled";
+	vref-mv = <3300>;
 };
-
 
 &i2c0 {
 	status = "okay";
 	pinctrl-0 = <&pinmux_i2c0>;
 	pinctrl-names = "default";
-
 	ov5640: ov5640@3c {
 		compatible = "ovti,ov5640";
 		reg = <0x3c>;
 		status = "okay";
-
 		reset-gpios = <&gpioa 22 GPIO_ACTIVE_HIGH>;
 		powerdown-gpios = <&gpioa 21 GPIO_ACTIVE_LOW>;
 	};
-
 };
 
 &mipi_csi1 {
 	status = "okay";
 };
-
 
 &camera1 {
 	status = "okay";
@@ -54,6 +50,10 @@
 	camera = <&camera1>;
 };
 
+&pixelmux {
+	status = "okay";
+};
+
 &lcdc0 {
 	status = "okay";
 };
@@ -65,5 +65,3 @@
 &panel_mc10128007 {
 	status = "okay";
 };
-
-

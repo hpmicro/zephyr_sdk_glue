@@ -10,11 +10,13 @@ include: [clock-controller.yaml, base.yaml]
 properties:
   pll-frequency:
     type: int
+    required: true
     description: |
       PLL frequency Hz
 
   pll-index:
     type: int
+    required: true
     description: |
       PLL index
     enum:
@@ -38,16 +40,18 @@ child-binding:
   properties:
     src-name:
       type: int
+      required: true
       description: |
         PLL divider node index
 
     div-i:
       type: int
+      required: true
       description: |
         PLL divider index
 
     div-p:
       type: int
+      required: true
       description: |
-        PLL divider prescaler, freq = VCO * (1 + div-p / 5)
-
+        PLL divider prescaler, freq = VCO / (1 + div-p / 5)

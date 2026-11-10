@@ -15,8 +15,8 @@ MEMORY
 #if (DT_REG_SIZE(DT_NODELABEL(dram)) > 0) && !IS_CHOSEN_SRAM(dram)
 	SDRAM (wx) : ORIGIN = DT_REG_ADDR(DT_NODELABEL(dram)), LENGTH = DT_REG_SIZE(DT_NODELABEL(dram))
 #endif
-
 }
 
-#include <../common/linker.ld>
+#define HPM_RETAINED_NOINIT_REGION APB_SRAM
 
+#include <../common/linker.ld>

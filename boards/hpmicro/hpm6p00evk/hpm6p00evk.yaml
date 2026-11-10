@@ -1,0 +1,44 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: hpm6p00evk
+name: HPMicro HPM6P00EVK
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+  - zcc
+ram: 32768
+flash: 1024
+supported:
+  - gpio
+  - uart
+  - i2c
+  - spi
+  - dma
+  - pwm
+  - adc
+  - acmp
+  - dac
+  - can
+  - usbd
+  - usbh
+  - ethernet
+  - femc
+  - ppi
+  - i2s
+  - pdm
+  - dao
+  - qei
+  - qeo
+  - sei
+  - rdc
+  - sdm
+  - plb
+  - counter
+  - watchdog
+  - entropy
+testing:
+  ignore_tags:
+    - bluetooth
+vendor: hpmicro

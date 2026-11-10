@@ -11,9 +11,44 @@ config SOC_SERIES_HPM6700
 config SOC_SERIES
 	default "HPM6700" if SOC_SERIES_HPM6700
 
+config SOC_HPM6430
+	bool
+	select SOC_SERIES_HPM6700
+
+config SOC_HPM6450
+	bool
+	select SOC_SERIES_HPM6700
+
+config SOC_HPM6454
+	bool
+	select SOC_SERIES_HPM6700
+
+config SOC_HPM64G0
+	bool
+	select SOC_SERIES_HPM6700
+
+config SOC_HPM64A0
+	bool
+	select SOC_SERIES_HPM6700
+
+config SOC_HPM6730
+	bool
+	select SOC_SERIES_HPM6700
+
 config SOC_HPM6750
 	bool
 	select SOC_SERIES_HPM6700
 
+config SOC_HPM6754
+	bool
+	select SOC_SERIES_HPM6700
+
 config SOC
+	default "HPM6430" if SOC_HPM6430
+	default "HPM6450" if SOC_HPM6450
+	default "HPM6454" if SOC_HPM6454
+	default "HPM64G0" if SOC_HPM64G0
+	default "HPM64A0" if SOC_HPM64A0
+	default "HPM6730" if SOC_HPM6730
 	default "HPM6750" if SOC_HPM6750
+	default "HPM6754" if SOC_HPM6754

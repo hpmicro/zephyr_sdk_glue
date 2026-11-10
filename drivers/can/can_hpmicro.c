@@ -21,6 +21,7 @@
 #include "hpm_common.h"
 #include "hpm_can_drv.h"
 #include "hpm_clock_drv.h"
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 #define HPM_CAN_FILTER_NUM_MAX (16U)
 #define HPM_CAN_BITRATE_MAX (1000000UL) /* 1Mbps */
@@ -239,6 +240,11 @@ static int hpm_can_init(const struct device *dev)
     struct hpm_can_data *data = dev->data;
     can_config_t *config = &data->config;
     CAN_Type *can = cfg->base;
+    const struct hpm_clock_dt_spec clock = {
+        .name = (clock_name_t)cfg->clock_name,
+        .src = (clk_src_t)cfg->clock_src,
+        .div = cfg->clock_div,
+    };
 
     k_mutex_init(&data->inst_mutex);
     k_mutex_init(&data->tx_mutex);
@@ -260,7 +266,7 @@ static int hpm_can_init(const struct device *dev)
     }
 
     can_get_default_config(config);
-    clock_set_source_divider(cfg->clock_name, cfg->clock_src, cfg->clock_div);
+    clock_configure_enable(&clock);
 
     config->baudrate_fd = 5000000U;
 
@@ -798,9 +804,9 @@ static const struct can_driver_api hpm_can_driver_api = {
     static const struct hpm_can_config hpm_can_cfg_##n = { \
         .common = CAN_DT_DRIVER_CONFIG_INST_GET(inst, 0, 1000000), \
         .base = (CAN_Type*)DT_INST_REG_ADDR(n), \
-        .clock_name = (clock_name_t)DT_INST_PROP(n, clk_name), \
-        .clock_src = (clk_src_t)DT_INST_PROP(n, clk_source), \
-        .clock_div = DT_INST_PROP(n, clk_divider), \
+        .clock_name = DT_INST_CLOCKS_CELL(n, name),	\
+        .clock_src = DT_INST_CLOCKS_CELL(n, src),	\
+        .clock_div = DT_INST_CLOCKS_CELL(n, div),	\
         .irq_config_func = hpm_can_irq_config_func##n, \
         .pincfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n), \
     }; \

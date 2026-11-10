@@ -1,0 +1,34 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: HPMicro Drivers ADC Api test
+tests:
+  hpmicro.test.drivers.adc.adc_api:
+    timeout: 600
+    min_ram: 16
+    min_flash: 40
+    tags:
+    - hpmicro_verified
+    - adc
+    depends_on:
+    - adc
+    # TEST_USERSPACE would pull in USERSPACE -> RISCV_PMP -> THREAD_LOCAL_STORAGE,
+    # which the HPMicro RISC-V toolchain does not support.
+    extra_configs:
+    - CONFIG_TEST_USERSPACE=n
+    filter: dt_node_has_prop("/zephyr,user","io-channels")
+    required_snippets:
+    - adc_dt
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5301evklite
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

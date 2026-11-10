@@ -1,0 +1,13 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+DT_COMPAT_HPM_GPT := hpmicro,hpm-gptimer
+
+config GPT_HPMICRO
+	bool "HPMICRO GPT driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_GPTIMER_ENABLED
+    select HAS_HPMSDK_GPTMRV2 if SOC_SERIES_HPM5100
+    select HAS_HPMSDK_GPTMR if !SOC_SERIES_HPM5100
+    help
+        Enable the HPMICRO GPT driver

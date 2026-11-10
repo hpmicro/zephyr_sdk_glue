@@ -1,0 +1,20 @@
+# Copyright 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+description: HPMicro HPM GPT
+
+compatible: "hpmicro,hpm-gptimer"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  gptfreq:
+    type: int
+    required: true
+    description: gpt frequencies

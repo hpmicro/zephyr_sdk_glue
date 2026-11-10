@@ -1,0 +1,27 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: hpm5301evklite
+name: HPMicro HPM5301EVKLITE
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+  - zcc
+flash: 1024
+supported:
+  - gpio
+  - uart
+  - i2c
+  - spi
+  - dma
+  - adc
+  - acmp
+  - usbd
+  - usbh
+  - counter
+  - watchdog
+testing:
+  ignore_tags:
+    - bluetooth
+vendor: hpmicro

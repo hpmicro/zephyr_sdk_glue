@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2023-2025 HPMicro
+ * Copyright (c) 2023-2026 HPMicro
  *
- * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Apache-2.0
  *
  */
 
@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <errno.h>
+#include <zephyr/sys/util.h>
 #include "hpm_romapi.h"
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
@@ -123,27 +124,27 @@ static int flash_hpmicro_erase(const struct device *dev, off_t offset,
 #if CONFIG_FLASH_PAGE_LAYOUT
 static const struct flash_pages_layout flash_hpm_pages_layout[] = {
     {
-        .pages_count = FIXED_PARTITION_OFFSET(boot_partition) / KB(4),
+        .pages_count = PARTITION_OFFSET(boot_partition) / KB(4),
         .pages_size = KB(4),
     },
     {
-        .pages_count = FIXED_PARTITION_SIZE(boot_partition) / KB(4),
+        .pages_count = PARTITION_SIZE(boot_partition) / KB(4),
         .pages_size = KB(4)
     },
     {
-        .pages_count = FIXED_PARTITION_SIZE(slot0_partition) / KB(4),
+        .pages_count = PARTITION_SIZE(slot0_partition) / KB(4),
         .pages_size = KB(4)
     },
     {
-        .pages_count = FIXED_PARTITION_SIZE(slot1_partition) / KB(4),
+        .pages_count = PARTITION_SIZE(slot1_partition) / KB(4),
         .pages_size = KB(4)
     },
     {
-        .pages_count = FIXED_PARTITION_SIZE(scratch_partition) / KB(4),
+        .pages_count = PARTITION_SIZE(scratch_partition) / KB(4),
         .pages_size = KB(4)
     },
     {
-        .pages_count = FIXED_PARTITION_SIZE(storage_partition) / KB(4),
+        .pages_count = PARTITION_SIZE(storage_partition) / KB(4),
         .pages_size = KB(4)
     }
 };

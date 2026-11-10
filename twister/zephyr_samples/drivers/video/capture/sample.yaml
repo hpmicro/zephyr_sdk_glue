@@ -1,0 +1,49 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: Video capture
+tests:
+  hpmicro.sample.drivers.video.capture.dvp:
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: true
+      regex:
+      - Got frame \d+
+      - 'size: \d+;'
+      - timestamp \d+
+    tags:
+    - hpmicro_verified
+    - video
+    depends_on:
+    - video
+    required_snippets:
+    - video_dvp
+    platform_allow: &platforms
+    - hpm6750evk2
+    - hpm6800evk
+    integration_platforms: *platforms
+  hpmicro.sample.drivers.video.capture.mipi:
+    extra_configs:
+    - CONFIG_FPU=y
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: true
+      regex:
+      - Got frame \d+
+      - 'size: \d+;'
+      - timestamp \d+
+    tags:
+    - hpmicro_verified
+    - video
+    - mipi-csi
+    depends_on:
+    - video
+    - mipi-csi
+    required_snippets:
+    - video_mipi
+    platform_allow: &platforms_2
+    - hpm6800evk
+    integration_platforms: *platforms_2

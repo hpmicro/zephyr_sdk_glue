@@ -1,0 +1,32 @@
+# Copyright 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: hpm5100evk
+name: HPMicro HPM5100EVK
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+  - zcc
+flash: 1024
+supported:
+  - gpio
+  - uart
+  - i2c
+  - spi
+  - dma
+  - pwm
+  - adc
+  - acmp
+  - opamp
+  - can
+  - usbd
+  - usbh
+  - i2s
+  - dhc
+  - counter
+  - watchdog
+testing:
+  ignore_tags:
+    - bluetooth
+vendor: hpmicro

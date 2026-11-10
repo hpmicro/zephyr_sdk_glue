@@ -5,11 +5,13 @@ config SOC_SERIES_HPM6800
 	select RISCV
 	select RISCV_PRIVILEGED
 	select RISCV_HAS_PLIC
+	select RISCV_MACHINE_TIMER
+	select RISCV_SOC_HAS_GP_RELATIVE_ADDRESSING
 	select DYNAMIC_INTERRUPTS
 	help
 	  Enable support for HPMicro HPM68 series SoC
 
-config SOC_HPM6880
+config SOC_HPM68_COMMON
 	bool
 	select ATOMIC_OPERATIONS_BUILTIN
 	select INCLUDE_RESET_VECTOR
@@ -21,6 +23,30 @@ config SOC_HPM6880
 	select CPU_HAS_DCACHE
 	select CPU_HAS_ICACHE
 	select RISCV_PMP if !MCUBOOT
+
+config SOC_HPM6830
+	bool
+	select SOC_HPM68_COMMON
+
+config SOC_HPM6850
+	bool
+	select SOC_HPM68_COMMON
+
+config SOC_HPM6880
+	bool
+	select SOC_HPM68_COMMON
+
+config SOC_HPM68D2
+	bool
+	select SOC_HPM68_COMMON
+
+config SOC_HPM68D3
+	bool
+	select SOC_HPM68_COMMON
+
+config SOC_HPM68D4
+	bool
+	select SOC_HPM68_COMMON
 
 if SOC_SERIES_HPM6800
 

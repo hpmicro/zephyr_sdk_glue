@@ -1,0 +1,52 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <dt-bindings/clock/hpm6750-clocks.h>
+#include <hpmicro/HPM6700/hpm67xx.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm6450", "hpmicro,hpm67xx";
+		can0: can@f0080000 {
+			compatible = "hpmicro,hpm-can";
+			reg = <0xf0080000 0x4000>;
+			interrupts = <47 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN0 CLK_SRC_PLL1_CLK1 5>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		can1: can@f0084000 {
+			compatible = "hpmicro,hpm-can";
+			reg = <0xf0084000 0x4000>;
+			interrupts = <48 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN1 CLK_SRC_PLL1_CLK1 5>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		can2: can@f0088000 {
+			compatible = "hpmicro,hpm-can";
+			reg = <0xf0088000 0x4000>;
+			interrupts = <49 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN2 CLK_SRC_PLL1_CLK1 5>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		can3: can@f008C000 {
+			compatible = "hpmicro,hpm-can";
+			reg = <0xf008C000 0x4000>;
+			interrupts = <50 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN3 CLK_SRC_PLL1_CLK1 5>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+	};
+};

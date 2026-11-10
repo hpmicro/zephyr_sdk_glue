@@ -1,0 +1,26 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: HPMicro Drivers Uart Uart Basic Api test
+tests:
+  hpmicro.test.drivers.uart.uart_basic_api:
+    harness: keyboard
+    tags:
+    - hpmicro_verified
+    - uart
+    depends_on:
+    - uart
+    filter: CONFIG_UART_CONSOLE
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5301evklite
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

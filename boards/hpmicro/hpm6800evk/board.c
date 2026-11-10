@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 HPMicro
+ * Copyright (c) 2024-2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -11,8 +11,17 @@
 #include "hpm_ddrctl_regs.h"
 #include "hpm_ddrphy_regs.h"
 #include "hpm_sdxc_drv.h"
+#include "hpm_pllctlv2_drv.h"
 
-#include <zephyr/sys/util.h>
+void board_early_init_hook(void)
+{
+	if (clock_get_frequency(clock_cpu0) == PLLCTL_SOC_PLL_REFCLK_FREQ) {
+		pllctlv2_xtal_set_rampup_time(HPM_PLLCTLV2, 32UL * 1000UL * 9U);
+		sysctl_clock_set_preset(HPM_SYSCTL, 2);
+	}
+
+	pcfg_dcdc_set_voltage(HPM_PCFG, 1275);
+}
 
 static void _cpu_wait_ms(uint32_t cpu_freq, uint32_t ms)
 {
@@ -205,8 +214,13 @@ uint32_t hpm_board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq, bool need_i
 
 void init_ddr3l_1333(void)
 {
+    /* Reduce the leakage by changing the DDR IO to high-z mode */
+    HPM_DDRPHY->ACIOCR = 0x30c00813;
+    HPM_DDRPHY->DXCCR = 0x4418189c;
+    HPM_DDRPHY->DSGCR = 0xe004641f;
+
     /* Enable On-chip DCDC 1.4V output */
-    HPM_PCFG->DCDCM_MODE = PCFG_DCDCM_MODE_VOLT_SET(1400) | PCFG_DCDCM_MODE_MODE_SET(5);
+    HPM_PCFG->DCDCM_MODE = PCFG_DCDCM_MODE_VOLT_SET(1400) | PCFG_DCDCM_MODE_MODE_SET(1);
 
     /* Change DDR clock to 333.33MHz, namely: DDR3-1333 */
     clock_set_source_divider(clock_axif, clk_src_pll1_clk1, 2);
@@ -223,8 +237,6 @@ void init_ddr3l_1333(void)
 
     /* Clear DFI_INIT_COMPLETE_EN bit */
     HPM_DDRCTL->DFIMISC &= ~DDRCTL_DFIMISC_DFI_INIT_COMPLETE_EN_MASK;
-
-    HPM_DDRPHY->DSGCR = 0xf004641f;
 
     *(volatile uint32_t *) (HPM_DDRPHY_BASE + 0x3000UL) |= (1UL << 0);
 
@@ -319,7 +331,7 @@ void _init_ext_ram(void)
 
 void sys_arch_reboot(int type)
 {
-    ARG_UNUSED(type);
+    (void) type;
 
     HPM_PPOR->RESET_ENABLE = (1UL << 31);
     HPM_PPOR->SOFTWARE_RESET = 1000U;

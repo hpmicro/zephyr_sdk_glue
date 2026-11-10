@@ -36,7 +36,7 @@ Installing Prerequisites
      - 3.20.5
 
    * - `Python <https://www.python.org/>`_
-     - 3.8
+     - 3.12
 
    * - `Devicetree compiler <https://www.devicetree.org/>`_
      - 1.4.6
@@ -45,7 +45,7 @@ Installing Prerequisites
 Setting Up Workspace
 ----------------------
 
-#. Install west and add `~/.local/bin`` to ~/.bashrc
+#. Install west, add ``~/.local/bin`` to ``~/.bashrc``, and ensure that the terminal's ``PATH`` includes this directory at startup
 
     .. code-block:: console
         
@@ -61,14 +61,14 @@ Setting Up Workspace
         cd ${workspace}
         west init -m https://github.com/hpmicro/zephyr_sdk_glue.git --mr main
 
-#. Fetch repositories (use the first command to switch to a domestic mirror in China, default github):
+#. Fetch the required repositories. GitHub is used by default; run the first command to switch to the Gitee source:
 
     .. code-block:: console
 
-        west config manifest.file west_gitee.yml # For domestic mirror
+        west config manifest.file west_gitee.yml
         west update
 
-#. Configure CMake variables
+#. Register the Zephyr installation path with CMake
 
     .. code-block:: console
 
@@ -98,7 +98,9 @@ Multiple toolchains are supported. Choose one based on your needs.
 Zephyr SDK
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Official Zephyr SDK with full functionality and best compatibility.
+Zephyr SDK 1.0.1 is the default recommended toolchain. The following steps
+install the minimal SDK bundle and let ``setup.sh`` download the RISC-V GNU
+toolchain automatically.
 
 Download from: `ZEPHYR-SDK <https://github.com/zephyrproject-rtos/sdk-ng/releases/>`_
 
@@ -107,16 +109,20 @@ Download from: `ZEPHYR-SDK <https://github.com/zephyrproject-rtos/sdk-ng/release
     .. code-block:: console
 
         cd ${workspace}
-        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/zephyr-sdk-0.16.5_linux-x86_64.tar.xz
-        wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/sha256.sum | shasum --check --ignore-missing
-        tar xvf zephyr-sdk-0.16.5_linux-x86_64.tar.xz
+        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v1.0.1/zephyr-sdk-1.0.1_linux-x86_64_minimal.tar.xz
+        wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v1.0.1/sha256.sum | sha256sum --check --ignore-missing
+        tar xvf zephyr-sdk-1.0.1_linux-x86_64_minimal.tar.xz
 
-#. Configure toolchain environment variables
+    This checksum command only verifies the minimal SDK archive currently
+    downloaded. The RISC-V toolchain is downloaded by ``setup.sh`` in the next
+    step.
+
+#. Install the RISC-V toolchain and host tools, and register the Zephyr SDK
 
     .. code-block:: console
 
-        cd zephyr-sdk-0.16.5
-        ./setup.sh
+        cd zephyr-sdk-1.0.1
+        ./setup.sh -t riscv64-zephyr-elf -h -c
 
 ZCC Toolchain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -203,4 +209,3 @@ Additional Commands
 
         cd sdk_glue/docs
         make html
-

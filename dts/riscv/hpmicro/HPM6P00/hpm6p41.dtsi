@@ -1,0 +1,92 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+#include <dt-bindings/clock/hpm6p81-clocks.h>
+#include <hpmicro/HPM6P00/hpm6pxx.dtsi>
+
+/ {
+	soc {
+		compatible = "hpmicro,hpm6p41", "hpmicro,hpm6pxx";
+		pwm2: pwm@f0428000 {
+			compatible = "hpmicro,hpm-pwmv2";
+			reg = <0xf0428000 DT_SIZE_K(16)>;
+			clocks = <&clk CLOCK_PWM2 CLOCK_AHB0 1>;
+			status = "disabled";
+			#pwm-cells = <3>;
+		};
+
+		adc2: adc@f0108000 {
+			compatible = "hpmicro,hpm-adc16";
+			reg = <0xf0108000 DT_SIZE_K(16)>;
+			interrupts = <50 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_ADC2 CLK_ADC_SRC_AHB0 1>,
+				<&clk CLOCK_AHB0 CLK_SRC_PLL1_CLK0 4>;
+			adc-clk-div = <4>;
+			sample-time = <20>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
+
+		mcan1: can@f0304000 {
+			compatible = "hpmicro,hpm-mcan";
+			reg = <0xf0304000 DT_SIZE_K(16)>;
+			interrupts = <67 1>;
+			interrupt-parent = <&plic>;
+			clocks = <&clk CLOCK_CAN1 CLK_SRC_PLL1_CLK0 10>;
+			bitrate = <500000>;
+			status = "disabled";
+		};
+
+		dac1: dac@f0124000 {
+			reg = <0xf0124000 0x4000>;
+			clocks = <&clk CLOCK_DAC1 CLK_DAC_SRC_AHB0 1>,
+				<&clk CLOCK_AHB0 CLK_SRC_PLL1_CLK0 4>;
+			status = "disabled";
+		};
+
+		acmp2: acmp@f0138000 {
+			reg = <0xf0138000 0x4000>;
+			clocks = <&clk CLOCK_ACMP2 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		acmp3: acmp@f013c000 {
+			reg = <0xf013c000 0x4000>;
+			clocks = <&clk CLOCK_ACMP3 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		qei1: qei@f0404000 {
+			reg = <0xf0404000 0x4000>;
+			clocks = <&clk CLOCK_QEI1 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		qeo1: qeo@f0414000 {
+			reg = <0xf0414000 0x4000>;
+			clocks = <&clk CLOCK_QEO1 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		mtg0: mtg0@f0490000 {
+			reg = <0xf0490000 0x4000>;
+			clocks = <&clk CLOCK_MTG0 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		vsc0: vsc0@f04a0000 {
+			reg = <0xf04a0000 0x4000>;
+			clocks = <&clk CLOCK_VSC0 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+
+		clc0: clc0@f04b0000 {
+			reg = <0xf04b0000 0x4000>;
+			clocks = <&clk CLOCK_CLC0 CLOCK_AHB0 1>;
+			status = "disabled";
+		};
+	};
+};

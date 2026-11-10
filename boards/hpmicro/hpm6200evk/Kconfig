@@ -14,4 +14,9 @@ config HPMICRO_BOARD_SUPPORT_EMMC
     help
       SUPPORT EMMC
 
+config HPMICRO_BOARD_SUPPORT_SD_DETECT
+    bool "SUPPORT SD DETECT"
+    default n
+    help
+        SUPPORT SD DETECT
 endif #BOARD_HPM6200EVK

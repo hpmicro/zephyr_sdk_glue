@@ -1,0 +1,45 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HPM6300
+	bool
+	select SOC_FAMILY_HPM
+	select HAS_HPMSDK_PLLCTLV2
+	select HAS_HPMSDK_PCFG
+	help
+	  Enable support for HPMicro HPM63 series SoC
+
+config SOC_SERIES
+	default "HPM6300" if SOC_SERIES_HPM6300
+
+config SOC_HPM6320
+	bool
+	select SOC_SERIES_HPM6300
+
+config SOC_HPM6330
+	bool
+	select SOC_SERIES_HPM6300
+
+config SOC_HPM6340
+	bool
+	select SOC_SERIES_HPM6300
+
+config SOC_HPM6350
+	bool
+	select SOC_SERIES_HPM6300
+
+config SOC_HPM6360
+	bool
+	select SOC_SERIES_HPM6300
+
+config SOC_HPM6364
+	bool
+	select SOC_SERIES_HPM6300
+
+config SOC
+	default "HPM6320" if SOC_HPM6320
+	default "HPM6330" if SOC_HPM6330
+	default "HPM6340" if SOC_HPM6340
+	default "HPM6350" if SOC_HPM6350
+	default "HPM6360" if SOC_HPM6360
+	default "HPM6364" if SOC_HPM6364

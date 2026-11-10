@@ -1,26 +1,44 @@
-.. _hid-mouse:
+.. _usb_udc_hid-mouse_en:
 
-hid-mouse
-==========
-`zephyr sample link <https://docs.zephyrproject.org/3.7.0/samples/subsys/usb/hid-mouse/README.html>`_
+USB HID Mouse
+==============
 
-Sample Path
+Overview
+---------
+
+This sample uses the HPMicro USB device controller to emulate HID mouse buttons and pointer movement from the board's input buttons.
+
+* `Zephyr 4.4.0 USB HID Mouse sample <https://docs.zephyrproject.org/4.4.0/samples/subsys/usb/hid-mouse/README.html>`_
+
+Application paths
+------------------
+
+.. code-block:: text
+
+   zephyr/samples/subsys/usb/hid-mouse
+
+Hardware setup
 ---------------
 
-.. code-block::
+Connect the board's configured USB device port to a host computer. Keep the debug console connection available for logs.
 
-    zephyr/samples/subsys/usb/hid-mouse
+Building
+---------
 
-Build Cmd
-------------
-
-As hpm6750evk2 for example:
+Run from the west workspace root. The following commands use ``hpm6750evk2`` as an example:
 
 .. code-block:: console
 
-    west build -p always -b hpm6750evk2 -S hid-mouse samples/subsys/usb/hid-mouse -T sample.usb_device_next.hid-mouse
+   west build -p always -b hpm6750evk2 -S hid-mouse zephyr/samples/subsys/usb/hid-mouse
 
-Known Issues
--------------
+Expected behavior
+------------------
 
-- As hpm6750/hpm6800 gpio don't support `GPIO_INT_EDGE_BOTH` interrupt, so gpio-keys function is not supported.
+After flashing and reconnecting USB, the device enumerates a mouse. Pressing the first user button sends a left-button report, and ``led0`` toggles after each report is sent successfully. On boards with additional input keys, the next keys act as the right mouse button and move the pointer by 10 units along the X and Y axes.
+
+Notes
+------
+
+.. note::
+
+   Use the USB connector selected by the board overlay; a power-only cable cannot enumerate the device.

@@ -1,7 +1,0 @@
-sample:
-  name: CherryUSB Host MSC
-tests:
-  sample.cherryusb.host.cdc_acm:
-    depends_on: cherryusb
-    tags:
-      - cherryusb_host_msc

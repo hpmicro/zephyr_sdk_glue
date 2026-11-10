@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 HPMicro
+ * Copyright (c) 2024, 2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -9,6 +9,7 @@
 #include <hpm_mipi_dsi_drv.h>
 #include <hpm_mipi_dsi_phy_drv.h>
 #include <hpm_pixelmux_drv.h>
+#include <drivers/clock_control/hpmicro_clock_control.h>
 
 LOG_MODULE_REGISTER(display_hpm_mipi, CONFIG_DISPLAY_LOG_LEVEL);
 
@@ -60,8 +61,8 @@ struct hpm_interface_mipi_dsi {
 #define DISPLAY_INTERFACE(inst)                                                                                          \
     .interface = &(struct hpm_interface_mipi_dsi) {                                                                      \
         .mipi_base     = (void *)DT_REG_ADDR_BY_NAME(INTERFACE_NODE_ID(inst), mipi_dsi),                                 \
-        .mipi_phy_base = (void *)DT_REG_ADDR_BY_NAME(INTERFACE_NODE_ID(inst), mipi_dsi_phy),                             \
-        .pixelmux_base = (void *)DT_REG_ADDR_BY_NAME(INTERFACE_NODE_ID(inst), pixelmux),                                 \
+        .mipi_phy_base = (void *)DT_REG_ADDR(DT_PHANDLE_BY_IDX(INTERFACE_NODE_ID(inst), mipi_dsi_phy, 0)),               \
+        .pixelmux_base = (void *)DT_REG_ADDR(DT_PHANDLE_BY_IDX(INTERFACE_NODE_ID(inst), pixelmux, 0)),                   \
         .dsi_clock_name = DT_CLOCKS_CELL_BY_IDX(INTERFACE_NODE_ID(inst), 0, name),                                       \
         .dsi_clock_src  = DT_CLOCKS_CELL_BY_IDX(INTERFACE_NODE_ID(inst), 0, src),                                        \
         .id            = DT_PROP(INTERFACE_NODE_ID(inst), id),                                                           \
@@ -79,8 +80,13 @@ static int hpm_display_lcdc_clk_init(const struct device *dev)
     freq_khz = clock_get_frequency(lcdc->pll_clock_name) / 1000;
     div = (freq_khz + timing->pixel_clock_khz / 2) / timing->pixel_clock_khz;
 
-    clock_add_to_group(lcdc->lcdc_clock_name, 0);
-    clock_set_source_divider(lcdc->lcdc_clock_name, lcdc->lcdc_clock_src, div);
+    const struct hpm_clock_dt_spec lcdc_clock = {
+        .name = (clock_name_t)lcdc->lcdc_clock_name,
+        .src = (clk_src_t)lcdc->lcdc_clock_src,
+        .div = div,
+    };
+
+    clock_configure_enable(&lcdc_clock);
     data->pixel_clk_khz = clock_get_frequency(lcdc->lcdc_clock_name) / 1000;
 
     LOG_INF("pll clk        : %u KHz", freq_khz);
@@ -123,11 +129,12 @@ static void hpm_display_mipi_panel_host_init(const struct device *dev)
     const struct hpm_display_timing *timing = &config->panel.timing;
     mipi_dsi_config_t mipi_cfg;
 
-    clock_add_to_group(interface->dsi_clock_name, 0);
+    clock_enable_name((clock_name_t)interface->dsi_clock_name);
 
     mipi_dsi_get_defconfig_on_video(&mipi_cfg);
 
     mipi_cfg.channel                    = 0;
+    mipi_cfg.lane_mbps                  = mipi_panel_cfg->mipi_lane_speed;
     mipi_cfg.lanes                      = mipi_panel_cfg->mipi_lane_num;
     mipi_cfg.video_para.pixel_clock_khz = data->pixel_clk_khz;
     mipi_cfg.video_para.hactive         = timing->hactive;

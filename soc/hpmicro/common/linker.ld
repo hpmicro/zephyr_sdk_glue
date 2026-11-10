@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016-2017 Jean-Paul Etienne <fractalclone@gmail.com>
- * Copyright (c) 2024-2025 HPMicro
+ * Copyright (c) 2024-2026 HPMicro
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -52,6 +52,22 @@
 #define ROM_BASE (DT_REG_ADDR(DT_CHOSEN(zephyr_flash)) + FLASH_LOAD_OFFSET)
 #ifndef ROM_SIZE
 #define ROM_SIZE (DT_REG_SIZE(DT_CHOSEN(zephyr_flash)) - ROM_END_OFFSET)
+#endif
+
+#elif DT_NODE_HAS_COMPAT(DT_CHOSEN(zephyr_flash), jedec_spi_nor)
+/* For jedec,spi-nor we expect the spi controller to memory map the flash
+ * and for that mapping to be on the register with the name flash_mmap and if a register with that
+ * name doesn't exists, we expect it to be in the second register property of the spi controller.
+ */
+#define SPI_CTRL DT_PARENT(DT_CHOSEN(zephyr_flash))
+#define FLASH_MMAP_NAME flash_mmap
+#define ROM_BASE                                                                                   \
+	(DT_REG_ADDR_BY_NAME_OR(SPI_CTRL, FLASH_MMAP_NAME, DT_REG_ADDR_BY_IDX(SPI_CTRL, 1)) +      \
+	 FLASH_LOAD_OFFSET)
+#ifndef ROM_SIZE
+#define ROM_SIZE                                                                                   \
+	(DT_REG_SIZE_BY_NAME_OR(SPI_CTRL, FLASH_MMAP_NAME, DT_REG_SIZE_BY_IDX(SPI_CTRL, 1)) -      \
+	 ROM_END_OFFSET)
 #endif
 
 #else /* Use Kconfig to cover the remaining cases */
@@ -160,10 +176,38 @@ SECTIONS
 
 		__text_region_start = .;
 
+#if defined(CONFIG_USERSPACE) && (defined(CONFIG_LLVM_USE_LLD) || defined(__LLD_LINKER_CMD__))
+		/* ZCC emits helper functions from generated headers into ordinary text
+		 * sections in kobject_hash_renamed.o. Keep all generated kobject code in
+		 * Zephyr's reserved area so pre-link ISR addresses remain valid.
+		 */
+		PLACE_SYMBOL_HERE(_kobject_text_area_start);
+		*kobject_hash_renamed.o(.pinned_text)
+		*kobject_hash_renamed.o(".pinned_text.*")
+		*kobject_hash_renamed.o(.text)
+		*kobject_hash_renamed.o(".text.*")
+		*(".kobject_data.literal*")
+		*(".kobject_data.text*")
+		PLACE_SYMBOL_HERE(_kobject_text_area_end);
+		_kobject_text_area_used = _kobject_text_area_end - _kobject_text_area_start;
+		. = MAX(., _kobject_text_area_start + CONFIG_KOBJECT_TEXT_AREA);
+		ASSERT(CONFIG_KOBJECT_TEXT_AREA >= _kobject_text_area_used,
+		       "Reserved space for kobject text area is too small.")
+#endif
+
+#ifdef CONFIG_LINKER_USE_PINNED_SECTION
+		lnkr_pinned_text_start = .;
+		*(.pinned_text)
+		*(".pinned_text.*")
+		lnkr_pinned_text_end = .;
+#endif
+
 		*(.text)
 		*(".text.*")
 		*(.gnu.linkonce.t.*)
+#if !defined(CONFIG_USERSPACE) || (!defined(CONFIG_LLVM_USE_LLD) && !defined(__LLD_LINKER_CMD__))
 #include <zephyr/linker/kobject-text.ld>
+#endif
 	} GROUP_LINK_IN(ROMABLE_REGION)
 
     __text_region_end = .;
@@ -179,6 +223,12 @@ SECTIONS
     SECTION_PROLOGUE(_RODATA_SECTION_NAME,,)
 	{
 		 . = ALIGN(4);
+#ifdef CONFIG_LINKER_USE_PINNED_SECTION
+		lnkr_pinned_rodata_start = .;
+		*(.pinned_rodata)
+		*(".pinned_rodata.*")
+		lnkr_pinned_rodata_end = .;
+#endif
 		 *(.srodata)
 		 *(".srodata.*")
 		 *(.rodata)
@@ -253,6 +303,13 @@ SECTIONS
 		 . = ALIGN(4);
 		 __bss_start = .;
 		__kernel_ram_start = .;
+#ifdef CONFIG_LINKER_USE_PINNED_SECTION
+		/* Keep pinned BSS in regular BSS so the existing startup zeroing covers it. */
+		lnkr_pinned_bss_start = .;
+		*(.pinned_bss)
+		*(".pinned_bss.*")
+		lnkr_pinned_bss_end = .;
+#endif
 		 *(.sbss)
 		 *(".sbss.*")
 		 *(.bss)
@@ -270,6 +327,31 @@ SECTIONS
 		  __bss_end = ALIGN(4);
 	}  GROUP_DATA_LINK_IN(RAMABLE_REGION, RAMABLE_REGION)
 
+#ifdef HPM_RETAINED_NOINIT_REGION
+	SECTION_PROLOGUE(_HPM_RETAINED_NOINIT_SECTION_NAME, (NOLOAD),SUBALIGN(8))
+	{
+		__hpm_retained_noinit_start = .;
+		/*
+		 * Zephyr watchdog test uses .dtcm_noinit.test_wdt when
+		 * zephyr,dtcm exists and .noinit.test_wdt otherwise. HPM
+		 * DLM/DTCM and normal RAM are not retained across watchdog
+		 * reset, so keep those compatibility inputs in the SoC
+		 * reset-retained region instead.
+		 */
+		KEEP(*(.dtcm_noinit.test_wdt))
+		KEEP(*(".dtcm_noinit.test_wdt.*"))
+		KEEP(*(.noinit.test_wdt))
+		KEEP(*(".noinit.test_wdt.*"))
+		KEEP(*(.hpm_retained_noinit))
+		KEEP(*(".hpm_retained_noinit.*"))
+		__hpm_retained_noinit_end = .;
+	} GROUP_LINK_IN(HPM_RETAINED_NOINIT_REGION)
+
+	ASSERT(__hpm_retained_noinit_end - __hpm_retained_noinit_start <=
+	       LENGTH(HPM_RETAINED_NOINIT_REGION),
+	       "HPM retained noinit section exceeds retained memory region")
+#endif
+
 #include <zephyr/linker/common-noinit.ld>
 
     SECTION_DATA_PROLOGUE(_DATA_SECTION_NAME,,)
@@ -278,6 +360,13 @@ SECTIONS
 		/* _image_ram_start = .; */
 		 __data_region_start = .;
 		 __data_start = .;
+
+#ifdef CONFIG_LINKER_USE_PINNED_SECTION
+		lnkr_pinned_data_start = .;
+		*(.pinned_data)
+		*(".pinned_data.*")
+		lnkr_pinned_data_end = .;
+#endif
 
 		 *(.data)
 		 *(".data.*")
@@ -341,6 +430,12 @@ GROUP_START(ITCM)
 		*(".itcm.*")
         *(.fast)
         *(.fast.*)
+
+		. = ALIGN(8);
+		 KEEP(*(".exception.entry.*"))
+		 *(".exception.other.*")
+
+		. = ALIGN(8);
 /* Located in generated directory. This file is populated by the
  * zephyr_linker_sources() Cmake function. */
 #include <snippets-itcm-section.ld>
@@ -369,6 +464,13 @@ GROUP_START(DTCM)
 	SECTION_PROLOGUE(_DTCM_NOINIT_SECTION_NAME, (NOLOAD),SUBALIGN(8))
 	{
 		__dtcm_noinit_start = .;
+#ifdef CONFIG_LINKER_USE_PINNED_SECTION
+		/* Zephyr early kernel stacks are pinned noinit; keep them in always-on DTCM. */
+		lnkr_pinned_noinit_start = .;
+		KEEP(*(.pinned_noinit))
+		KEEP(*(".pinned_noinit.*"))
+		lnkr_pinned_noinit_end = .;
+#endif
 		*(.dtcm_noinit)
 		*(".dtcm_noinit.*")
 		__dtcm_noinit_end = .;
@@ -393,13 +495,36 @@ GROUP_START(DTCM)
 
 GROUP_END(DTCM)
 
-SECTION_PROLOGUE(.stack,(NOLOAD),SUBALIGN(16))
-{
-	__stack_base__ = .;
-	. += 0x400;
-	PROVIDE (_stack = .);
-	PROVIDE (_stack_safe = .);
-} GROUP_LINK_IN(DTCM)
+#ifdef CONFIG_LINKER_USE_PINNED_SECTION
+	ASSERT(z_interrupt_stacks >= lnkr_pinned_noinit_start &&
+	       z_interrupt_stacks + __z_interrupt_all_stacks_SIZEOF <= lnkr_pinned_noinit_end,
+	       "HPM Zephyr interrupt stack must be linked in pinned noinit")
+
+	ASSERT(z_interrupt_stacks >= ORIGIN(DTCM) &&
+	       z_interrupt_stacks + __z_interrupt_all_stacks_SIZEOF <= ORIGIN(DTCM) + LENGTH(DTCM),
+	       "HPM Zephyr interrupt stack must be linked in DTCM")
+#endif
+#endif
+
+#if defined(CONFIG_LINKER_USE_PINNED_SECTION) && \
+	!DT_NODE_HAS_STATUS(DT_CHOSEN(zephyr_dtcm), okay)
+	SECTION_PROLOGUE(PINNED_NOINIT_SECTION_NAME, (NOLOAD),SUBALIGN(8))
+	{
+		lnkr_pinned_noinit_start = .;
+		KEEP(*(.pinned_noinit))
+		KEEP(*(".pinned_noinit.*"))
+		lnkr_pinned_noinit_end = .;
+	} GROUP_NOLOAD_LINK_IN(RAMABLE_REGION, ROMABLE_REGION)
+#endif
+
+#ifdef CONFIG_LINKER_USE_PINNED_SECTION
+	lnkr_pinned_start = lnkr_pinned_noinit_start;
+	lnkr_pinned_end = lnkr_pinned_noinit_end;
+	lnkr_pinned_text_size = lnkr_pinned_text_end - lnkr_pinned_text_start;
+	lnkr_pinned_rodata_size = lnkr_pinned_rodata_end - lnkr_pinned_rodata_start;
+	lnkr_pinned_data_size = lnkr_pinned_data_end - lnkr_pinned_data_start;
+	lnkr_pinned_bss_size = lnkr_pinned_bss_end - lnkr_pinned_bss_start;
+	lnkr_pinned_noinit_size = lnkr_pinned_noinit_end - lnkr_pinned_noinit_start;
 #endif
 
 /* Located in generated directory. This file is populated by the
@@ -426,7 +551,7 @@ SECTION_PROLOGUE(.stack,(NOLOAD),SUBALIGN(16))
 /* Output section descriptions are needed for these sections to suppress
  * warnings when "--orphan-handling=warn" is set for lld.
  */
-#if defined(CONFIG_LLVM_USE_LLD)
+#if defined(CONFIG_LLVM_USE_LLD) || defined(__LLD_LINKER_CMD__)
     SECTION_PROLOGUE(.symtab, 0,) { *(.symtab) }
     SECTION_PROLOGUE(.strtab, 0,) { *(.strtab) }
     SECTION_PROLOGUE(.shstrtab, 0,) { *(.shstrtab) }
@@ -434,6 +559,14 @@ SECTION_PROLOGUE(.stack,(NOLOAD),SUBALIGN(16))
 
     /* Sections generated from 'zephyr,memory-region' nodes */
     LINKER_DT_SECTIONS()
+
+#if defined(CONFIG_NOCACHE_MEMORY) && \
+	(defined(CONFIG_SOC_SERIES_HPM5100) || defined(CONFIG_SOC_SERIES_HPM5300))
+    ASSERT(_nocache_ram_start >= ORIGIN(RAM),
+	   "nocache starts outside HPM DLM RAM")
+    ASSERT(_nocache_ram_end <= ORIGIN(RAM) + LENGTH(RAM),
+	   "nocache exceeds HPM DLM RAM")
+#endif
 
 /* Because ROMABLE_REGION != RAMABLE_REGION in XIP-system, it is valid
  * to set __rom_region_end symbol at the end of linker script and

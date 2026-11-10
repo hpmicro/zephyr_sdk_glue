@@ -5,6 +5,12 @@ description: HPMicro HPM LVB
 compatible: "hpmicro,hpm-lvb"
 include: ["base.yaml"]
 
+properties:
+  pixelmux:
+    type: phandle
+    required: true
+    description: pixelmux node
+
 child-binding:
   description: phy in lvb
   compatible: "hpmicro,hpm-lvds"

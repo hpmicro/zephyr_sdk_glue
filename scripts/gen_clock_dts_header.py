@@ -1,5 +1,5 @@
-# Copyright (c) 2024 HPMicro
-# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2024-2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
 
 import sys, re, os, logging, argparse
 
@@ -10,7 +10,18 @@ import lib.sdk_glue_banner as ba
 base_dir = utils.SDK_GLUE_BASE
 operate_dir = os.path.join(utils.HPM_SDK_BASE, "soc")
 output_dir = os.path.join(utils.SDK_GLUE_BASE, "include", "dt-bindings", "clock")
-soc_list = ["HPM5361", "HPM6280", "HPM6360", "HPM6750", "HPM6880", "HPM6E80"]
+soc_list = [
+    "HPM5151",
+    "HPM5301",
+    "HPM5361",
+    "HPM5E31",
+    "HPM6280",
+    "HPM6360",
+    "HPM6750",
+    "HPM6880",
+    "HPM6E80",
+    "HPM6P81",
+]
 
 class dts_header:
     config_error = utils.error
@@ -50,6 +61,13 @@ class dts_header:
         return ("#endif  /* %s */" % header_macro)
 
     def check_series_name(self, name):
+        series_map = {
+            "HPM5E31": "HPM5E00",
+            "HPM6P81": "HPM6P00",
+        }
+        if name in series_map:
+            return series_map[name]
+
         match = re.search(r'HPM\w{4}', name)
         if match:
             soc = match.group(0)
@@ -82,7 +100,7 @@ class dts_header:
         self.sysctl_reg_path = sysctl_reg_path
 
     def parse_define(self, line):
-        line = line.strip()
+        line = self.strip_comments(line).strip()
         tokens = line.split()
         if not line.startswith('#define'):
             return None, None
@@ -98,6 +116,11 @@ class dts_header:
         else:
             value = ''.join(filter(str.isdigit, tokens[2]))
         return name, value
+
+    def strip_comments(self, text):
+        text = re.sub(r'/\*.*?\*/', '', text)
+        text = re.sub(r'//.*', '', text)
+        return text
     
     def amend_enum(self, text):
         update_text = ""
@@ -120,6 +143,7 @@ class dts_header:
 
 ## fill table
         for line in update_text.strip().split(","):
+            line = self.strip_comments(line).strip()
             if "=" in line:
                 key, value = line.split("=")
                 key = key.strip()
@@ -133,10 +157,10 @@ class dts_header:
                         line = line.replace(hex_value, value)
 
                     count_dict[key] = value
-                    result += line
+                    result += line + "\n"
                     cnt = int(value)
                 else:
-                    result += line.replace(value, str(cnt))
+                    result += line.replace(value, str(cnt)) + "\n"
 
             elif cnt is not None:
                 key = line.strip()
@@ -144,7 +168,7 @@ class dts_header:
                     cnt += 1
                     count_dict[key] = str(cnt)
                     line = line + " = " + str(cnt)
-                    result += line
+                    result += line + "\n"
         return result
 
     def _build_define_dict(self):
@@ -184,10 +208,11 @@ class dts_header:
         text = self.amend_enum(text)
 
         for line in text.strip().split("\n"):
+            line = self.strip_comments(line)
             if "=" in line:
-                name, value = line.split("=")
+                name, value = line.split("=", 1)
                 name = name.strip()
-                value = value.strip()
+                value = value.strip().rstrip(',')
                 if name is not None:
                     dict[name] = value
         return dict            
@@ -209,8 +234,11 @@ class dts_header:
 
         dict = self._build_define_dict()
         for line in text.strip().split("\n"):
+            line = self.strip_comments(line).strip()
             if line.strip(","):
                 parts = line.split("=")
+                if len(parts) < 2:
+                    continue
                 name = parts[0].strip().upper()
                 src = parts[1].strip().replace("MAKE_CLK_SRC(", "").replace(")", "").split(",")
                 group = src[0].strip()
@@ -238,9 +266,11 @@ class dts_header:
         enum_dict = self._build_enum_dict()
         define_dict = self._build_define_dict()
         for line in text.strip().split("\n"):
-            line = line.strip()
+            line = self.strip_comments(line).strip()
             if line and not line.startswith("//") and not line.startswith("/*"):
                 parts = line.split("=")
+                if len(parts) < 2:
+                    continue
                 name = parts[0].strip().upper()
                 if len(parts) > 1:
                     value = parts[1].strip()
@@ -305,7 +335,7 @@ def main():
     parser = argparse.ArgumentParser(description = "generate zephyr dts header files")
     parser.add_argument('--soc',
                         help='''generate hpmicro soc zephyr dts header
-                        options: "HPM5361", "HPM6280", "HPM6360", "HPM6750", "HPM6880", "HPM6E80"''')
+                        options: "HPM5151", "HPM5361", "HPM6280", "HPM6360", "HPM6750", "HPM6880", "HPM6E80"''')
     parser.add_argument('--org',
                         help='organization name')
     parser.add_argument('--license',

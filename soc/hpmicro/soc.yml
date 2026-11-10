@@ -1,3 +1,6 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
 family:
 - name: hpmicro
   series:
@@ -7,28 +10,59 @@ family:
     - name: hpm5321
     - name: hpm5331
     - name: hpm5361
+  - name: hpm5e00
+    socs:
+    - name: hpm5e11
+    - name: hpm5e31
+    - name: hpm5e3y
+  - name: hpm5100
+    socs:
+    - name: hpm5151
   - name: hpm6200
     socs:
+    - name: hpm6220
     - name: hpm6240
     - name: hpm6260
+    - name: hpm6264
     - name: hpm6280
+    - name: hpm6284
   - name: hpm6300
     socs:
     - name: hpm6320
     - name: hpm6330
+    - name: hpm6340
+    - name: hpm6350
     - name: hpm6360
+    - name: hpm6364
   - name: hpm6700
     socs:
+    - name: hpm6430
     - name: hpm6450
+    - name: hpm6454
+    - name: hpm64g0
+    - name: hpm64a0
+    - name: hpm6730
     - name: hpm6750
+    - name: hpm6754
   - name: hpm6800
     socs:
     - name: hpm6830
     - name: hpm6850
     - name: hpm6880
+    - name: hpm68d2
+    - name: hpm68d3
+    - name: hpm68d4
   - name: hpm6e00
     socs:
     - name: hpm6e50
+    - name: hpm6e60
+    - name: hpm6e6y
+    - name: hpm6e70
     - name: hpm6e80
+    - name: hpm6e84
     - name: hpm6e8y
-
+  - name: hpm6p00
+    socs:
+    - name: hpm6p31
+    - name: hpm6p41
+    - name: hpm6p81

@@ -1,7 +1,24 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
 sample:
   name: CherryUSB Device Mass Storage
 tests:
-  sample.cherryusb.device.mass_ram_none:
-    depends_on: cherryusb
+  hpmicro.sample.cherryusb.device.msc.ram_disk:
     tags:
-      - cherryusb_device_msc
+      - hpmicro_verified
+      - usbd
+    depends_on:
+      - usbd
+    platform_allow: &platforms
+      - hpm5100evk
+      - hpm5300evk
+      - hpm5301evklite
+      - hpm5e00evk
+      - hpm6200evk
+      - hpm6300evk
+      - hpm6750evk2
+      - hpm6800evk
+      - hpm6e00evk
+      - hpm6p00evk
+    integration_platforms: *platforms

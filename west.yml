@@ -1,3 +1,6 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
 # The west manifest file (west.yml) for the hpmicro SDK.
 #
 # The per-workspace west configuration file, .west/config,
@@ -7,8 +10,8 @@
 #     path = sdk_glue
 
 ########################################
-##  zephyr                    v3.7.0  ##
-##  hpm_sdk                   v1.11.0 ##
+##  zephyr                    v4.4.0  ##
+##  hpm_sdk                   v1.13.0 ##
 ########################################
 manifest:
   version: "1.0"
@@ -16,6 +19,8 @@ manifest:
   remotes:
     - name: test
       url-base: git@192.168.11.211:oss
+    - name: sw
+      url-base: git@192.168.11.211:sw
     - name: github
       url-base: https://github.com/hpmicro
     - name: cherry-embedded
@@ -27,15 +32,16 @@ manifest:
   projects:
     - name: zephyr
       repo-path: zephyr
-      revision: zsg_v0.7.0
+      revision: zsg_v0.8.0
       import:
         name-allowlist:
           - west-commands
           - mbedtls
+          - tf-psa-crypto
     - name: sdk_env
       repo-path: sdk_env
       path: sdk_env
-      revision: v1.11.0
+      revision: v1.13.0
       submodules: true
     - name: canopennode
       repo-path: canopennode
@@ -44,19 +50,19 @@ manifest:
     - name: lvgl
       repo-path: zephyr_lvgl
       path: modules/lib/gui/lvgl
-      revision: 2b498e6f36d6b82ae1da12c8b7742e318624ecf5
+      revision: 85aa60d18b3d5e5588d7b247abf90198f07c8a63
     - name: CherryUSB
       remote: cherry-embedded
       repo-path: CherryUSB
       path: modules/lib/CherryUSB
-      revision: 5ffe9cbe7fb41489d99806daa8572124ace1b99b
+      revision: 4b830cf6bf804542cdd0cf14dd010fddeb990f8b
     - name: fatfs
       repo-path: fatfs
       path: modules/fs/fatfs
-      revision: 427159bf95ea49b7680facffaa29ad506b42709b
+      revision: 42c2d6ee77e108d2a6d05e862ef0be23511db204
     - name: mcuboot
       repo-path: mcuboot
-      revision: c098a7fe3aa03f8e21b6fe083dd8d9704db78a03
+      revision: 5af38164715eb75b4319588f6a41d71466e7060a
       path: bootloader/mcuboot
 
 

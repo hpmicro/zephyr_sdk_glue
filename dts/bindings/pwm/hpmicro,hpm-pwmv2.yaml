@@ -19,7 +19,9 @@ properties:
 
     period-init:
       type: int
-      description: pwm period, unit hz
+      description: |
+        Deprecated unused init hint (Hz). Reload is set by pwm_set_cycles;
+        kept optional for overlay compatibility.
       required: false
     
     dead-zone-in-half-cycle:

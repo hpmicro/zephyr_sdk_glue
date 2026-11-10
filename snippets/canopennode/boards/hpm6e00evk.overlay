@@ -1,24 +1,14 @@
 /*
- * Copyright 2025 HPMicro
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright 2025-2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 / {
-	aliases {
-        green-led = &led_g;
-		red-led = &led_r;
-	};
 	chosen {
-        zephyr,canbus = &mcan4;
+		zephyr,canbus = &mcan4;
 	};
-
 };
+
 &mcan4 {
-    status = "okay";
-    pinctrl-0 = <&pinmux_mcan4>;
-    pinctrl-names = "default";
-    	can-transceiver {
-		max-bitrate = <5000000>;
-	};
+	status = "okay";
 };
-

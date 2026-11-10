@@ -46,14 +46,14 @@ Setting Up Workspace
         cd %workspace%
         west init -m https://github.com/hpmicro/zephyr_sdk_glue.git --mr main
 
-#. Fetch repositories (use first command for domestic mirror in China)
+#. Fetch the required repositories. GitHub is used by default; run the first command to switch to the Gitee source:
 
     .. code-block:: console
 
         west config manifest.file west_gitee.yml
         west update
 
-#. Configure CMake variables
+#. Register the Zephyr installation path with CMake
 
     .. code-block:: console
 
@@ -83,7 +83,8 @@ Multiple toolchains are supported. Choose one based on your needs.
 Zephyr SDK
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Official Zephyr SDK with full functionality and best compatibility.
+Zephyr SDK 1.0.1 is the default recommended toolchain. The minimal SDK bundle
+is used together with the RISC-V GNU toolchain package.
 
 Download from: `ZEPHYR-SDK <https://github.com/zephyrproject-rtos/sdk-ng/releases/>`_
 
@@ -92,15 +93,15 @@ Download from: `ZEPHYR-SDK <https://github.com/zephyrproject-rtos/sdk-ng/release
     .. code-block:: console
 
         cd %workspace%
-        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/zephyr-sdk-0.16.5_windows-x86_64.7z
-        7z x zephyr-sdk-0.16.5_windows-x86_64.7z
+        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v1.0.1/zephyr-sdk-1.0.1_windows-x86_64_minimal.7z
+        7z x zephyr-sdk-1.0.1_windows-x86_64_minimal.7z
 
-#. Configure toolchain environment variables
+#. Configure the required toolchain variables
 
     .. code-block:: console
 
-        cd zephyr-sdk-0.16.5
-        setup.cmd
+        cd zephyr-sdk-1.0.1
+        setup.cmd /t riscv64-zephyr-elf /c
 
 ZCC Toolchain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -133,7 +134,7 @@ If you already have a RISC-V GCC toolchain, you can use it directly.
         set ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
         set CROSS_COMPILE=C:\path\to\riscv32-unknown-elf-gcc\bin\riscv32-unknown-elf-
 
-    Replace ``C:\path\to\riscv32-unknown-elf-gcc`` with your actual toolchain installation path
+    Replace ``C:\path\to\riscv32-unknown-elf-`` with your actual toolchain installation path
 
 Building Zephyr Button Sample
 ------------------------------

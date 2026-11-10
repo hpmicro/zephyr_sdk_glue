@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2025 HPMicro
+# Copyright (c) 2023-2026 HPMicro
 # SPDX-License-Identifier: BSD-3-Clause
 
 zephyr_include_directories(${ZEPHYR_BASE}/drivers)
@@ -23,3 +23,7 @@ if (CONFIG_CHERRYUSB_HPMICRO)
 endif()
 add_subdirectory(ethernet)
 add_subdirectory(flash)
+add_subdirectory(counter)
+add_subdirectory(watchdog)
+add_subdirectory(hwinfo)
+add_subdirectory(entropy)

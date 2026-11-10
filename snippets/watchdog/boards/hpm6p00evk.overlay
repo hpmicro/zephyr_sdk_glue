@@ -1,0 +1,14 @@
+/*
+* Copyright (c) 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+/ {
+	aliases {
+		watchdog0 = &ewdg0;
+	};
+};
+
+&ewdg0 {
+	status = "okay";
+};

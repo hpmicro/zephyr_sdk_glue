@@ -1,0 +1,36 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: Mass Storage
+tests:
+  hpmicro.sample.subsys.usb.mass:
+    extra_args:
+    - EXTRA_DTC_OVERLAY_FILE="ramdisk.overlay"
+    min_ram: 128
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: true
+      regex:
+      - No file system selected
+      - The device is put in USB mass storage mode
+    tags:
+    - hpmicro_verified
+    - usbd
+    depends_on:
+    - usbd
+    required_snippets:
+    - mass
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5301evklite
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

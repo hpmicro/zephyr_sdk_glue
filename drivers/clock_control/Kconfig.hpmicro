@@ -1,4 +1,4 @@
-# Copyright (c) 2024 HPMicro
+# Copyright (c) 2024-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 config CLOCK_CONTROL_HPMICRO
@@ -19,7 +19,22 @@ config CLOCK_CONTROL_HPMICRO_PLLV1
 config CLOCK_CONTROL_HPMICRO_PLLV2
 	bool "HPMICRO clock control pllv2 driver"
 	default y
-	depends on DT_HAS_HPMICRO_HPM_PLLV2_ENABLED
+	depends on DT_HAS_HPMICRO_HPM_PLLV2_CLOCK_ENABLED
     select HAS_HPMSDK_PLLCTLV2
     help
         Enable the HPMICRO PLLV2 driver
+
+config CLOCK_CONTROL_HPMICRO_CPU
+	bool "HPMICRO CPU clock control driver"
+	default y
+	depends on DT_HAS_HPMICRO_HPM_CPU_CLOCK_ENABLED
+	help
+	  Configure HPMicro CPU and derived system clocks from devicetree.
+
+config CLOCK_CONTROL_HPMICRO_CPU_INIT_PRIORITY
+	int "HPMICRO CPU clock initialization priority"
+	default 41
+	depends on CLOCK_CONTROL_HPMICRO_CPU
+	help
+	  Initialize the CPU clock after the PLL clock controllers and the
+	  HPM6300 SoC voltage setup.

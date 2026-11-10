@@ -1,0 +1,9 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+board:
+  name: hpm5301evklite
+  full_name: hpm5301evklite
+  vendor: hpmicro
+  socs:
+    - name: hpm5301

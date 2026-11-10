@@ -1,0 +1,27 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: HPMicro Drivers Watchdog Wdt Basic Reset None test
+tests:
+  hpmicro.test.drivers.watchdog.wdt_basic_reset_none:
+    tags:
+    - hpmicro_verified
+    - watchdog
+    depends_on:
+    - watchdog
+    filter: dt_alias_exists("watchdog0")
+    required_snippets:
+    - watchdog
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5301evklite
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

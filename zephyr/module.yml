@@ -1,4 +1,6 @@
 name: sdk_glue
+runners:
+  - file: scripts/west_commands/runners/zdb.py
 build:
   cmake: .
   kconfig: Kconfig.hpm

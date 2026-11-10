@@ -1,0 +1,14 @@
+/*
+* Copyright 2026 HPMicro
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+/ {
+	chosen {
+		zephyr,entropy = &rng0;
+	};
+};
+
+&rng0 {
+	status = "okay";
+};

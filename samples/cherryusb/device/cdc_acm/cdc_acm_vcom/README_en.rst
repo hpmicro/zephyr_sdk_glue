@@ -24,7 +24,7 @@ Build Cmd
 
     .. code-block:: console
 
-        west build -p always -b hpm6750evk2 samples/cherryusb/device/cdc_acm/cdc_acm_vcom/
+        west build -p always -b hpm6750evk2 samples/cherryusb/device/cdc_acm/cdc_acm_vcom
 
 Running the example
 -------------------

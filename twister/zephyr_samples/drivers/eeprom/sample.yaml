@@ -1,0 +1,24 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: EEPROM Sample
+tests:
+  hpmicro.sample.drivers.eeprom:
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+      - Reset the MCU to see the increasing boot counter.
+    tags:
+    - hpmicro_verified
+    - i2c
+    depends_on:
+    - i2c
+    required_snippets:
+    - i2c_eeprom
+    platform_allow: &platforms
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    integration_platforms: *platforms

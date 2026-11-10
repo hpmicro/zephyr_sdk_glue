@@ -1,0 +1,28 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: HPMicro Drivers Counter Counter Basic Api test
+tests:
+  hpmicro.test.drivers.counter.counter_basic_api:
+    timeout: 600
+    min_ram: 16
+    tags:
+    - hpmicro_verified
+    - counter
+    depends_on:
+    - counter
+    required_snippets:
+    - counter
+    platform_allow: &platforms
+    - hpm5100evk
+    - hpm5300evk
+    - hpm5301evklite
+    - hpm5e00evk
+    - hpm6200evk
+    - hpm6300evk
+    - hpm6750evk2
+    - hpm6800evk
+    - hpm6e00evk
+    - hpm6p00evk
+    integration_platforms: *platforms

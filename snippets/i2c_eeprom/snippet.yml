@@ -1,4 +1,4 @@
-# Copyright (c) 2024 HPMicro
+# Copyright (c) 2024-2026 HPMicro
 # SPDX-License-Identifier: Apache-2.0
 
 name: i2c_eeprom
@@ -14,4 +14,3 @@ boards:
   hpm6e00evk/hpm6e80:
     append:
       EXTRA_DTC_OVERLAY_FILE: boards/hpm6e00evk.overlay
-

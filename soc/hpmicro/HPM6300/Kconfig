@@ -1,0 +1,102 @@
+# Copyright (c) 2026 HPMicro
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HPM6300
+	select RISCV
+	select RISCV_PRIVILEGED
+	select RISCV_HAS_PLIC
+	select RISCV_MACHINE_TIMER
+	select RISCV_SOC_HAS_GP_RELATIVE_ADDRESSING
+	select DYNAMIC_INTERRUPTS
+	help
+	  Enable support for HPMicro HPM63 series SoC
+
+config SOC_HPM63_COMMON
+	bool
+	select ATOMIC_OPERATIONS_C
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+    select RISCV_ISA_EXT_C
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+	select CPU_HAS_DCACHE
+	select CPU_HAS_ICACHE
+	select RISCV_PMP if !MCUBOOT
+
+config SOC_HPM6320
+	bool
+	select SOC_HPM63_COMMON
+
+config SOC_HPM6330
+	bool
+	select SOC_HPM63_COMMON
+
+config SOC_HPM6340
+	bool
+	select SOC_HPM63_COMMON
+
+config SOC_HPM6350
+	bool
+	select SOC_HPM63_COMMON
+
+config SOC_HPM6360
+	bool
+	select SOC_HPM63_COMMON
+
+config SOC_HPM6364
+	bool
+	select SOC_HPM63_COMMON
+if SOC_SERIES_HPM6300
+
+choice
+	prompt "Base CPU ISA options"
+	default HPM63_RV32I
+
+config HPM63_RV32I
+	bool "RISCV32 CPU ISA"
+	select RISCV_ISA_RV32I
+
+config HPM63_RV32E
+	bool "RISCV32E CPU ISA"
+	select RISCV_ISA_RV32E
+
+endchoice
+
+choice
+	prompt "FPU options"
+	default HPM63_NO_FPU
+
+config HPM63_NO_FPU
+	bool "No FPU"
+
+config HPM63_SINGLE_PRECISION_FPU
+	bool "Single precision FPU"
+	select CPU_HAS_FPU
+
+config HPM63_DOUBLE_PRECISION_FPU
+	bool "Double precision FPU"
+	select CPU_HAS_FPU_DOUBLE_PRECISION
+
+endchoice
+
+config SOC_ANDES_V5_HWDSP
+	bool "AndeStar V5 DSP ISA"
+	select RISCV_SOC_CONTEXT_SAVE
+	depends on !RISCV_GENERIC_TOOLCHAIN
+	help
+		This option enables the AndeStar v5 hardware DSP, in order to
+		support using the DSP instructions.
+
+config SOC_ANDES_V5_PMA
+	bool "Andes V5 Physical Memory Attribute (PMA)"
+	default y
+	select ARCH_HAS_NOCACHE_MEMORY_SUPPORT
+	select HAS_HPMSDK_PMP
+	help
+		This option enables the Andes V5 PMA, in order to support SW to
+		configure physical memory attribute by PMA CSRs. The address
+		matching of Andes V5 PMA is like RISC-V PMP NAPOT mode
+		(power-of-two alignment).
+
+endif # SOC_SERIES_HPM6300

@@ -2,7 +2,7 @@
 windows上的环境配置
 ======================
 
-**windows** 环境下可以使用 **chocolatey** 去获取必要的工具,也可以使用打包好的工具(存放在gitlab)。
+**windows** 环境下可以使用 **chocolatey** 去获取必要的工具。
 
 使用chocolatey安装工具
 ----------------------
@@ -46,14 +46,14 @@ windows上的环境配置
         cd %workspace%
         west init -m https://github.com/hpmicro/zephyr_sdk_glue.git --mr main
 
-#. 获取所需仓库的源代码,默认从github获取,需要切换到国内源,请输入第一条指令:
+#. 获取所需仓库的源代码,默认从github获取,需要切换到gitee源,请输入第一条指令:
 
     .. code-block:: console
 
         west config manifest.file west_gitee.yml
         west update
 
-#. 配置CMake变量
+#. 将zephyr安装路径注册到cmake中
 
     .. code-block:: console
 
@@ -83,7 +83,7 @@ windows上的环境配置
 Zephyr SDK
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Zephyr 官方 SDK，功能完整，兼容性最佳。
+Zephyr SDK 1.0.1 是默认推荐工具链。安装时使用 minimal SDK 包，并配合 RISC-V GNU 工具链包。
 
 下载地址：`ZEPHYR-SDK <https://github.com/zephyrproject-rtos/sdk-ng/releases/>`_
 
@@ -92,15 +92,15 @@ Zephyr 官方 SDK，功能完整，兼容性最佳。
     .. code-block:: console
 
         cd %workspace%
-        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/zephyr-sdk-0.16.5_windows-x86_64.7z
-        7z x zephyr-sdk-0.16.5_windows-x86_64.7z
+        wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v1.0.1/zephyr-sdk-1.0.1_windows-x86_64_minimal.7z
+        7z x zephyr-sdk-1.0.1_windows-x86_64_minimal.7z
 
 #. 配置工具链必要变量
 
     .. code-block:: console
 
-        cd zephyr-sdk-0.16.5
-        setup.cmd
+        cd zephyr-sdk-1.0.1
+        setup.cmd /t riscv64-zephyr-elf /c
 
 ZCC 工具链
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -133,7 +133,7 @@ GNU 交叉编译工具链
         set ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
         set CROSS_COMPILE=C:\path\to\riscv32-unknown-elf-gcc\bin\riscv32-unknown-elf-
 
-    请将 ``C:\path\to\riscv32-unknown-elf-gcc`` 替换为您的工具链实际安装路径
+    请将 ``C:\path\to\riscv32-unknown-elf-`` 替换为您的工具链实际安装路径
 
 编译zephyr的button sample
 --------------------------

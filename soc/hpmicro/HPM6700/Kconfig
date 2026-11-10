@@ -5,11 +5,13 @@ config SOC_SERIES_HPM6700
 	select RISCV
 	select RISCV_PRIVILEGED
 	select RISCV_HAS_PLIC
+	select RISCV_MACHINE_TIMER
+	select RISCV_SOC_HAS_GP_RELATIVE_ADDRESSING
 	select DYNAMIC_INTERRUPTS
 	help
 	  Enable support for HPMicro HPM64/67 series SoC
 
-config SOC_HPM6750
+config SOC_HPM67_COMMON
 	bool
 	select ATOMIC_OPERATIONS_C
 	select INCLUDE_RESET_VECTOR
@@ -21,6 +23,38 @@ config SOC_HPM6750
 	select CPU_HAS_DCACHE
 	select CPU_HAS_ICACHE
 	select RISCV_PMP if !MCUBOOT
+
+config SOC_HPM6430
+	bool
+	select SOC_HPM67_COMMON
+
+config SOC_HPM6450
+	bool
+	select SOC_HPM67_COMMON
+
+config SOC_HPM6454
+	bool
+	select SOC_HPM67_COMMON
+
+config SOC_HPM64G0
+	bool
+	select SOC_HPM67_COMMON
+
+config SOC_HPM64A0
+	bool
+	select SOC_HPM67_COMMON
+
+config SOC_HPM6730
+	bool
+	select SOC_HPM67_COMMON
+
+config SOC_HPM6750
+	bool
+	select SOC_HPM67_COMMON
+
+config SOC_HPM6754
+	bool
+	select SOC_HPM67_COMMON
 if SOC_SERIES_HPM6700
 
 choice

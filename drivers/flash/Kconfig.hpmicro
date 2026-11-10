@@ -10,5 +10,6 @@ config FLASH_HPMICRO
 	select HAS_HPMSDK_FLASH
 	select FLASH_HAS_DRIVER_ENABLED
 	select FLASH_HAS_PAGE_LAYOUT
+	select FLASH_HAS_EXPLICIT_ERASE
 	help
 	  Enable the hpmicro flash driver.
